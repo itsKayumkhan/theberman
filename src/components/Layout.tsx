@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Menu, X, ArrowRight, Home, Smartphone, Mail } from 'lucide-react';
 
@@ -21,16 +21,15 @@ const Layout = () => {
     return (
         <div className="flex flex-col min-h-screen font-sans">
             {/* HEADER */}
-            <header className="fixed w-full top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm transition-all duration-300">
+            <header className="fixed w-full top-0 z-50 bg-[#007F00] backdrop-blur-md border-b border-green-700 shadow-sm transition-all duration-300">
                 <div className="container mx-auto px-6 h-20 flex justify-between items-center">
 
                     {/* Logo */}
-                    <Link to="/" className="flex items-center gap-2 group" onClick={closeMenu}>
+                    <Link to="/" className="flex items-center gap-2 group  " onClick={closeMenu}>
                         <div className="relative">
-                            <div className="absolute inset-0 bg-[#9ACD32]/20 rounded-full blur-sm group-hover:bg-[#9ACD32]/40 transition-all"></div>
-                            <img src="/logo.png" alt="The Berman Logo" className="h-10 w-auto relative z-10" />
+                            <img src="/logo.svg" alt="The Berman Logo" className="h-18 w-auto relative z-10 brightness-0 invert" />
                         </div>
-                        <span className="text-2xl font-serif font-bold text-gray-900 group-hover:text-[#007F00] transition-colors">
+                        <span className="text-2xl font-serif font-bold text-white group-hover:text-green-200 transition-colors">
                             The Berman
                         </span>
                     </Link>
@@ -42,8 +41,8 @@ const Layout = () => {
                                 key={link.path}
                                 to={link.path}
                                 className={`text-sm font-bold tracking-wide transition-colors ${location.pathname === link.path
-                                    ? 'text-[#007F00]'
-                                    : 'text-gray-600 hover:text-[#007F00]'
+                                    ? 'text-white border-b-2 border-white'
+                                    : 'text-green-100 hover:text-white'
                                     }`}
                             >
                                 {link.label.toUpperCase()}
@@ -51,21 +50,21 @@ const Layout = () => {
                         ))}
 
                         <Link to="/contact">
-                            <button className="bg-[#007F00] hover:bg-green-800 text-white text-xs font-bold uppercase tracking-wider px-5 py-3 rounded-full transition shadow-md flex items-center gap-2">
+                            <button className="bg-white hover:bg-green-50 text-[#007F00] text-xs font-bold uppercase tracking-wider px-5 py-3 rounded-full transition shadow-md flex items-center gap-2">
                                 Book Now <ArrowRight size={14} />
                             </button>
                         </Link>
                     </nav>
 
                     {/* Mobile Menu Button */}
-                    <button className="md:hidden p-2 text-gray-700 hover:text-[#007F00] transition" onClick={toggleMenu}>
+                    <button className="md:hidden p-2 text-white hover:text-green-200 transition" onClick={toggleMenu}>
                         {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
                     </button>
                 </div>
 
                 {/* Mobile Navigation Dropdown */}
                 {isMenuOpen && (
-                    <nav className="md:hidden bg-white border-t border-gray-100 flex flex-col p-6 shadow-lg absolute w-full h-screen animate-fade-in-up">
+                    <nav className="md:hidden bg-[#007F00] border-t border-green-700 flex flex-col p-6 shadow-lg absolute w-full h-screen animate-fade-in-up">
                         <div className="flex flex-col gap-6 text-center">
                             {NAV_LINKS.map((link) => (
                                 <Link
@@ -73,15 +72,15 @@ const Layout = () => {
                                     to={link.path}
                                     onClick={closeMenu}
                                     className={`text-xl font-serif font-bold ${location.pathname === link.path
-                                        ? 'text-[#007F00]'
-                                        : 'text-gray-800'
+                                        ? 'text-white'
+                                        : 'text-green-100'
                                         }`}
                                 >
                                     {link.label}
                                 </Link>
                             ))}
                             <Link to="/contact" onClick={closeMenu}>
-                                <button className="w-full bg-[#9ACD32] text-green-900 font-bold py-4 rounded-xl mt-4">
+                                <button className="w-full bg-white text-[#007F00] font-bold py-4 rounded-xl mt-4">
                                     Get a Free Quote
                                 </button>
                             </Link>
@@ -103,7 +102,7 @@ const Layout = () => {
                         {/* Brand Column */}
                         <div className="col-span-1 md:col-span-1">
                             <div className="flex items-center gap-2 mb-6">
-                                <img src="logo.png" alt="The Berman" className="h-8 brightness-0 invert opacity-80" />
+                                <img src="logo.svg" alt="The Berman" className="h-16" />
                                 <span className="text-xl font-serif font-bold">The Berman</span>
                             </div>
                             <p className="text-gray-400 text-sm leading-relaxed mb-6">
