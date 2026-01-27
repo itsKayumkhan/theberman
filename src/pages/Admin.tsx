@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { LogOut, RefreshCw, Mail, Phone, Calendar, MessageSquare, Trash2 } from 'lucide-react';
+import { LogOut, RefreshCw, MessageSquare, Trash2, Eye, X, Mail, Phone, MapPin, Home, Calendar, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface Lead {
@@ -12,11 +13,16 @@ interface Lead {
     phone: string;
     message: string;
     status: string;
+    county?: string;
+    town?: string;
+    property_type?: string;
+    purpose?: string;
 }
 
 const Admin = () => {
     const [leads, setLeads] = useState<Lead[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
     const { signOut, user } = useAuth();
     const navigate = useNavigate();
 
@@ -47,6 +53,9 @@ const Admin = () => {
             if (error) throw error;
             // Optimistic update
             setLeads(leads.map(lead => lead.id === id ? { ...lead, status: newStatus } : lead));
+            if (selectedLead?.id === id) {
+                setSelectedLead({ ...selectedLead, status: newStatus });
+            }
         } catch (error) {
             console.error('Error updating status:', error);
         }
@@ -62,6 +71,7 @@ const Admin = () => {
 
             if (error) throw error;
             setLeads(leads.filter(lead => lead.id !== id));
+            if (selectedLead?.id === id) setSelectedLead(null);
         } catch (error) {
             console.error('Error deleting lead:', error);
         }
@@ -86,7 +96,7 @@ const Admin = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 font-sans">
+        <div className="min-h-screen bg-gray-50 font-sans relative">
             {/* Admin Header */}
             <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-20">
                 <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -128,7 +138,7 @@ const Admin = () => {
                         onClick={fetchLeads}
                         className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm text-gray-700 hover:text-[#007F00] hover:border-[#007F00]"
                     >
-                        <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+                        <RefreshCw className={loading ? 'animate-spin' : ''} size={16} />
                         Refresh Data
                     </button>
                 </div>
@@ -148,14 +158,45 @@ const Admin = () => {
                     </div>
                 ) : (
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="overflow-x-auto">
+                        {/* Mobile View: Cards */}
+                        <div className="md:hidden">
+                            {leads.map((lead) => (
+                                <div key={lead.id} className="p-4 border-b border-gray-100 space-y-3">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <p className="font-bold text-gray-900">{lead.name}</p>
+                                            <p className="text-xs text-gray-500">{new Date(lead.created_at).toLocaleDateString()}</p>
+                                        </div>
+                                        <div className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${getStatusColor(lead.status || 'new')}`}>
+                                            {lead.status || 'new'}
+                                        </div>
+                                    </div>
+                                    <div className="text-sm text-gray-600">
+                                        <p>{lead.email}</p>
+                                        <p className="mt-1">{lead.town}, {lead.county}</p>
+                                    </div>
+                                    <div className="flex justify-end gap-2 pt-2">
+                                        <button
+                                            onClick={() => setSelectedLead(lead)}
+                                            className="text-xs bg-gray-50 border border-gray-200 px-3 py-2 rounded-lg font-bold text-gray-700"
+                                        >
+                                            View Details
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Desktop View: Table */}
+                        <div className="hidden md:block overflow-x-auto">
                             <table className="w-full text-left text-sm text-gray-600">
                                 <thead className="bg-gray-50/50 text-gray-900 font-bold uppercase tracking-wider text-xs border-b border-gray-100">
                                     <tr>
                                         <th className="px-6 py-4">Status</th>
-                                        <th className="px-6 py-4">Date Received</th>
-                                        <th className="px-6 py-4">Client Details</th>
-                                        <th className="px-6 py-4 w-1/3">Message</th>
+                                        <th className="px-6 py-4">Date</th>
+                                        <th className="px-6 py-4">Client Name</th>
+                                        <th className="px-6 py-4">Location</th>
+                                        <th className="px-6 py-4">Purpose</th>
                                         <th className="px-6 py-4 text-right">Actions</th>
                                     </tr>
                                 </thead>
@@ -163,53 +204,40 @@ const Admin = () => {
                                     {leads.map((lead) => (
                                         <tr key={lead.id} className="hover:bg-green-50/30 transition-colors group">
                                             <td className="px-6 py-4">
-                                                <select
-                                                    value={lead.status || 'new'}
-                                                    onChange={(e) => updateStatus(lead.id, e.target.value)}
-                                                    className={`appearance-none cursor-pointer pl-3 pr-8 py-1 rounded-full text-xs font-bold uppercase tracking-wide border-0 focus:ring-2 focus:ring-green-500 outline-none transition-all ${getStatusColor(lead.status || 'new')}`}
-                                                >
-                                                    <option value="new">New</option>
-                                                    <option value="contacted">Contacted</option>
-                                                    <option value="completed">Completed</option>
-                                                </select>
+                                                <div className={`inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${getStatusColor(lead.status || 'new')}`}>
+                                                    {lead.status || 'new'}
+                                                </div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center gap-2 font-medium text-gray-900">
-                                                    <Calendar size={14} className="text-[#007F00]" />
-                                                    {new Date(lead.created_at).toLocaleDateString()}
-                                                </div>
-                                                <div className="text-xs text-gray-400 pl-6 mt-0.5">
-                                                    {new Date(lead.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                </div>
+                                            <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                                                {new Date(lead.created_at).toLocaleDateString()}
+                                            </td>
+                                            <td className="px-6 py-4 font-medium text-gray-900">
+                                                {lead.name}
+                                                <div className="text-xs text-gray-400 font-normal">{lead.email}</div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <div className="font-bold text-gray-900 text-base mb-1">{lead.name}</div>
-                                                <div className="flex flex-col gap-1 text-xs">
-                                                    <div className="flex items-center gap-2 hover:text-[#007F00] transition-colors cursor-pointer" title="Copy Email" onClick={() => navigator.clipboard.writeText(lead.email)}>
-                                                        <Mail size={12} className="text-gray-400" />
-                                                        <span>{lead.email}</span>
-                                                    </div>
-                                                    {lead.phone && (
-                                                        <div className="flex items-center gap-2 hover:text-[#007F00] transition-colors cursor-pointer" title="Copy Phone" onClick={() => navigator.clipboard.writeText(lead.phone)}>
-                                                            <Phone size={12} className="text-gray-400" />
-                                                            <span>{lead.phone}</span>
-                                                        </div>
-                                                    )}
-                                                </div>
+                                                {lead.town ? `${lead.town}, ${lead.county || ''} ` : '-'}
                                             </td>
-                                            <td className="px-6 py-4">
-                                                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100 text-gray-700 italic text-sm">
-                                                    "{lead.message}"
-                                                </div>
+                                            <td className="px-6 py-4 text-gray-500">
+                                                {lead.purpose || '-'}
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <button
-                                                    onClick={() => deleteLead(lead.id)}
-                                                    className="text-gray-400 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
-                                                    title="Delete Lead"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <button
+                                                        onClick={() => setSelectedLead(lead)}
+                                                        className="flex items-center gap-1 bg-white border border-gray-200 text-gray-600 hover:text-[#007F00] hover:border-[#007F00] px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm"
+                                                    >
+                                                        <Eye size={14} />
+                                                        View More
+                                                    </button>
+                                                    <button
+                                                        onClick={() => deleteLead(lead.id)}
+                                                        className="text-gray-400 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
+                                                        title="Delete Lead"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -219,6 +247,146 @@ const Admin = () => {
                     </div>
                 )}
             </main>
+
+            {/* LEAL DETAILS MODAL */}
+            {selectedLead && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+                        {/* Modal Header */}
+                        <div className="bg-white border-b border-gray-100 p-6 flex justify-between items-start shrink-0">
+                            <div>
+                                <h3 className="text-2xl font-bold text-gray-900">Lead Details</h3>
+                                <p className="text-sm text-gray-400 flex items-center gap-2 mt-1.5 font-medium">
+                                    <Calendar size={14} />
+                                    Received: {new Date(selectedLead.created_at).toLocaleString()}
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div className="relative group">
+                                    <select
+                                        value={selectedLead.status || 'new'}
+                                        onChange={(e) => updateStatus(selectedLead.id, e.target.value)}
+                                        className={`appearance-none cursor-pointer pl-4 pr-9 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border-0 ring-1 ring-inset focus:ring-2 outline-none transition-all shadow-sm ${getStatusColor(selectedLead.status || 'new')} ring-black/5 hover:ring-black/10`}
+                                    >
+                                        <option value="new">New</option>
+                                        <option value="contacted">Contacted</option>
+                                        <option value="completed">Completed</option>
+                                    </select>
+                                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500/80 pointer-events-none group-hover:text-gray-700 transition-colors" size={14} />
+                                </div>
+                                <button
+                                    onClick={() => setSelectedLead(null)}
+                                    className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
+                                >
+                                    <X size={24} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="p-6 pt-2 overflow-y-auto space-y-4 grow">
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Client Info Card */}
+                                <div className="border border-gray-100 rounded-2xl p-6 bg-white hover:border-[#007F00]/30 hover:shadow-md hover:shadow-green-500/5 transition-all duration-300 group">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <h4 className="text-[11px] font-extrabold text-[#007F00] uppercase tracking-widest bg-green-50 px-3 py-1 rounded-full">Client Information</h4>
+                                    </div>
+
+                                    <div className="flex items-center gap-4 mb-6">
+                                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-green-50 to-green-100 text-[#007F00] flex items-center justify-center font-bold text-xl shadow-sm border border-green-200/50">
+                                            {selectedLead.name.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-gray-900 text-lg break-words">{selectedLead.name}</p>
+                                            <p className="text-xs text-gray-500 font-medium bg-gray-100 px-2 py-0.5 rounded inline-block mt-1">Customer</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="border-t border-dashed border-gray-200 my-5"></div>
+
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-3 text-sm text-gray-600 font-medium p-2 hover:bg-gray-50 rounded-lg transition-colors -mx-2 break-all">
+                                            <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-[#007F00]/10 group-hover:text-[#007F00] transition-colors shrink-0">
+                                                <Mail size={16} />
+                                            </div>
+                                            {selectedLead.email}
+                                        </div>
+                                        <div className="flex items-center gap-3 text-sm text-gray-600 font-medium p-2 hover:bg-gray-50 rounded-lg transition-colors -mx-2">
+                                            <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-[#007F00]/10 group-hover:text-[#007F00] transition-colors shrink-0">
+                                                <Phone size={16} />
+                                            </div>
+                                            {selectedLead.phone}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Property Info Card */}
+                                <div className="border border-gray-100 rounded-2xl p-6 bg-white hover:border-[#007EA7]/30 hover:shadow-md hover:shadow-blue-500/5 transition-all duration-300 h-full flex flex-col justify-between group">
+                                    <div>
+                                        <div className="flex items-center justify-between mb-6">
+                                            <h4 className="text-[11px] font-extrabold text-[#007EA7] uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full">Property Details</h4>
+                                        </div>
+                                        <div className="space-y-6">
+                                            <div className="flex items-start gap-4 p-2 -mx-2">
+                                                <div className="w-10 h-10 rounded-full bg-blue-50 text-[#007EA7] flex items-center justify-center shrink-0 border border-blue-100">
+                                                    <MapPin size={20} />
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-gray-900 text-lg leading-tight mb-1">{selectedLead.town || 'Not provided'}</p>
+                                                    <p className="text-sm text-gray-500 font-medium">{selectedLead.county || 'County not provided'}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-3 text-sm text-gray-700 p-2 hover:bg-blue-50/50 rounded-lg transition-colors -mx-2">
+                                                <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-[#007EA7]/10 group-hover:text-[#007EA7] transition-colors shrink-0">
+                                                    <Home size={18} />
+                                                </div>
+                                                <span className="font-medium text-gray-600">{selectedLead.property_type || 'N/A'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-6">
+                                        <div className="inline-flex items-center px-4 py-1.5 bg-[#007EA7] text-white rounded-full text-xs font-bold shadow-sm">
+                                            Purpose: {selectedLead.purpose || 'N/A'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Message */}
+                            <div>
+                                <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 pl-1">MESSAGE FROM CLIENT</h4>
+                                <div className="bg-gray-50 rounded-xl p-6 text-gray-700 text-sm leading-relaxed border border-gray-100 font-medium">
+                                    {selectedLead.message}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                                <button
+                                    onClick={() => {
+                                        window.location.href = `mailto:${selectedLead.email}?subject=${encodeURIComponent('Quote for your project - The Berman')}&body=${encodeURIComponent(`Hi ${selectedLead.name},\n\nBased on your requirements for ${selectedLead.purpose || 'your project'}, we are pleased to provide the following quote:\n\n[Insert Quote Details Here]\n\nPlease let us know if you would like to proceed.\n\nBest regards,\nThe Berman Team`)}`;
+                                    }}
+                                    className="w-full bg-[#007F00] text-white font-bold text-sm py-4 rounded-xl hover:bg-green-800 transition-colors flex items-center justify-center gap-2 shadow-sm hover:shadow-md cursor-pointer no-underline"
+                                >
+                                    <MessageSquare size={18} />
+                                    Generate Quote
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        window.location.href = `mailto:${selectedLead.email}?subject=${encodeURIComponent('Re: Your inquiry to The Berman')}&body=${encodeURIComponent(`Hi ${selectedLead.name},\n\nThank you for reaching out regarding your property in ${selectedLead.town || 'your area'}.\n\n`)}`;
+                                    }}
+                                    className="w-full bg-white border-2 border-gray-900 text-gray-900 font-bold text-sm py-4 rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 cursor-pointer no-underline"
+                                >
+                                    <Mail size={18} />
+                                    Email Client
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

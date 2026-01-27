@@ -11,10 +11,13 @@ import Contact from './pages/Contact';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
 
+import ScrollToTop from './components/ScrollToTop';
+
 function App() {
     return (
         <AuthProvider>
             <BrowserRouter>
+                <ScrollToTop />
                 <Routes>
                     <Route path="/" element={<Layout />}>
                         <Route index element={<Home />} />

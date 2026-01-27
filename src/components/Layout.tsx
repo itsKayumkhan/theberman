@@ -42,8 +42,8 @@ const Layout = () => {
                                 key={link.path}
                                 to={link.path}
                                 className={`text-sm font-bold tracking-wide transition-colors ${location.pathname === link.path
-                                        ? 'text-[#007F00]'
-                                        : 'text-gray-600 hover:text-[#007F00]'
+                                    ? 'text-[#007F00]'
+                                    : 'text-gray-600 hover:text-[#007F00]'
                                     }`}
                             >
                                 {link.label.toUpperCase()}
@@ -73,8 +73,8 @@ const Layout = () => {
                                     to={link.path}
                                     onClick={closeMenu}
                                     className={`text-xl font-serif font-bold ${location.pathname === link.path
-                                            ? 'text-[#007F00]'
-                                            : 'text-gray-800'
+                                        ? 'text-[#007F00]'
+                                        : 'text-gray-800'
                                         }`}
                                 >
                                     {link.label}
@@ -103,7 +103,7 @@ const Layout = () => {
                         {/* Brand Column */}
                         <div className="col-span-1 md:col-span-1">
                             <div className="flex items-center gap-2 mb-6">
-                                <img src="/logo.png" alt="The Berman" className="h-8 brightness-0 invert opacity-80" />
+                                <img src="logo.png" alt="The Berman" className="h-8 brightness-0 invert opacity-80" />
                                 <span className="text-xl font-serif font-bold">The Berman</span>
                             </div>
                             <p className="text-gray-400 text-sm leading-relaxed mb-6">
@@ -131,17 +131,7 @@ const Layout = () => {
                             </ul>
                         </div>
 
-                        {/* Services */}
-                        <div>
-                            <h4 className="text-sm font-bold uppercase tracking-wider text-[#9ACD32] mb-6">Services</h4>
-                            <ul className="space-y-3">
-                                {['Domestic BER', 'Commercial BER', 'Energy Audits', 'Grant Consulting', 'Retrofit Advice'].map(service => (
-                                    <li key={service} className="text-gray-400 text-sm hover:text-white transition cursor-pointer">
-                                        {service}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
+
 
                         {/* Contact */}
                         <div>
@@ -149,11 +139,11 @@ const Layout = () => {
                             <ul className="space-y-4">
                                 <li className="flex items-start gap-3 text-gray-400 text-sm">
                                     <Smartphone className="text-[#9ACD32] mt-0.5" size={16} />
-                                    <span>087 442 1653</span>
+                                    <a href="tel:0874421653" className="hover:text-white transition">087 442 1653</a>
                                 </li>
                                 <li className="flex items-start gap-3 text-gray-400 text-sm">
                                     <Mail className="text-[#9ACD32] mt-0.5" size={16} />
-                                    <span>info@theberman.eu</span>
+                                    <a href="mailto:hello@theberman.eu" className="hover:text-white transition">hello@theberman.eu</a>
                                 </li>
                                 <li className="flex items-start gap-3 text-gray-400 text-sm">
                                     <Home className="text-[#9ACD32] mt-0.5" size={16} />

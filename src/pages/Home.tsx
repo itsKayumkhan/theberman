@@ -1,9 +1,6 @@
-import React from 'react';
 import {
-    ArrowRight, CheckCircle2, Zap, Home,
-    Building2, Phone, ShieldCheck, Clock, Award,
-    Star, Users, TrendingUp,
-    CheckCircle
+    ArrowRight, CheckCircle, CheckCircle2, Home, Star, Clock,
+    Zap, ShieldCheck, Building2, Phone, Award, TrendingUp
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -15,7 +12,9 @@ import TestimonialCard from '../components/TestimonialCard';
 const HomePage = () => {
 
     return (
-        <div className="font-sans text-gray-900 bg-white">
+        <div className="font-sans text-gray-900">
+            <title>Home | Berman Building Energy Ratings</title>
+            <meta name="description" content="Professional BER assessments in Dublin and surrounding counties. Fast, accurate, and SEAI registered. Book your Building Energy Rating today." />
             {/* 1. HERO SECTION */}
             <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden bg-gradient-to-br from-green-50 via-white to-green-50/30 px-10">
 
@@ -88,7 +87,7 @@ const HomePage = () => {
                                     alt="Modern Eco House"
                                     className="w-full h-full object-cover"
                                     onError={(e) => {
-                                        e.target.src = 'https://placehold.co/800x600/e2e8f0/007F00?text=Hero+Image'; // Fallback
+                                        (e.target as HTMLImageElement).src = 'https://placehold.co/800x600/e2e8f0/007F00?text=Hero+Image'; // Fallback
                                     }}
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
@@ -109,7 +108,7 @@ const HomePage = () => {
                             <div className="hidden md:flex absolute top-8 -right-8 bg-white p-3 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 items-center gap-3 z-20 animate-pulse-slow">
                                 <div className="flex -space-x-3">
                                     {[1, 2, 3].map((i) => (
-                                        <div key={i} className={`w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center overflow-hidden`}>
+                                        <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center overflow-hidden">
                                             <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="Client" />
                                         </div>
                                     ))}
@@ -325,7 +324,7 @@ const HomePage = () => {
                 </div>
             </section>
 
-        </div>
+        </div >
     );
 };
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Truck, BarChart3, Cpu, Globe2, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ServiceCard from '../components/ServiceCard';
@@ -6,6 +5,8 @@ import ServiceCard from '../components/ServiceCard';
 const Services = () => {
     return (
         <div className="font-sans text-gray-900 bg-white">
+            <title>Our Services | BER Certs, Audits & Energy Advice</title>
+            <meta name="description" content="Comprehensive energy rating services including BER certificates, provisional ratings, and energy audits for homes and businesses in Dublin." />
             {/* 1. HERO SECTION */}
             <section className="pt-32 pb-20 bg-gradient-to-b from-green-50 to-white">
                 <div className="container mx-auto px-6 text-center max-w-4xl">
@@ -59,7 +60,7 @@ const Services = () => {
                             "Grant eligibility checks included",
                             "Discounts for multiple properties"
                         ]}
-                        image="/api/placeholder/600/400"
+                        image="https://placehold.co/600x400/e2e8f0/007F00?text=Domestic+BER"
                         align="left"
                     />
 
@@ -73,7 +74,7 @@ const Services = () => {
                             "detailed payback analysis for upgrades",
                             "Portfolio management"
                         ]}
-                        image="/api/placeholder/600/400"
+                        image="https://placehold.co/600x400/e2e8f0/007F00?text=Commercial+Audit"
                         align="right"
                     />
                 </div>

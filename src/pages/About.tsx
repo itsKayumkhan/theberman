@@ -1,4 +1,3 @@
-import React from 'react';
 import { Target, Users, Globe, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ServiceCard from '../components/ServiceCard';
@@ -6,6 +5,8 @@ import ServiceCard from '../components/ServiceCard';
 const About = () => {
     return (
         <div className="font-sans text-gray-900 bg-white">
+            <title>About Us | The Berman - Expert BER Assessors</title>
+            <meta name="description" content="Learn about The Berman, Dublin's leading BER assessors. Trusted by thousands of homeowners for accurate, fast, and professional energy ratings." />
             {/* 1. HERO SECTION */}
             <section className="pt-32 pb-20 bg-gradient-to-b from-green-50 to-white">
                 <div className="container mx-auto px-6 text-center max-w-4xl">

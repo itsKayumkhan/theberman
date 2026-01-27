@@ -7,10 +7,15 @@ import { supabase } from '../lib/supabase';
 import { Loader2, Send, CheckCircle, AlertCircle, Phone, Mail, MapPin, Clock } from 'lucide-react';
 
 const contactSchema = z.object({
-    name: z.string().min(2, 'Name is required'),
-    email: z.string().email('Invalid email address'),
-    phone: z.string().min(10, 'Valid phone number is required'),
-    message: z.string().min(10, 'Message must be at least 10 characters'),
+    name: z.string().min(2, 'Name must be at least 2 characters'),
+    email: z.string().email('Please enter a valid email address'),
+    phone: z.string().regex(/^\+?[0-9\s-]{9,15}$/, 'Please enter a valid phone number (e.g. 087 123 4567)'),
+    county: z.string().min(1, 'Please select a county'),
+    town: z.string().min(2, 'Town/City is required'),
+    property_type: z.string().min(1, 'Please select a property type'),
+    purpose: z.string().min(1, 'Please select a purpose'),
+    message: z.string().min(10, 'Message is too short (min 10 chars)'),
+    bot_check: z.string().optional(), // Honeypot field
 });
 
 type ContactFormData = z.infer<typeof contactSchema>;
@@ -29,6 +34,15 @@ const Contact = () => {
 
     const onSubmit = async (data: ContactFormData) => {
         setSubmitStatus('idle');
+
+        // Honeypot Check: If the hidden field has a value, it's a bot.
+        // Return success instantly to trick the bot, but do nothing.
+        if (data.bot_check) {
+            setSubmitStatus('success');
+            reset();
+            return;
+        }
+
         try {
             const { error } = await supabase
                 .from('leads')
@@ -36,10 +50,26 @@ const Contact = () => {
                     name: data.name,
                     email: data.email,
                     phone: data.phone,
+                    county: data.county,
+                    town: data.town,
+                    property_type: data.property_type,
+                    purpose: data.purpose,
                     message: data.message,
                 }]);
 
             if (error) throw error;
+
+            // Trigger Supabase Edge Function for Email Notification
+            const { error: functionError } = await supabase.functions.invoke('send-email', {
+                body: { record: data }
+            });
+
+            if (functionError) {
+                console.error('Email notification failed:', functionError);
+                // We don't block the UI success state even if email fails,
+                // but we should log it.
+            }
+
             setSubmitStatus('success');
             reset();
         } catch (error) {
@@ -50,6 +80,8 @@ const Contact = () => {
 
     return (
         <div className="font-sans text-gray-900 bg-white">
+            <title>Contact Us | Get a Quote for Your BER</title>
+            <meta name="description" content="Contact The Berman for a quick quote or to schedule your BER assessment. Serving Dublin, Meath, Kildare, and Wicklow." />
             {/* 1. HERO SECTION */}
             <section className="pt-32 pb-20 bg-gradient-to-b from-green-50 to-white">
                 <div className="container mx-auto px-6 text-center max-w-4xl">
@@ -158,6 +190,68 @@ const Contact = () => {
                                         </div>
                                     </div>
 
+                                    <div className="grid md:grid-cols-2 gap-5">
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">County</label>
+                                            <select
+                                                {...register('county')}
+                                                className={`w-full bg-gray-50 border rounded-lg p-3 outline-none focus:border-[#007F00] transition ${errors.county ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
+                                            >
+                                                <option value="">Select County</option>
+                                                <option value="Dublin">Dublin</option>
+                                                <option value="Meath">Meath</option>
+                                                <option value="Kildare">Kildare</option>
+                                                <option value="Wicklow">Wicklow</option>
+                                                <option value="Louth">Louth</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                            {errors.county && <p className="text-red-500 text-xs mt-1">{errors.county.message}</p>}
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">Town</label>
+                                            <input
+                                                {...register('town')}
+                                                className={`w-full bg-gray-50 border rounded-lg p-3 outline-none focus:border-[#007F00] transition ${errors.town ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
+                                                placeholder="e.g. Rathgar"
+                                            />
+                                            {errors.town && <p className="text-red-500 text-xs mt-1">{errors.town.message}</p>}
+                                        </div>
+                                    </div>
+
+                                    <div className="grid md:grid-cols-2 gap-5">
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">Property Type</label>
+                                            <select
+                                                {...register('property_type')}
+                                                className={`w-full bg-gray-50 border rounded-lg p-3 outline-none focus:border-[#007F00] transition ${errors.property_type ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
+                                            >
+                                                <option value="">Select Type</option>
+                                                <option value="Apartment">Apartment</option>
+                                                <option value="Mid-Terrace">Mid-Terrace</option>
+                                                <option value="End-Terrace">End-Terrace</option>
+                                                <option value="Semi-Detached">Semi-Detached</option>
+                                                <option value="Detached">Detached</option>
+                                                <option value="Bungalow">Bungalow</option>
+                                            </select>
+                                            {errors.property_type && <p className="text-red-500 text-xs mt-1">{errors.property_type.message}</p>}
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">Purpose</label>
+                                            <select
+                                                {...register('purpose')}
+                                                className={`w-full bg-gray-50 border rounded-lg p-3 outline-none focus:border-[#007F00] transition ${errors.purpose ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
+                                            >
+                                                <option value="">Select Purpose</option>
+                                                <option value="Mortgage/Bank">Mortgage/Bank</option>
+                                                <option value="Selling">Selling</option>
+                                                <option value="Renting">Renting</option>
+                                                <option value="Govt Grant">Govt Grant</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                            {errors.purpose && <p className="text-red-500 text-xs mt-1">{errors.purpose.message}</p>}
+                                        </div>
+                                    </div>
+
                                     <div>
                                         <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">Email</label>
                                         <input
@@ -177,6 +271,16 @@ const Contact = () => {
                                             placeholder="How can we help?"
                                         ></textarea>
                                         {errors.message && <p className="text-red-500 text-xs mt-1">{errors.message.message}</p>}
+                                    </div>
+
+                                    {/* Honeypot Field for Spam Protection */}
+                                    <div className="hidden">
+                                        <input
+                                            type="text"
+                                            tabIndex={-1}
+                                            autoComplete="off"
+                                            {...register('bot_check')}
+                                        />
                                     </div>
 
                                     <button

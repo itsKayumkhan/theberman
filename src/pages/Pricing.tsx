@@ -1,5 +1,4 @@
 
-import React from 'react';
 import { Check, ArrowRight, X, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import FaqItem from '../components/FaqItem';
@@ -7,6 +6,8 @@ import FaqItem from '../components/FaqItem';
 const Pricing = () => {
     return (
         <div className="font-sans text-gray-900 bg-white">
+            <title>Pricing | Transparent BER Rating Costs</title>
+            <meta name="description" content="Clear, upfront pricing for Building Energy Ratings. Plans for apartments, houses, and new builds starting from €150. No hidden fees." />
             {/* 1. HERO SECTION */}
             <section className="pt-32 pb-20 bg-gradient-to-b from-green-50 to-white">
                 <div className="container mx-auto px-6 text-center max-w-4xl">
