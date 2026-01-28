@@ -16,7 +16,7 @@ const HomePage = () => {
             <title>Home | Berman Building Energy Ratings</title>
             <meta name="description" content="Professional BER assessments in Dublin and surrounding counties. Fast, accurate, and SEAI registered. Book your Building Energy Rating today." />
             {/* 1. HERO SECTION */}
-            <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden bg-gradient-to-br from-green-50 via-white to-green-50/30 px-10">
+            <section className="relative pt-32 pb-20 lg:pt-24   lg:pb-28 overflow-hidden bg-gradient-to-br from-green-50 via-white to-green-50/30 px-10">
 
                 {/* Background Decor (Blur Blobs) - Fixed positioning */}
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-green-200/40 rounded-full blur-3xl opacity-50 pointer-events-none -translate-y-1/2 translate-x-1/2" />
