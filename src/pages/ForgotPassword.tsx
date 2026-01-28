@@ -3,61 +3,34 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuth } from '../hooks/useAuth';
-import { supabase } from '../lib/supabase';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Loader2 ,ArrowLeft} from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Loader2, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const loginSchema = z.object({
+const forgotPasswordSchema = z.object({
     email: z.string().email('Invalid email address'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-type LoginFormData = z.infer<typeof loginSchema>;
+type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
-const Login = () => {
-    const { signIn } = useAuth();
-    const navigate = useNavigate();
-    const location = useLocation();
-    const from = location.state?.from?.pathname || '/admin';
+const ForgotPassword = () => {
+    const { resetPassword } = useAuth();
 
     const {
         register,
         handleSubmit,
         formState: { isSubmitting, errors },
-    } = useForm<LoginFormData>({
-        resolver: zodResolver(loginSchema),
+    } = useForm<ForgotPasswordFormData>({
+        resolver: zodResolver(forgotPasswordSchema),
     });
 
-    const onSubmit = async (data: LoginFormData) => {
+    const onSubmit = async (data: ForgotPasswordFormData) => {
         try {
-            const { data: authData, error } = await signIn(data.email, data.password);
+            const { error } = await resetPassword(data.email);
             if (error) throw error;
-
-            // Fetch profile to determine where to redirect
-            if (authData.user) {
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('role')
-                    .eq('id', authData.user.id)
-                    .maybeSingle();
-
-                const role = profile?.role || 'user';
-
-                if (from !== '/admin') {
-                    // If user tried to access a specific page, go there (if allowed)
-                    // But strictly speaking, if they were redirected from a protected route, we might want to respect that.
-                    // However, for simplicity and security, let's enforce dashboard by role if the 'from' is generic or login.
-                    navigate(from, { replace: true });
-                } else {
-                    // Default redirects based on role
-                    if (role === 'admin') navigate('/admin', { replace: true });
-                    else if (role === 'contractor') navigate('/dashboard/contractor', { replace: true });
-                    else navigate('/dashboard/user', { replace: true });
-                }
-            }
+            toast.success('Password reset email sent! Check your inbox.');
         } catch (err: any) {
-            toast.error(err.message || 'Failed to login');
+            toast.error(err.message || 'Failed to send reset email');
         }
     };
 
@@ -79,11 +52,11 @@ const Login = () => {
 
                     <div className="mt-20">
                         <h1 className="text-5xl font-serif font-bold text-white leading-tight mb-6">
-                            Building a More <br />
-                            <span className="text-[#9ACD32]">Sustainable Future.</span>
+                            Secure your <br />
+                            <span className="text-[#9ACD32]">Account.</span>
                         </h1>
                         <p className="text-green-100 text-lg max-w-md leading-relaxed">
-                            Access your dashboard to manage BER assessments, view reports, and track energy improvements all in one place.
+                            It happens to the best of us. We'll help you get back into your account in no time.
                         </p>
                     </div>
                 </div>
@@ -104,13 +77,16 @@ const Login = () => {
                 </div>
 
                 <div className="max-w-md w-full">
-                    <Link to="/" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#007F00] transition-colors mb-8 font-medium">
+                    <Link to="/" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#007F00] transition-colors mb-4 font-medium">
                         <ArrowLeft size={16} /> Back to Home
                     </Link>
 
                     <div className="mb-10">
-                        <h2 className="text-3xl font-serif font-bold text-gray-900 mb-3">Welcome back</h2>
-                        <p className="text-gray-500">Please enter your details to sign in.</p>
+                        <Link to="/login" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors mb-8">
+                            <ArrowLeft size={16} /> Back to Login
+                        </Link>
+                        <h2 className="text-3xl font-serif font-bold text-gray-900 mb-3">Forgot Password?</h2>
+                        <p className="text-gray-500">Enter your email and we'll send you a link to reset your password.</p>
                     </div>
 
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -125,20 +101,6 @@ const Login = () => {
                             {errors.email && <p className="text-red-500 text-xs mt-1 font-medium">{errors.email.message}</p>}
                         </div>
 
-                        <div className="space-y-1">
-                            <div className="flex justify-between items-center">
-                                <label className="text-sm font-bold text-gray-700">Password</label>
-                                <Link to="/forgot-password" className="text-xs font-bold text-[#007F00] hover:underline">Forgot password?</Link>
-                            </div>
-                            <input
-                                {...register('password')}
-                                type="password"
-                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#007F00] focus:border-transparent outline-none transition-all"
-                                placeholder="••••••••"
-                            />
-                            {errors.password && <p className="text-red-500 text-xs mt-1 font-medium">{errors.password.message}</p>}
-                        </div>
-
                         <button
                             type="submit"
                             disabled={isSubmitting}
@@ -147,21 +109,12 @@ const Login = () => {
                             {isSubmitting ? (
                                 <>
                                     <Loader2 className="animate-spin" size={20} />
-                                    Signing in...
+                                    Sending Link...
                                 </>
                             ) : (
-                                'Sign In'
+                                'Send Reset Link'
                             )}
                         </button>
-
-                        <div className="text-center mt-8">
-                            <p className="text-gray-500">
-                                Don't have an account?{' '}
-                                <Link to="/signup" className="text-[#007F00] font-bold hover:underline">
-                                    Sign up for free
-                                </Link>
-                            </p>
-                        </div>
                     </form>
                 </div>
             </div>
@@ -169,4 +122,4 @@ const Login = () => {
     );
 };
 
-export default Login;
+export default ForgotPassword;

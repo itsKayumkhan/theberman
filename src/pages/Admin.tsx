@@ -93,7 +93,7 @@ const Admin = () => {
                 .from('promo_settings')
                 .select('*')
                 .eq('id', 1)
-                .single();
+                .maybeSingle();
 
             if (data) {
                 setPromoSettings(data);
