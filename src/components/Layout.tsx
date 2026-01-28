@@ -1,7 +1,8 @@
 
 import { useState } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Menu, X, ArrowRight, Home, Smartphone, Mail } from 'lucide-react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, ArrowRight, Home, Smartphone, Mail, User as UserIcon, LayoutDashboard, Shield, LogOut, ChevronDown } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 const NAV_LINKS = [
     { label: 'Home', path: '/' },
@@ -14,9 +15,36 @@ const NAV_LINKS = [
 const Layout = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const location = useLocation();
+    const navigate = useNavigate();
+    const { user, role, signOut } = useAuth();
 
     const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
     const closeMenu = () => setIsMenuOpen(false);
+
+    const handleLogout = async () => {
+        await signOut();
+        navigate('/login');
+        closeMenu();
+    };
+
+    const getDashboardLink = () => {
+        if (!user) return '/contact'; // Should not happen if logged in
+        if (role === 'admin') return '/admin';
+        if (role === 'contractor') return '/dashboard/contractor';
+        return '/dashboard/user';
+    };
+
+    const getDashboardLabel = () => {
+        if (role === 'admin') return 'Admin Panel';
+        if (role === 'contractor') return 'Partner Portal';
+        return 'My Dashboard';
+    };
+
+    const getDashboardIcon = () => {
+        if (role === 'admin') return <Shield size={16} />;
+        if (role === 'contractor') return <LayoutDashboard size={16} />;
+        return <LayoutDashboard size={16} />;
+    };
 
     return (
         <div className="flex flex-col min-h-screen font-sans">
@@ -49,11 +77,64 @@ const Layout = () => {
                             </Link>
                         ))}
 
-                        <Link to="/contact">
-                            <button className="bg-white hover:bg-green-50 text-[#007F00] text-xs font-bold uppercase tracking-wider px-5 py-3 rounded-full transition shadow-md flex items-center gap-2">
-                                Book Now <ArrowRight size={14} />
-                            </button>
-                        </Link>
+                        {/* Auth Buttons / Dropdown */}
+                        {!user ? (
+                            <div className="flex items-center gap-4 ml-4">
+                                <Link to="/login" className="text-green-100 hover:text-white font-bold text-sm tracking-wide transition-colors">
+                                    LOGIN
+                                </Link>
+                                <Link to="/signup">
+                                    <button className="bg-white hover:bg-green-50 text-[#007F00] text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-full transition shadow-md flex items-center gap-2">
+                                        Sign Up <ArrowRight size={14} />
+                                    </button>
+                                </Link>
+                            </div>
+                        ) : (
+                            <div className="relative group ml-4">
+                                <button className="flex items-center gap-3 text-white hover:text-green-100 transition focus:outline-none">
+                                    <div className="w-9 h-9 rounded-full bg-green-800 border-2 border-green-600 flex items-center justify-center text-green-100">
+                                        <UserIcon size={18} />
+                                    </div>
+                                    <div className="text-left hidden lg:block">
+                                        <p className="text-xs font-bold text-green-200 uppercase tracking-wider leading-none mb-0.5">{role}</p>
+                                        <p className="text-sm font-bold leading-none">{user.user_metadata?.full_name?.split(' ')[0] || 'User'}</p>
+                                    </div>
+                                    <ChevronDown size={14} className="text-green-200 group-hover:rotate-180 transition-transform duration-200" />
+                                </button>
+
+                                {/* Dropdown Menu */}
+                                <div className="absolute right-0 top-full pt-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right w-56">
+                                    <div className="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-100 ring-1 ring-black ring-opacity-5">
+                                        <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50">
+                                            <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Signed in as</p>
+                                            <p className="text-sm font-bold text-gray-900 truncate">{user.email}</p>
+                                        </div>
+
+                                        <div className="py-2">
+                                            <Link
+                                                to={getDashboardLink()}
+                                                className="flex items-center gap-3 px-5 py-3 text-sm font-medium text-gray-700 hover:bg-green-50 hover:text-[#007F00] transition-colors"
+                                            >
+                                                <div className="w-8 h-8 rounded-lg bg-green-100 text-[#007F00] flex items-center justify-center">
+                                                    {getDashboardIcon()}
+                                                </div>
+                                                Dashboard
+                                            </Link>
+
+                                            <button
+                                                onClick={handleLogout}
+                                                className="w-full text-left flex items-center gap-3 px-5 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                                            >
+                                                <div className="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center">
+                                                    <LogOut size={16} />
+                                                </div>
+                                                Sign Out
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </nav>
 
                     {/* Mobile Menu Button */}
@@ -64,7 +145,18 @@ const Layout = () => {
 
                 {/* Mobile Navigation Dropdown */}
                 {isMenuOpen && (
-                    <nav className="md:hidden bg-[#007F00] border-t border-green-700 flex flex-col p-6 shadow-lg absolute w-full h-screen animate-fade-in-up">
+                    <nav className="md:hidden bg-[#007F00] border-t border-green-700 flex flex-col p-6 shadow-lg absolute w-full min-h-screen animate-fade-in-up pb-32">
+                        {user && (
+                            <div className="flex items-center gap-4 mb-4 pb-8 border-b border-green-800">
+                                <div className="w-12 h-12 rounded-full bg-green-800 border-2 border-green-600 flex items-center justify-center text-white">
+                                    <UserIcon size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-white font-bold text-lg">{user.user_metadata?.full_name || 'User'}</p>
+                                    <p className="text-green-200 text-sm">{user.email}</p>
+                                </div>
+                            </div>
+                        )}
                         <div className="flex flex-col gap-6 text-center">
                             {NAV_LINKS.map((link) => (
                                 <Link
@@ -79,11 +171,35 @@ const Layout = () => {
                                     {link.label}
                                 </Link>
                             ))}
-                            <Link to="/contact" onClick={closeMenu}>
-                                <button className="w-full bg-white text-[#007F00] font-bold py-4 rounded-xl mt-4">
-                                    Get a Free Quote
-                                </button>
-                            </Link>
+
+                            {!user ? (
+                                <div className="flex flex-col gap-4 mt-6">
+                                    <Link to="/login" onClick={closeMenu}>
+                                        <button className="w-full bg-green-800 border border-green-700 text-white font-bold py-4 rounded-xl">
+                                            Log In
+                                        </button>
+                                    </Link>
+                                    <Link to="/signup" onClick={closeMenu}>
+                                        <button className="w-full bg-white text-[#007F00] font-bold py-4 rounded-xl">
+                                            Sign Up Free
+                                        </button>
+                                    </Link>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col gap-4 mt-4 pt-4 border-t border-green-800">
+                                    <Link to={getDashboardLink()} onClick={closeMenu}>
+                                        <button className="w-full bg-white text-[#007F00] font-bold py-4 rounded-xl flex items-center justify-center gap-2">
+                                            {getDashboardIcon()} {getDashboardLabel()}
+                                        </button>
+                                    </Link>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="w-full bg-green-900/50 text-red-300 hover:bg-red-900/20 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors border border-green-800"
+                                    >
+                                        <LogOut size={18} /> Sign Out
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </nav>
                 )}

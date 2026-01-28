@@ -1,10 +1,10 @@
 
-import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { supabase } from '../lib/supabase';
-import { Loader2, Send, CheckCircle, AlertCircle, Phone, Mail, MapPin, Clock } from 'lucide-react';
+import { Loader2, Send, Phone, Mail, MapPin, Clock } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const contactSchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -21,8 +21,6 @@ const contactSchema = z.object({
 type ContactFormData = z.infer<typeof contactSchema>;
 
 const Contact = () => {
-    const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
-
     const {
         register,
         handleSubmit,
@@ -33,12 +31,10 @@ const Contact = () => {
     });
 
     const onSubmit = async (data: ContactFormData) => {
-        setSubmitStatus('idle');
-
         // Honeypot Check: If the hidden field has a value, it's a bot.
         // Return success instantly to trick the bot, but do nothing.
         if (data.bot_check) {
-            setSubmitStatus('success');
+            toast.success('Message sent successfully!');
             reset();
             return;
         }
@@ -70,11 +66,11 @@ const Contact = () => {
                 // but we should log it.
             }
 
-            setSubmitStatus('success');
+            toast.success('Message sent successfully! We will be in touch shortly.');
             reset();
         } catch (error) {
             console.error('Error:', error);
-            setSubmitStatus('error');
+            toast.error('Failed to send message. Please try again.');
         }
     };
 
@@ -149,150 +145,130 @@ const Contact = () => {
                         <div className="p-12 relative">
                             <h3 className="text-2xl font-serif font-bold text-gray-900 mb-6">Send us a Message</h3>
 
-                            {submitStatus === 'success' ? (
-                                <div className="bg-green-50 rounded-2xl p-8 text-center border border-green-200">
-                                    <CheckCircle className="mx-auto h-16 w-16 text-[#007F00] mb-4" />
-                                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Message Sent!</h3>
-                                    <p className="text-gray-600 mb-6">We'll be in touch shortly.</p>
-                                    <button
-                                        onClick={() => setSubmitStatus('idle')}
-                                        className="text-[#007F00] font-bold underline hover:text-green-800"
-                                    >
-                                        Send another
-                                    </button>
+                            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                                <div className="grid md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">Name</label>
+                                        <input
+                                            {...register('name')}
+                                            className={`w-full bg-gray-50 border rounded-lg p-3 outline-none focus:border-[#007F00] transition ${errors.name ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
+                                            placeholder="Your Name"
+                                        />
+                                        {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">Phone</label>
+                                        <input
+                                            {...register('phone')}
+                                            className={`w-full bg-gray-50 border rounded-lg p-3 outline-none focus:border-[#007F00] transition ${errors.phone ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
+                                            placeholder="087..."
+                                        />
+                                        {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>}
+                                    </div>
                                 </div>
-                            ) : (
-                                <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-                                    {submitStatus === 'error' && (
-                                        <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg flex items-center gap-2 text-sm">
-                                            <AlertCircle size={16} /> Failed to send message.
-                                        </div>
-                                    )}
 
-                                    <div className="grid md:grid-cols-2 gap-5">
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">Name</label>
-                                            <input
-                                                {...register('name')}
-                                                className={`w-full bg-gray-50 border rounded-lg p-3 outline-none focus:border-[#007F00] transition ${errors.name ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
-                                                placeholder="Your Name"
-                                            />
-                                            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">Phone</label>
-                                            <input
-                                                {...register('phone')}
-                                                className={`w-full bg-gray-50 border rounded-lg p-3 outline-none focus:border-[#007F00] transition ${errors.phone ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
-                                                placeholder="087..."
-                                            />
-                                            {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>}
-                                        </div>
-                                    </div>
-
-                                    <div className="grid md:grid-cols-2 gap-5">
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">County</label>
-                                            <select
-                                                {...register('county')}
-                                                className={`w-full bg-gray-50 border rounded-lg p-3 outline-none focus:border-[#007F00] transition ${errors.county ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
-                                            >
-                                                <option value="">Select County</option>
-                                                <option value="Dublin">Dublin</option>
-                                                <option value="Meath">Meath</option>
-                                                <option value="Kildare">Kildare</option>
-                                                <option value="Wicklow">Wicklow</option>
-                                                <option value="Louth">Louth</option>
-                                                <option value="Other">Other</option>
-                                            </select>
-                                            {errors.county && <p className="text-red-500 text-xs mt-1">{errors.county.message}</p>}
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">Town</label>
-                                            <input
-                                                {...register('town')}
-                                                className={`w-full bg-gray-50 border rounded-lg p-3 outline-none focus:border-[#007F00] transition ${errors.town ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
-                                                placeholder="e.g. Rathgar"
-                                            />
-                                            {errors.town && <p className="text-red-500 text-xs mt-1">{errors.town.message}</p>}
-                                        </div>
-                                    </div>
-
-                                    <div className="grid md:grid-cols-2 gap-5">
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">Property Type</label>
-                                            <select
-                                                {...register('property_type')}
-                                                className={`w-full bg-gray-50 border rounded-lg p-3 outline-none focus:border-[#007F00] transition ${errors.property_type ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
-                                            >
-                                                <option value="">Select Type</option>
-                                                <option value="Apartment">Apartment</option>
-                                                <option value="Mid-Terrace">Mid-Terrace</option>
-                                                <option value="End-Terrace">End-Terrace</option>
-                                                <option value="Semi-Detached">Semi-Detached</option>
-                                                <option value="Detached">Detached</option>
-                                                <option value="Bungalow">Bungalow</option>
-                                            </select>
-                                            {errors.property_type && <p className="text-red-500 text-xs mt-1">{errors.property_type.message}</p>}
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">Purpose</label>
-                                            <select
-                                                {...register('purpose')}
-                                                className={`w-full bg-gray-50 border rounded-lg p-3 outline-none focus:border-[#007F00] transition ${errors.purpose ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
-                                            >
-                                                <option value="">Select Purpose</option>
-                                                <option value="Mortgage/Bank">Mortgage/Bank</option>
-                                                <option value="Selling">Selling</option>
-                                                <option value="Renting">Renting</option>
-                                                <option value="Govt Grant">Govt Grant</option>
-                                                <option value="Other">Other</option>
-                                            </select>
-                                            {errors.purpose && <p className="text-red-500 text-xs mt-1">{errors.purpose.message}</p>}
-                                        </div>
-                                    </div>
-
+                                <div className="grid md:grid-cols-2 gap-5">
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">Email</label>
-                                        <input
-                                            {...register('email')}
-                                            className={`w-full bg-gray-50 border rounded-lg p-3 outline-none focus:border-[#007F00] transition ${errors.email ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
-                                            placeholder="your@email.com"
-                                        />
-                                        {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
+                                        <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">County</label>
+                                        <select
+                                            {...register('county')}
+                                            className={`w-full bg-gray-50 border rounded-lg p-3 outline-none focus:border-[#007F00] transition ${errors.county ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
+                                        >
+                                            <option value="">Select County</option>
+                                            <option value="Dublin">Dublin</option>
+                                            <option value="Meath">Meath</option>
+                                            <option value="Kildare">Kildare</option>
+                                            <option value="Wicklow">Wicklow</option>
+                                            <option value="Louth">Louth</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                        {errors.county && <p className="text-red-500 text-xs mt-1">{errors.county.message}</p>}
                                     </div>
-
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">Message</label>
-                                        <textarea
-                                            {...register('message')}
-                                            rows={4}
-                                            className={`w-full bg-gray-50 border rounded-lg p-3 outline-none focus:border-[#007F00] transition ${errors.message ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
-                                            placeholder="How can we help?"
-                                        ></textarea>
-                                        {errors.message && <p className="text-red-500 text-xs mt-1">{errors.message.message}</p>}
-                                    </div>
-
-                                    {/* Honeypot Field for Spam Protection */}
-                                    <div className="hidden">
+                                        <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">Town</label>
                                         <input
-                                            type="text"
-                                            tabIndex={-1}
-                                            autoComplete="off"
-                                            {...register('bot_check')}
+                                            {...register('town')}
+                                            className={`w-full bg-gray-50 border rounded-lg p-3 outline-none focus:border-[#007F00] transition ${errors.town ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
+                                            placeholder="e.g. Rathgar"
                                         />
+                                        {errors.town && <p className="text-red-500 text-xs mt-1">{errors.town.message}</p>}
                                     </div>
+                                </div>
 
-                                    <button
-                                        type="submit"
-                                        disabled={isSubmitting}
-                                        className="w-full bg-[#9ACD32] hover:bg-lime-400 text-green-900 font-bold py-4 rounded-lg transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-70"
-                                    >
-                                        {isSubmitting ? <Loader2 className="animate-spin" /> : <Send size={20} />}
-                                        Send Message
-                                    </button>
-                                </form>
-                            )}
+                                <div className="grid md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">Property Type</label>
+                                        <select
+                                            {...register('property_type')}
+                                            className={`w-full bg-gray-50 border rounded-lg p-3 outline-none focus:border-[#007F00] transition ${errors.property_type ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
+                                        >
+                                            <option value="">Select Type</option>
+                                            <option value="Apartment">Apartment</option>
+                                            <option value="Mid-Terrace">Mid-Terrace</option>
+                                            <option value="End-Terrace">End-Terrace</option>
+                                            <option value="Semi-Detached">Semi-Detached</option>
+                                            <option value="Detached">Detached</option>
+                                            <option value="Bungalow">Bungalow</option>
+                                        </select>
+                                        {errors.property_type && <p className="text-red-500 text-xs mt-1">{errors.property_type.message}</p>}
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">Purpose</label>
+                                        <select
+                                            {...register('purpose')}
+                                            className={`w-full bg-gray-50 border rounded-lg p-3 outline-none focus:border-[#007F00] transition ${errors.purpose ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
+                                        >
+                                            <option value="">Select Purpose</option>
+                                            <option value="Mortgage/Bank">Mortgage/Bank</option>
+                                            <option value="Selling">Selling</option>
+                                            <option value="Renting">Renting</option>
+                                            <option value="Govt Grant">Govt Grant</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                        {errors.purpose && <p className="text-red-500 text-xs mt-1">{errors.purpose.message}</p>}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">Email</label>
+                                    <input
+                                        {...register('email')}
+                                        className={`w-full bg-gray-50 border rounded-lg p-3 outline-none focus:border-[#007F00] transition ${errors.email ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
+                                        placeholder="your@email.com"
+                                    />
+                                    {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">Message</label>
+                                    <textarea
+                                        {...register('message')}
+                                        rows={4}
+                                        className={`w-full bg-gray-50 border rounded-lg p-3 outline-none focus:border-[#007F00] transition ${errors.message ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
+                                        placeholder="How can we help?"
+                                    ></textarea>
+                                    {errors.message && <p className="text-red-500 text-xs mt-1">{errors.message.message}</p>}
+                                </div>
+
+                                {/* Honeypot Field for Spam Protection */}
+                                <div className="hidden">
+                                    <input
+                                        type="text"
+                                        tabIndex={-1}
+                                        autoComplete="off"
+                                        {...register('bot_check')}
+                                    />
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="w-full bg-[#9ACD32] hover:bg-lime-400 text-green-900 font-bold py-4 rounded-lg transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-70"
+                                >
+                                    {isSubmitting ? <Loader2 className="animate-spin" /> : <Send size={20} />}
+                                    Send Message
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>

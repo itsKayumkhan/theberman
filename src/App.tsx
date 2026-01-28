@@ -11,6 +11,11 @@ import Pricing from './pages/Pricing';
 import Contact from './pages/Contact';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
+import UserDashboard from './pages/UserDashboard';
+import ContractorDashboard from './pages/ContractorDashboard';
+import SignUp from './pages/SignUp';
+import ForgotPassword from './pages/ForgotPassword';
+import UpdatePassword from './pages/UpdatePassword';
 
 import ScrollToTop from './components/ScrollToTop';
 
@@ -27,13 +32,39 @@ function App() {
                         <Route path="services" element={<Services />} />
                         <Route path="pricing" element={<Pricing />} />
                         <Route path="contact" element={<Contact />} />
-                        <Route path="login" element={<Login />} />
                     </Route>
+
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<SignUp />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/update-password" element={<UpdatePassword />} />
+
+                    {/* Admin Dashboard */}
                     <Route
                         path="/admin"
                         element={
-                            <ProtectedRoute>
+                            <ProtectedRoute allowedRoles={['admin']}>
                                 <Admin />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* Contractor Dashboard */}
+                    <Route
+                        path="/dashboard/contractor"
+                        element={
+                            <ProtectedRoute allowedRoles={['contractor']}>
+                                <ContractorDashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* User Dashboard */}
+                    <Route
+                        path="/dashboard/user"
+                        element={
+                            <ProtectedRoute allowedRoles={['user']}>
+                                <UserDashboard />
                             </ProtectedRoute>
                         }
                     />
