@@ -1,5 +1,6 @@
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './hooks/useAuth';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -16,6 +17,7 @@ import ScrollToTop from './components/ScrollToTop';
 function App() {
     return (
         <AuthProvider>
+            <Toaster position="top-center" reverseOrder={false} />
             <BrowserRouter>
                 <ScrollToTop />
                 <Routes>

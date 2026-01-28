@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { LogOut, RefreshCw, MessageSquare, Trash2, Eye, X, Mail, Phone, MapPin, Home, Calendar, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 interface Lead {
     id: string;
@@ -77,8 +78,70 @@ const Admin = () => {
         }
     };
 
+    const [showPromoModal, setShowPromoModal] = useState(false);
+    const [promoSettings, setPromoSettings] = useState({
+        is_enabled: false,
+        headline: '',
+        sub_text: '',
+        image_url: '',
+        destination_url: ''
+    });
+
+    const fetchPromoSettings = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('promo_settings')
+                .select('*')
+                .eq('id', 1)
+                .single();
+
+            if (data) {
+                setPromoSettings(data);
+            } else if (!error) {
+                // Initialize if not exists (though migration should handle this, doing it here too is safe)
+                const defaultSettings = { id: 1, is_enabled: false, headline: 'Considering Solar Panels?', sub_text: 'Compare the Best Solar Deals', image_url: '', destination_url: '' };
+                setPromoSettings(defaultSettings);
+            }
+        } catch (error) {
+            console.error('Error fetching promo settings:', error);
+        }
+    };
+
+    const savePromoSettings = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const updates = {
+                id: 1,
+                is_enabled: promoSettings.is_enabled,
+                headline: promoSettings.headline,
+                sub_text: promoSettings.sub_text,
+                image_url: promoSettings.image_url,
+                destination_url: promoSettings.destination_url,
+                updated_at: new Date().toISOString()
+            };
+
+            const { data, error } = await supabase
+                .from('promo_settings')
+                .upsert(updates)
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            if (data) {
+                setPromoSettings(data);
+            }
+            setShowPromoModal(false);
+            toast.success('Promo settings updated successfully!');
+        } catch (error: any) {
+            console.error('Error saving promo settings:', error);
+            toast.error(`Failed to update settings: ${error.message || 'Unknown error'}`);
+        }
+    };
+
     useEffect(() => {
         fetchLeads();
+        fetchPromoSettings();
     }, []);
 
     const handleSignOut = async () => {
@@ -113,6 +176,13 @@ const Admin = () => {
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => setShowPromoModal(true)}
+                            className="text-sm text-gray-600 hover:text-[#007F00] font-medium transition-colors"
+                        >
+                            Partner Promo
+                        </button>
+                        <span className="w-px h-4 bg-gray-300 hidden md:block"></span>
                         <span className="text-sm font-medium text-gray-600 hidden md:block">
                             {user?.email}
                         </span>
@@ -247,6 +317,100 @@ const Admin = () => {
                     </div>
                 )}
             </main>
+
+            {/* PROMO SETTINGS MODAL */}
+            {showPromoModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 animate-in zoom-in-95 duration-200">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-bold text-gray-900">Partner Promo Settings</h3>
+                            <button onClick={() => setShowPromoModal(false)} className="text-gray-400 hover:text-gray-600">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <form onSubmit={savePromoSettings} className="space-y-4">
+                            <div className="flex items-center gap-2 mb-4">
+                                <input
+                                    type="checkbox"
+                                    id="promo_enabled"
+                                    checked={promoSettings.is_enabled}
+                                    onChange={(e) => setPromoSettings({ ...promoSettings, is_enabled: e.target.checked })}
+                                    className="w-4 h-4 text-[#007F00] focus:ring-[#007F00] border-gray-300 rounded"
+                                />
+                                <label htmlFor="promo_enabled" className="text-sm font-medium text-gray-700">
+                                    Enable Partner Promo in Emails
+                                </label>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1">Headline</label>
+                                <input
+                                    type="text"
+                                    value={promoSettings.headline || ''}
+                                    onChange={(e) => setPromoSettings({ ...promoSettings, headline: e.target.value })}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#007F00]"
+                                    placeholder="e.g. Considering Solar Panels?"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1">Sub-text</label>
+                                <input
+                                    type="text"
+                                    value={promoSettings.sub_text || ''}
+                                    onChange={(e) => setPromoSettings({ ...promoSettings, sub_text: e.target.value })}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#007F00]"
+                                    placeholder="e.g. Compare the Best Solar Deals"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1">Image URL</label>
+                                <input
+                                    type="text"
+                                    value={promoSettings.image_url || ''}
+                                    onChange={(e) => setPromoSettings({ ...promoSettings, image_url: e.target.value })}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#007F00]"
+                                    placeholder="https://example.com/banner.png"
+                                />
+                                {promoSettings.image_url && (
+                                    <div className="mt-2 bg-gray-50 p-2 rounded border border-gray-200">
+                                        <p className="text-xs text-gray-500 mb-1">Preview:</p>
+                                        <img src={promoSettings.image_url} alt="Preview" className="h-16 object-contain" />
+                                    </div>
+                                )}
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1">Destination URL</label>
+                                <input
+                                    type="text"
+                                    value={promoSettings.destination_url || ''}
+                                    onChange={(e) => setPromoSettings({ ...promoSettings, destination_url: e.target.value })}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#007F00]"
+                                    placeholder="https://partner-site.com"
+                                />
+                            </div>
+
+                            <div className="pt-4 flex justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPromoModal(false)}
+                                    className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 text-sm font-bold text-white bg-[#007F00] rounded-lg hover:bg-green-800"
+                                >
+                                    Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             {/* LEAL DETAILS MODAL */}
             {selectedLead && (
