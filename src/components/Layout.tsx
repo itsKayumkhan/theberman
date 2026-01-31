@@ -1,8 +1,9 @@
 
 import { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, ArrowRight, Home, Smartphone, Mail, User as UserIcon, LayoutDashboard, Shield, LogOut, ChevronDown } from 'lucide-react';
+import { Menu, X, ArrowRight, Home, Smartphone, Mail, User as UserIcon, LayoutDashboard, Shield, LogOut, ChevronDown, Plus } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import QuoteModal from './QuoteModal';
 
 const NAV_LINKS = [
     { label: 'Home', path: '/' },
@@ -10,6 +11,7 @@ const NAV_LINKS = [
     { label: 'Services', path: '/services' },
     { label: 'Pricing', path: '/pricing' },
     { label: 'Contact', path: '/contact' },
+    { label: 'Catalogue ⭐', path: '/catalogue' },
 ];
 
 const Layout = () => {
@@ -17,6 +19,7 @@ const Layout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, role, signOut } = useAuth();
+    const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
 
     const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
     const closeMenu = () => setIsMenuOpen(false);
@@ -50,6 +53,7 @@ const Layout = () => {
         <div className="flex flex-col min-h-screen font-sans">
             {/* HEADER */}
             <header className="fixed w-full top-0 z-50 bg-[#007F00] backdrop-blur-md border-b border-green-700 shadow-sm transition-all duration-300">
+                <div className="absolute top-full left-0 right-0 h-1 bg-gradient-to-r from-green-400 via-yellow-300 to-green-400 opacity-20 pointer-events-none"></div>
                 <div className="container mx-auto px-6 h-20 flex justify-between items-center">
 
                     {/* Logo */}
@@ -83,11 +87,12 @@ const Layout = () => {
                                 <Link to="/login" className="text-green-100 hover:text-white font-bold text-sm tracking-wide transition-colors">
                                     LOGIN
                                 </Link>
-                                <Link to="/signup">
-                                    <button className="bg-white hover:bg-green-50 text-[#007F00] text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-full transition shadow-md flex items-center gap-2">
-                                        Sign Up <ArrowRight size={14} />
-                                    </button>
-                                </Link>
+                                <button
+                                    onClick={() => setIsQuoteModalOpen(true)}
+                                    className="bg-white hover:bg-green-50 text-[#007F00] text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-full transition shadow-md flex items-center gap-2"
+                                >
+                                    Sign Up <ArrowRight size={14} />
+                                </button>
                             </div>
                         ) : (
                             <div className="relative group ml-4">
@@ -203,6 +208,15 @@ const Layout = () => {
                         </div>
                     </nav>
                 )}
+                {/* Floating Quote Trigger (Mobile) */}
+                <button
+                    onClick={() => setIsQuoteModalOpen(true)}
+                    className="md:hidden fixed bottom-6 right-6 w-14 h-14 bg-[#007F00] text-white rounded-full shadow-2xl flex items-center justify-center z-40 animate-bounce"
+                >
+                    <Plus size={28} />
+                </button>
+
+                <QuoteModal isOpen={isQuoteModalOpen} onClose={() => setIsQuoteModalOpen(false)} />
             </header>
 
             {/* MAIN CONTENT */}

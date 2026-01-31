@@ -25,19 +25,19 @@ serve(async (req) => {
         const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
         const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
-        // Fetch promo settings
-        const { data: promo, error: promoError } = await supabase
-            .from('promo_settings')
+        // Fetch sponsors (up to 3)
+        const { data: sponsors, error: sponsorsError } = await supabase
+            .from('sponsors')
             .select('*')
-            .eq('id', 1)
-            .single();
+            .eq('is_active', true)
+            .limit(3);
 
-        if (promoError) {
-            console.error("Error fetching promo settings:", promoError);
+        if (sponsorsError) {
+            console.error("Error fetching sponsors:", sponsorsError);
         }
 
         // Generate Promo HTML
-        const promoHtml = generatePromoHtml(promo);
+        const promoHtml = generatePromoHtml(sponsors || []);
 
         // 1. Admin Notification (No Promo)
         const adminEmailReq = fetch('https://api.resend.com/emails', {
@@ -50,7 +50,7 @@ serve(async (req) => {
                 from: 'The Berman <onboarding@resend.dev>',
                 to: ['hello@theberman.eu'],
                 subject: `New Lead: ${record.name}`,
-                html: generateAdminEmail(record, promo, promoHtml)
+                html: generateAdminEmail(record, sponsors || [], promoHtml)
             })
         });
 
