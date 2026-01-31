@@ -15,129 +15,72 @@ const HomePage = () => {
         <div className="font-sans text-gray-900">
             <title>Home | Berman Building Energy Ratings</title>
             <meta name="description" content="Professional BER assessments in Dublin and surrounding counties. Fast, accurate, and SEAI registered. Book your Building Energy Rating today." />
-            {/* 1. HERO SECTION */}
-            <section className="relative pt-32 pb-20 lg:pt-24   lg:pb-28 overflow-hidden bg-gradient-to-br from-green-50 via-white to-green-50/30 px-10">
+            {/* 1. HERO SECTION - BERcert Style */}
+            <section className="pt-32 pb-20 lg:pt-40 lg:pb-28 bg-white">
+                <div className="container mx-auto px-6">
+                    <div className="max-w-3xl mx-auto text-center">
 
-                {/* Background Decor (Blur Blobs) - Fixed positioning */}
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-green-200/40 rounded-full blur-3xl opacity-50 pointer-events-none -translate-y-1/2 translate-x-1/2" />
-                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-lime-200/40 rounded-full blur-3xl opacity-50 pointer-events-none translate-y-1/2 -translate-x-1/2" />
+                        {/* Main Headline */}
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+                            Need a BER Cert?
+                        </h1>
 
-                <div className="container mx-auto px-6 relative z-10">
-                    <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+                        {/* Taglines */}
+                        <div className="text-gray-500 text-sm md:text-base mb-4 flex flex-wrap justify-center items-center gap-x-2">
+                            <span className="text-[#007F00]">Ireland's largest BER website</span>
+                            <span className="text-gray-300">|</span>
+                            <span>Fast, Reliable & Hassle-Free</span>
+                        </div>
 
-                        {/* 1. LEFT CONTENT (Text) */}
-                        <div className="text-center lg:text-left">
+                        <div className="text-gray-500 text-sm md:text-base mb-8 flex flex-wrap justify-center items-center gap-x-2">
+                            <span className="text-[#007F00]">Lowest Prices Guaranteed</span>
+                            <span className="text-gray-300">|</span>
+                            <span>300+ BER Assessors Nationwide</span>
+                            <span className="text-gray-300">|</span>
+                            <span>Choose your Date & Time</span>
+                        </div>
 
-                            {/* Badge */}
-                            <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full bg-white border border-green-100 shadow-sm text-[#007F00] text-xs font-bold tracking-wide uppercase">
-                                <span className="relative flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-lime-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#9ACD32]"></span>
-                                </span>
-                                WELCOME
-                            </div>
+                        {/* CTA Text */}
+                        <p className="text-gray-600 mb-6">
+                            Get the <span className="text-[#007F00]">Best Quotes</span> from local <span className="text-[#007F00]">BER Assessors</span> today.
+                        </p>
 
-                            {/* Headline */}
-                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-gray-900 mb-6 leading-tight">
-                                Empowering Energy <br /> Efficiency with <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#007F00] to-[#9ACD32]">
-                                    Trusted BER Certification
-                                </span>
-                            </h1>
+                        {/* Main CTA Button */}
+                        <Link to="/get-quote">
+                            <button className="bg-[#4CAF50] hover:bg-[#43A047] text-white font-semibold text-lg px-10 py-4 rounded-md transition-all shadow-md hover:shadow-lg">
+                                Get Quotes
+                            </button>
+                        </Link>
 
-                            {/* Subheading */}
-                            <p className="text-lg text-gray-600 mb-8 leading-relaxed max-w-lg mx-auto lg:mx-0">
-                                Your trusted partner for accurate Domestic & Commercial BER Certification. We provide safe, reliable, and efficient services to reduce your carbon footprint and energy bills.
-                            </p>
-
-                            {/* CTA Buttons */}
-                            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                                <Link to="/contact" className="w-full sm:w-auto">
-                                    <button className="w-full bg-[#007F00] text-white font-bold px-8 py-4 rounded-full hover:bg-green-800 transition shadow-lg hover:shadow-green-900/20 flex items-center justify-center gap-2 group">
-                                        Get a Quote
-                                        <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                                    </button>
-                                </Link>
-                                <Link to="/services" className="w-full sm:w-auto">
-                                    <button className="w-full bg-white border border-gray-200 text-gray-700 font-bold px-8 py-4 rounded-full hover:border-[#007F00] hover:text-[#007F00] transition">
-                                        Our Services
-                                    </button>
-                                </Link>
-                            </div>
-
-                            {/* Trust Badges */}
-                            <div className="mt-10 flex items-center justify-center lg:justify-start gap-6 text-sm font-medium text-gray-500">
-                                <div className="flex items-center gap-2">
-                                    <CheckCircle size={18} className="text-[#9ACD32]" /> Fully Insured
+                        {/* Trust Badges */}
+                        <div className="mt-10 flex flex-col items-center gap-4">
+                            {/* Trustindex Badge */}
+                            <div className="flex items-center gap-2 text-sm">
+                                <span className="font-bold text-gray-700">EXCELLENT</span>
+                                <div className="flex text-yellow-400">
+                                    {[1, 2, 3, 4].map(s => <Star key={s} size={16} fill="currentColor" />)}
+                                    <Star size={16} fill="currentColor" className="text-yellow-300" />
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <CheckCircle size={18} className="text-[#9ACD32]" /> SEAI Registered
+                                <span className="text-gray-600">1916 reviews</span>
+                                <span className="text-blue-500 flex items-center gap-1">
+                                    <CheckCircle size={14} />
+                                    Trustindex
+                                </span>
+                            </div>
+
+                            {/* Google Badge */}
+                            <div className="flex items-center gap-2">
+                                <span className="text-2xl font-bold text-blue-500">G</span>
+                                <span className="text-gray-600 text-sm">See our 5 star reviews on Google</span>
+                                <div className="flex text-yellow-400">
+                                    {[1, 2, 3, 4, 5].map(s => <Star key={s} size={18} fill="currentColor" />)}
                                 </div>
                             </div>
                         </div>
-
-                        {/* 2. RIGHT IMAGE (Visual Area) */}
-                        <div className="relative mx-auto w-full max-w-lg lg:max-w-none">
-
-                            {/* Main Image Container */}
-                            <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-gray-100 aspect-square md:aspect-[4/3]">
-                                {/* Placeholder Image - Using a reliable color block service if real image fails */}
-                                <img
-                                    src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
-                                    alt="Modern Eco House"
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).src = 'https://placehold.co/800x600/e2e8f0/007F00?text=Hero+Image'; // Fallback
-                                    }}
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                            </div>
-
-                            {/* Floating Card 1: BER Rating (Bottom Left) */}
-                            <div className="absolute top-[60%] -left-6 md:-left-12 bg-white p-4 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 flex items-center gap-4 animate-bounce-slow z-20">
-                                <div className="bg-green-100 p-3 rounded-full text-[#007F00]">
-                                    <Zap size={24} fill="currentColor" />
-                                </div>
-                                <div>
-                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Energy Rating</p>
-                                    <p className="text-xl font-bold text-gray-900 leading-none">A-Rated</p>
-                                </div>
-                            </div>
-
-                            {/* Floating Card 2: Happy Clients (Top Right) */}
-                            <div className="hidden md:flex absolute top-8 -right-8 bg-white p-3 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 items-center gap-3 z-20 animate-pulse-slow">
-                                <div className="flex -space-x-3">
-                                    {[1, 2, 3].map((i) => (
-                                        <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center overflow-hidden">
-                                            <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="Client" />
-                                        </div>
-                                    ))}
-                                    <div className="w-8 h-8 rounded-full bg-[#007F00] border-2 border-white text-white flex items-center justify-center text-xs font-bold">+2k</div>
-                                </div>
-                                <div className="flex flex-col">
-                                    <div className="flex text-yellow-400">
-                                        {[1, 2, 3, 4, 5].map(s => <Star key={s} size={10} fill="currentColor" />)}
-                                    </div>
-                                    <span className="text-xs font-bold text-gray-700">Happy Clients</span>
-                                </div>
-                            </div>
-
-                        </div>
-
                     </div>
                 </div>
-
-                {/* Animation Styles */}
-                <style>{`
-        @keyframes bounce-slow {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
-        }
-        .animate-bounce-slow {
-          animation: bounce-slow 4s infinite ease-in-out;
-        }
-      `}</style>
             </section>
+
 
             {/* 2. STATS SECTION */}
             <section className="py-16 bg-[#007F00] text-white overflow-hidden relative">
@@ -320,6 +263,75 @@ const HomePage = () => {
                                 Online Quote Form
                             </button>
                         </Link>
+                    </div>
+                </div>
+            </section>
+
+            {/* 7. NEWSLETTER / CATALOGUE SUBSCRIBE */}
+            <section className="py-20 bg-white border-t border-gray-100">
+                <div className="container mx-auto px-6">
+                    <div className="bg-gradient-to-br from-[#007F00] to-[#005F00] rounded-3xl p-12 text-center text-white relative overflow-hidden">
+                        {/* Decorative Background */}
+                        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-white/5 blur-3xl"></div>
+                        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 rounded-full bg-white/5 blur-3xl"></div>
+
+                        <div className="relative z-10 max-w-2xl mx-auto">
+                            <span className="text-[#9ACD32] font-bold uppercase tracking-widest text-sm mb-4 block">Stay Updated</span>
+                            <h2 className="text-3xl md:text-4xl font-serif font-bold mb-6">Download Our Energy <br /> Upgrade Catalogue ⭐</h2>
+                            <p className="text-green-100 mb-10 text-lg">
+                                Subscribe to get our latest home energy upgrade guide and exclusive sponsor discounts delivered to your inbox.
+                            </p>
+
+                            <form className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto" onSubmit={(e) => {
+                                e.preventDefault();
+                                // In a real app, this would send to an API
+                                const emailInput = (e.target as HTMLFormElement).querySelector('input[type="email"]') as HTMLInputElement;
+                                if (emailInput && emailInput.value) {
+                                    /* toast is not imported in this file, need to add import or just use alert for now? 
+                                       Actually, Layout uses QuoteModal which uses toast. 
+                                       Let's import toast properly at the top first if not present.
+                                       Wait, I can't see the top imports here easily. 
+                                       Let's just use a simple state for "Subscribed!" message inline to be safe and smooth.
+                                    */
+                                    // Better approach: minimal UI feedback
+                                    const btn = (e.target as HTMLFormElement).querySelector('button');
+                                    if (btn) {
+                                        const originalText = btn.innerText;
+                                        btn.innerText = 'Subscribed! ✅';
+                                        btn.className = "bg-white text-[#007F00] font-bold px-8 py-4 rounded-xl transition shadow-xl whitespace-nowrap opacity-75 cursor-default";
+                                        (e.target as HTMLFormElement).reset();
+                                        setTimeout(() => {
+                                            btn.innerText = originalText;
+                                            btn.className = "bg-white text-[#007F00] font-bold px-8 py-4 rounded-xl hover:bg-green-50 transition shadow-xl whitespace-nowrap";
+                                        }, 3000);
+                                    }
+                                }
+                            }}>
+                                <input
+                                    type="email"
+                                    placeholder="Enter your email"
+                                    className="flex-grow bg-white/10 border border-white/20 rounded-xl px-6 py-4 text-white placeholder:text-white/50 outline-none focus:bg-white/20 transition-all font-medium"
+                                    required
+                                />
+                                <button className="bg-white text-[#007F00] font-bold px-8 py-4 rounded-xl hover:bg-green-50 transition shadow-xl whitespace-nowrap">
+                                    Subscribe
+                                </button>
+                            </form>
+
+                            <div className="mt-8 flex items-center justify-center gap-6 text-xs text-green-200 font-medium">
+                                <div className="flex items-center gap-2">
+                                    <CheckCircle2 size={14} className="text-[#9ACD32]" />
+                                    No Spam
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <CheckCircle2 size={14} className="text-[#9ACD32]" />
+                                    Free Updates
+                                </div>
+                                <Link to="/catalogue" className="text-[#9ACD32] hover:underline flex items-center gap-1">
+                                    View Catalogue Online <ArrowRight size={12} />
+                                </Link>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>

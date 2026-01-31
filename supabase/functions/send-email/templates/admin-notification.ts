@@ -1,6 +1,6 @@
 
-export const generateAdminEmail = (record: any, promo: any, promoHtml: string) => {
-    return `
+export const generateAdminEmail = (record: any, sponsors: any[], promoHtml: string) => {
+  return `
                   <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
                     <div style="background-color: #007F00; padding: 20px; text-align: center;">
                       <h1 style="color: white; margin: 0; font-size: 24px;">New Lead Received</h1>
@@ -37,7 +37,7 @@ export const generateAdminEmail = (record: any, promo: any, promoHtml: string) =
                         </tr>
                       </table>
 
-                      ${promo && promo.is_enabled ? `
+                      ${sponsors && sponsors.length > 0 ? `
                         <div style="margin-top: 20px; border-top: 1px dashed #ccc; padding-top: 10px;">
                             <p style="font-size: 11px; color: #999; text-transform: uppercase; margin-bottom: 5px;">Promo sent to customer:</p>
                             ${promoHtml}
