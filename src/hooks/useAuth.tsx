@@ -7,9 +7,9 @@ interface AuthContextType {
     user: User | null;
     session: Session | null;
     loading: boolean;
-    role: 'admin' | 'contractor' | 'user' | null;
+    role: 'admin' | 'contractor' | 'user' | 'homeowner' | null;
     signIn: (email: string, password: string) => Promise<{ data: { user: User | null, session: Session | null }, error: any }>;
-    signUp: (email: string, password: string, fullName: string, role: 'user' | 'contractor') => Promise<{ data: { user: User | null, session: Session | null }, error: any }>;
+    signUp: (email: string, password: string, fullName: string, role: 'user' | 'contractor' | 'homeowner') => Promise<{ data: { user: User | null, session: Session | null }, error: any }>;
     resetPassword: (email: string) => Promise<{ data: any, error: any }>;
     updateUserPassword: (password: string) => Promise<{ data: { user: User | null }, error: any }>;
     signOut: () => Promise<void>;
@@ -20,8 +20,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
-    const [role, setRole] = useState<'admin' | 'contractor' | 'user' | null>(null);
+    const [role, setRole] = useState<'admin' | 'contractor' | 'user' | 'homeowner' | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isInitialCheckDone, setIsInitialCheckDone] = useState(false);
 
     const fetchProfile = async (userId: string) => {
         try {
@@ -34,7 +35,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             if (data) {
                 setRole(data.role);
             } else {
-                // Profile might not exist for old users, default to 'user'
                 setRole('user');
             }
         } catch (err) {
@@ -44,26 +44,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     useEffect(() => {
-        // Check active sessions and sets the user
+        // Initial session check
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
             setUser(session?.user ?? null);
             if (session?.user) {
-                fetchProfile(session.user.id).finally(() => setLoading(false));
+                fetchProfile(session.user.id).finally(() => {
+                    setLoading(false);
+                    setIsInitialCheckDone(true);
+                });
             } else {
                 setRole(null);
                 setLoading(false);
+                setIsInitialCheckDone(true);
             }
         });
 
-        // Listen for changes on auth state (logged in, signed out, etc.)
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session);
-            setUser(session?.user ?? null);
-            if (session?.user) {
-                setLoading(true);
-                fetchProfile(session.user.id).finally(() => setLoading(false));
-            } else {
+        // Listen for changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            // Only update state if it changed to prevent unnecessary re-renders
+            // But always fetch profile on sign in
+            if (event === 'SIGNED_IN') {
+                setSession(session);
+                setUser(session?.user ?? null);
+                fetchProfile(session?.user?.id || '');
+            } else if (event === 'SIGNED_OUT') {
+                setSession(null);
+                setUser(null);
                 setRole(null);
                 setLoading(false);
             }
@@ -73,10 +80,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, []);
 
     const signIn = async (email: string, password: string) => {
-        return await supabase.auth.signInWithPassword({ email, password });
+        setLoading(true);
+        try {
+            const result = await supabase.auth.signInWithPassword({ email, password });
+
+            if (result.data.user) {
+                setSession(result.data.session);
+                setUser(result.data.user);
+                await fetchProfile(result.data.user.id);
+            }
+
+            return result;
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const signUp = async (email: string, password: string, fullName: string, role: 'user' | 'contractor') => {
+    const signUp = async (email: string, password: string, fullName: string, role: 'user' | 'contractor' | 'homeowner') => {
         return await supabase.auth.signUp({
             email,
             password,
@@ -108,7 +128,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     return (
         <AuthContext.Provider value={{ user, session, loading, role, signIn, signUp, resetPassword, updateUserPassword, signOut }}>
-            {!loading && children}
+            {isInitialCheckDone ? children : (
+                <div className="min-h-screen flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#007F00]"></div>
+                </div>
+            )}
         </AuthContext.Provider>
     );
 };

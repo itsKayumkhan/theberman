@@ -9,6 +9,7 @@ import About from './pages/About';
 import Services from './pages/Services';
 import Pricing from './pages/Pricing';
 import Contact from './pages/Contact';
+import Catalogue from './pages/Catalogue';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
 import UserDashboard from './pages/UserDashboard';
@@ -16,6 +17,7 @@ import ContractorDashboard from './pages/ContractorDashboard';
 import SignUp from './pages/SignUp';
 import ForgotPassword from './pages/ForgotPassword';
 import UpdatePassword from './pages/UpdatePassword';
+import QuoteForm from './pages/QuoteForm';
 
 import ScrollToTop from './components/ScrollToTop';
 
@@ -32,7 +34,11 @@ function App() {
                         <Route path="services" element={<Services />} />
                         <Route path="pricing" element={<Pricing />} />
                         <Route path="contact" element={<Contact />} />
+                        <Route path="catalogue" element={<Catalogue />} />
                     </Route>
+
+                    {/* Quote Form - No Layout wrapper for cleaner UX */}
+                    <Route path="/get-quote" element={<QuoteForm />} />
 
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<SignUp />} />
@@ -63,7 +69,7 @@ function App() {
                     <Route
                         path="/dashboard/user"
                         element={
-                            <ProtectedRoute allowedRoles={['user']}>
+                            <ProtectedRoute allowedRoles={['user', 'homeowner']}>
                                 <UserDashboard />
                             </ProtectedRoute>
                         }

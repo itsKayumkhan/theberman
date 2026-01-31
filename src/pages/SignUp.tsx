@@ -41,11 +41,20 @@ const SignUp = () => {
 
     const onSubmit = async (data: SignUpFormData) => {
         try {
-            const { error, data: authData } = await signUp(data.email, data.password, data.fullName, data.role);
+            const { error, data: authData } = await signUp(data.email.trim(), data.password, data.fullName, data.role);
             if (error) throw error;
 
             if (authData?.user) {
-                toast.success('Account created successfully! Please log in.');
+                // If there's no session, it usually means email confirmation is required
+                const isConfirmationRequired = !authData.session;
+
+                if (isConfirmationRequired) {
+                    toast.success('Account created! Please check your email to confirm your account before logging in.', {
+                        duration: 6000
+                    });
+                } else {
+                    toast.success('Account created successfully!');
+                }
                 navigate('/login');
             }
         } catch (err: any) {
