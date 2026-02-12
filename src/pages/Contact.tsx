@@ -5,6 +5,7 @@ import * as z from 'zod';
 import { supabase } from '../lib/supabase';
 import { Loader2, Send, Phone, Mail, MapPin, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { TOWNS_BY_COUNTY } from '../data/irishTowns';
 
 const contactSchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -25,10 +26,14 @@ const Contact = () => {
         register,
         handleSubmit,
         reset,
+        watch,
+        setValue,
         formState: { errors, isSubmitting },
     } = useForm<ContactFormData>({
         resolver: zodResolver(contactSchema),
     });
+
+    const selectedCounty = watch('county');
 
     const onSubmit = async (data: ContactFormData) => {
         if (data.bot_check) {
@@ -165,28 +170,35 @@ const Contact = () => {
                                     <div className="space-y-1">
                                         <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">County</label>
                                         <select
-                                            {...register('county')}
+                                            {...register('county', {
+                                                onChange: () => setValue('town', '') // Reset town when county changes
+                                            })}
                                             className={`w-full bg-white border-2 rounded-2xl px-5 py-3 outline-none transition-all appearance-none cursor-pointer ${errors.county ? 'border-red-500' : 'border-gray-100 focus:border-[#007F00]'}`}
                                         >
                                             <option value="">Select County</option>
-                                            <option value="Dublin">Dublin</option>
-                                            <option value="Meath">Meath</option>
-                                            <option value="Kildare">Kildare</option>
-                                            <option value="Wicklow">Wicklow</option>
-                                            <option value="Louth">Louth</option>
-                                            <option value="Other">Other</option>
+                                            {Object.keys(TOWNS_BY_COUNTY).sort().map((county) => (
+                                                <option key={county} value={county}>{county}</option>
+                                            ))}
                                         </select>
                                         {errors.county && <p className="text-red-500 text-xs font-bold mt-1 ml-1">{errors.county.message}</p>}
                                     </div>
                                 </div>
 
                                 <div className="grid md:grid-cols-2 gap-4">
-                                    <FormInput
-                                        label="Town / City"
-                                        register={register('town')}
-                                        error={errors.town}
-                                        placeholder="e.g. Rathgar"
-                                    />
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Town / City</label>
+                                        <select
+                                            {...register('town')}
+                                            disabled={!selectedCounty}
+                                            className={`w-full bg-white border-2 rounded-2xl px-5 py-3 outline-none transition-all appearance-none cursor-pointer ${errors.town ? 'border-red-500' : 'border-gray-100 focus:border-[#007F00]'} ${!selectedCounty ? 'bg-gray-50 opacity-50 cursor-not-allowed' : ''}`}
+                                        >
+                                            <option value="">{selectedCounty ? 'Select Town' : 'Select County First'}</option>
+                                            {selectedCounty && TOWNS_BY_COUNTY[selectedCounty]?.map((town) => (
+                                                <option key={town} value={town}>{town}</option>
+                                            ))}
+                                        </select>
+                                        {errors.town && <p className="text-red-500 text-xs font-bold mt-1 ml-1">{errors.town.message}</p>}
+                                    </div>
                                     <div className="space-y-1">
                                         <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Property Type</label>
                                         <select

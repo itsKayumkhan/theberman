@@ -65,7 +65,7 @@ const UserDashboard = () => {
 
     const [verifyEircode, setVerifyEircode] = useState('');
     const [paymentModalOpen, setPaymentModalOpen] = useState(false);
-    const [paymentQuote, setPaymentQuote] = useState<{ assessmentId: string, quoteId: string, amount: number } | null>(null);
+    const [paymentQuote, setPaymentQuote] = useState<{ assessmentId: string, quoteId: string, amount: number, balance?: number } | null>(null);
     const [deletingAssessmentId, setDeletingAssessmentId] = useState<string | null>(null);
 
     useEffect(() => {
@@ -208,8 +208,9 @@ const UserDashboard = () => {
 
                 if (fetchError) throw fetchError;
 
-                // Open Payment Modal instead of immediate update
-                setPaymentQuote({ assessmentId, quoteId, amount: quote.price + 10 }); // Including platform fee
+                // Open Payment Modal with fixed €40 deposit and calculate balance
+                const balance = (quote.price + 10) - 40;
+                setPaymentQuote({ assessmentId, quoteId, amount: 40, balance });
                 setPaymentModalOpen(true);
                 return;
             } else {
@@ -642,7 +643,12 @@ const UserDashboard = () => {
                                                                     <div className="text-[10px] text-gray-500 font-medium">{quote.assessment.town}</div>
                                                                 </td>
                                                                 <td className="py-4 px-6">
-                                                                    <div className="text-lg font-black text-gray-900">€{quote.price + 10}</div>
+                                                                    <div className="flex flex-col">
+                                                                        <div className="text-lg font-black text-gray-900">€{quote.price + 10}</div>
+                                                                        <div className="text-[10px] text-gray-500 font-medium">
+                                                                            Deposit: €40 | Balance: €{quote.price + 10 - 40}
+                                                                        </div>
+                                                                    </div>
                                                                 </td>
                                                                 <td className="py-4 px-6 text-gray-600 font-medium whitespace-nowrap">
                                                                     {quote.estimated_date ? new Date(quote.estimated_date).toLocaleDateString('en-IE', { weekday: 'short', day: 'numeric', month: 'short' }) : 'TBC'}
@@ -724,6 +730,9 @@ const UserDashboard = () => {
                                                             </div>
                                                             <div className="text-right">
                                                                 <p className="text-xl font-black text-gray-900">€{quote.price + 10}</p>
+                                                                <div className="text-[9px] text-gray-500 font-medium mt-0.5">
+                                                                    Deposit: €40 / Balance: €{quote.price + 10 - 40}
+                                                                </div>
                                                                 <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter border ${quote.status === 'accepted' ? 'bg-green-50 text-green-700 border-green-100' :
                                                                     quote.status === 'rejected' ? 'bg-red-50 text-red-700 border-red-100' :
                                                                         'bg-amber-50 text-amber-700 border-amber-100'
@@ -805,8 +814,8 @@ const UserDashboard = () => {
                         quoteId: paymentQuote.quoteId,
                         userId: user?.id
                     }}
-                    title="Complete Assessment Booking"
-                    description={`Total includes quote price + €10 booking fee.`}
+                    title="Secure Booking Deposit"
+                    description={`Pay €40.00 deposit to book your assessment. The remaining balance of €${paymentQuote.balance?.toFixed(2)} will be payable directly to the assessor.`}
                 />
             )}
 

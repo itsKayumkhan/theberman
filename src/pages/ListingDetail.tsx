@@ -74,7 +74,18 @@ const ListingDetail = () => {
 
             if (error) throw error;
 
-            toast.success('Your message has been sent!', {
+            // Trigger Edge Function to notify the business directly
+            if (listing.email) {
+                await supabase.functions.invoke('send-catalogue-enquiry', {
+                    body: {
+                        record: enquiry,
+                        businessEmail: listing.email,
+                        businessName: listing.name
+                    }
+                });
+            }
+
+            toast.success('Your message has been sent directly to the business!', {
                 icon: '✉️',
                 duration: 5000
             });

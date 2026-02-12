@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import EmailVerification from './EmailVerification';
 import IdentityAuth from './IdentityAuth';
 import JobConfirmation from './JobConfirmation';
+import { TOWNS_BY_COUNTY } from '../data/irishTowns';
 
 // Irish Counties
 const COUNTIES = [
@@ -16,34 +17,6 @@ const COUNTIES = [
 ];
 
 // Towns by County
-const TOWNS_BY_COUNTY: Record<string, string[]> = {
-    'Dublin': ['Dublin City', 'Dun Laoghaire', 'Swords', 'Tallaght', 'Blanchardstown', 'Clondalkin', 'Lucan', 'Malahide'],
-    'Cork': ['Cork City', 'Cobh', 'Mallow', 'Midleton', 'Kinsale', 'Bandon', 'Fermoy', 'Youghal'],
-    'Galway': ['Galway City', 'Tuam', 'Ballinasloe', 'Clifden', 'Oranmore', 'Loughrea', 'Athenry'],
-    'Limerick': ['Limerick City', 'Newcastle West', 'Abbeyfeale', 'Kilmallock', 'Adare'],
-    'Waterford': ['Waterford City', 'Dungarvan', 'Tramore', 'Kilmacthomas', 'Lismore'],
-    'Kerry': ['Tralee', 'Killarney', 'Listowel', 'Kenmare', 'Dingle', 'Castleisland'],
-    'Carlow': ['Carlow Town', 'Tullow', 'Muinebheag', 'Hacketstown'],
-    'Cavan': ['Cavan Town', 'Bailieborough', 'Virginia', 'Kingscourt', 'Cootehill'],
-    'Clare': ['Ennis', 'Shannon', 'Kilrush', 'Killaloe', 'Ennistymon'],
-    'Donegal': ['Letterkenny', 'Bundoran', 'Donegal Town', 'Buncrana', 'Ballyshannon'],
-    'Kildare': ['Naas', 'Newbridge', 'Maynooth', 'Celbridge', 'Leixlip', 'Athy', 'Kildare Town'],
-    'Kilkenny': ['Kilkenny City', 'Thomastown', 'Castlecomer', 'Callan', 'Graiguenamanagh'],
-    'Laois': ['Portlaoise', 'Mountmellick', 'Portarlington', 'Abbeyleix', 'Mountrath'],
-    'Leitrim': ['Carrick-on-Shannon', 'Manorhamilton', 'Drumshanbo', 'Mohill'],
-    'Longford': ['Longford Town', 'Ballymahon', 'Granard', 'Edgeworthstown'],
-    'Louth': ['Dundalk', 'Drogheda', 'Ardee', 'Dunleer', 'Carlingford'],
-    'Mayo': ['Castlebar', 'Ballina', 'Westport', 'Claremorris', 'Ballinrobe', 'Belmullet'],
-    'Meath': ['Navan', 'Trim', 'Kells', 'Ashbourne', 'Dunshaughlin', 'Dunboyne', 'Ratoath'],
-    'Monaghan': ['Monaghan Town', 'Carrickmacross', 'Castleblayney', 'Clones', 'Ballybay'],
-    'Offaly': ['Tullamore', 'Birr', 'Edenderry', 'Clara', 'Banagher'],
-    'Roscommon': ['Roscommon Town', 'Boyle', 'Castlerea', 'Ballaghaderreen', 'Strokestown'],
-    'Sligo': ['Sligo Town', 'Tubbercurry', 'Ballymote', 'Enniscrone', 'Collooney'],
-    'Tipperary': ['Clonmel', 'Thurles', 'Nenagh', 'Tipperary Town', 'Cashel', 'Carrick-on-Suir', 'Templemore'],
-    'Westmeath': ['Athlone', 'Mullingar', 'Moate', 'Kilbeggan', 'Castlepollard'],
-    'Wexford': ['Wexford Town', 'Enniscorthy', 'Gorey', 'New Ross', 'Bunclody'],
-    'Wicklow': ['Wicklow Town', 'Bray', 'Arklow', 'Greystones', 'Baltinglass', 'Rathdrum']
-};
 
 const ROUTING_KEYS: Record<string, string> = {
     'Carlow': 'R93', 'Cavan': 'H12', 'Clare': 'V95', 'Cork': 'T12', 'Donegal': 'F92',
@@ -555,6 +528,7 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                     <IdentityAuth
                         email={formData.email}
                         fullName={formData.fullName}
+                        isExternalSubmitting={isSubmitting}
                         onAuthenticated={handleAuthenticated}
                         onBack={() => setCurrentStep(11)}
                     />
