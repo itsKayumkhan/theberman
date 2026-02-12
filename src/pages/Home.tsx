@@ -6,6 +6,7 @@ import {
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 interface PromoSettings {
     is_enabled: boolean;
@@ -18,6 +19,7 @@ interface PromoSettings {
 const HomePage = () => {
     const [promo, setPromo] = useState<PromoSettings | null>(null);
     const [isDismissed, setIsDismissed] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         const fetchPromo = async () => {
@@ -332,31 +334,54 @@ const HomePage = () => {
                                 Join 5,000+ homeowners receiving our monthly energy saving tips and exclusive sponsor discounts.
                             </p>
 
-                            <form className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto mb-8" onSubmit={(e) => {
-                                e.preventDefault();
-                                const emailInput = (e.target as HTMLFormElement).querySelector('input[type="email"]') as HTMLInputElement;
-                                if (emailInput && emailInput.value) {
-                                    const btn = (e.target as HTMLFormElement).querySelector('button');
-                                    if (btn) {
-                                        const originalText = btn.innerText;
-                                        btn.innerText = 'Subscribed! ✅';
-                                        btn.disabled = true;
+                            <form
+                                className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto mb-8"
+                                onSubmit={async (e) => {
+                                    e.preventDefault();
+                                    const emailInput = (e.target as HTMLFormElement).querySelector('input[type="email"]') as HTMLInputElement;
+                                    const email = emailInput?.value;
+
+                                    if (!email) return;
+
+                                    setIsSubmitting(true);
+                                    try {
+                                        const { error } = await supabase
+                                            .from('leads')
+                                            .insert([{
+                                                name: 'Guide Subscriber',
+                                                email: email,
+                                                message: 'Requested Complete Home Energy Upgrade Guide via Home Page Newsletter',
+                                                status: 'new',
+                                                purpose: 'Home Energy Guide'
+                                            }]);
+
+                                        if (error) throw error;
+
+                                        toast.success('Subscribed! Check your email soon.', {
+                                            icon: '✅',
+                                            duration: 5000
+                                        });
                                         (e.target as HTMLFormElement).reset();
-                                        setTimeout(() => {
-                                            btn.innerText = originalText;
-                                            btn.disabled = false;
-                                        }, 3000);
+                                    } catch (err: any) {
+                                        console.error('Newsletter error:', err);
+                                        toast.error(err.message || 'Failed to subscribe');
+                                    } finally {
+                                        setIsSubmitting(false);
                                     }
-                                }
-                            }}>
+                                }}
+                            >
                                 <input
                                     type="email"
                                     placeholder="Enter your email address"
                                     className="flex-grow bg-white border border-gray-200 rounded-2xl px-6 py-5 text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#007F00] transition-all font-bold text-lg"
                                     required
+                                    disabled={isSubmitting}
                                 />
-                                <button className="bg-[#007F00] text-white font-black px-10 py-5 rounded-2xl hover:bg-[#006400] transition-all shadow-xl shadow-green-100 whitespace-nowrap text-lg cursor-pointer">
-                                    Send Guide
+                                <button
+                                    disabled={isSubmitting}
+                                    className="bg-[#007F00] text-white font-black px-10 py-5 rounded-2xl hover:bg-[#006400] transition-all shadow-xl shadow-green-100 whitespace-nowrap text-lg cursor-pointer disabled:opacity-70 flex items-center justify-center min-w-[160px]"
+                                >
+                                    {isSubmitting ? 'Sending...' : 'Send Guide'}
                                 </button>
                             </form>
 
@@ -369,9 +394,6 @@ const HomePage = () => {
                                     <ZapIcon size={14} className="text-[#007F00]" />
                                     Instant Download
                                 </div>
-                                <Link to="/catalogue" className="text-[#007F00] hover:text-[#006400] transition-colors flex items-center gap-2">
-                                    Hire an Agent <ArrowRight size={14} />
-                                </Link>
                             </div>
                         </div>
                     </div>

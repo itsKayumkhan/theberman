@@ -18,6 +18,7 @@ export interface Location {
 export interface CatalogueListing {
     id: string;
     name: string;
+    company_name?: string;
     slug: string;
     description: string;
     long_description: string | null;
@@ -82,6 +83,7 @@ const DEFAULT_HERO_IMAGE = "https://images.unsplash.com/photo-1497366216548-3752
 
 const ListingLayout = ({ listing, enquiry, setEnquiry, onEnquirySubmit, isSubmitting }: ListingLayoutProps) => {
     const [currentSlide, setCurrentSlide] = useState(0);
+    const displayName = listing.company_name || listing.name;
 
     const dummyFeatures = [
         "Aluminium Capping",
@@ -107,7 +109,7 @@ const ListingLayout = ({ listing, enquiry, setEnquiry, onEnquirySubmit, isSubmit
 
     return (
         <div className="font-sans text-gray-900 bg-white min-h-screen pb-20">
-            <title>{listing.name} | The Berman Catalogue</title>
+            <title>{displayName} | The Berman Catalogue</title>
 
             {/* Partner Hero Carousel */}
             <div className="relative h-[450px] md:h-[600px] w-full overflow-hidden mb-12 group">
@@ -120,7 +122,7 @@ const ListingLayout = ({ listing, enquiry, setEnquiry, onEnquirySubmit, isSubmit
                         <img
                             src={img.url}
                             className="w-full h-full object-cover"
-                            alt={`${listing.name} hero ${index + 1}`}
+                            alt={`${displayName} hero ${index + 1}`}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                     </div>
@@ -258,7 +260,7 @@ const ListingLayout = ({ listing, enquiry, setEnquiry, onEnquirySubmit, isSubmit
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
                         <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 bg-gradient-to-t from-black/60 to-transparent">
                             <div className="container mx-auto max-w-7xl">
-                                <h1 className="text-4xl md:text-6xl font-bold text-white mb-2 shadow-sm">{listing.name}</h1>
+                                <h1 className="text-4xl md:text-6xl font-bold text-white mb-2 shadow-sm">{displayName}</h1>
                                 <p className="text-lg text-white/90 font-medium max-w-2xl shadow-sm">{listing.description}</p>
                             </div>
                         </div>
@@ -282,10 +284,10 @@ const ListingLayout = ({ listing, enquiry, setEnquiry, onEnquirySubmit, isSubmit
                             {/* Title moved to Hero for default layout, kept here for structure but maybe hidden if default? Keeping consistent.*/}
                             {/* If default hero is used, title is in hero. If custom images used, title is here. Refinement: keeping it simple for now, maybe duplicate title isn't bad if styled right or we hide this one when default is active. Let's hide this H1 if default hero is active to avoid duplication. */}
                             {listing.images && listing.images.length > 0 && (
-                                <h1 className="text-4xl md:text-5xl font-bold text-[#333] mb-2">{listing.name}</h1>
+                                <h1 className="text-4xl md:text-5xl font-bold text-[#333] mb-2">{displayName}</h1>
                             )}
                             {listing.slug === 'cills-ie' && (
-                                <h1 className="text-4xl md:text-5xl font-bold text-[#333] mb-2">{listing.name}</h1>
+                                <h1 className="text-4xl md:text-5xl font-bold text-[#333] mb-2">{displayName}</h1>
                             )}
                             <div className="flex items-center gap-1.5 text-gray-400">
                                 <MapPin size={18} />

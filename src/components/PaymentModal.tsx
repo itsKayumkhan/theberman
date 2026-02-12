@@ -81,7 +81,7 @@ const CheckoutForm = ({ onSuccess, amount }: { onSuccess: (id: string) => void, 
                 ) : (
                     <>
                         <Lock size={18} />
-                        Pay €{amount.toFixed(2)}
+                        Pay Booking Deposit: €{amount.toFixed(2)}
                     </>
                 )}
             </button>

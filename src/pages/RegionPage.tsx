@@ -9,6 +9,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { supabase } from '../lib/supabase';
+import HireAgentDetails from '../components/HireAgentDetails';
 
 // Fix Leaflet marker icons icon issue
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -49,6 +50,7 @@ interface Category {
 interface Listing {
     id: string;
     name: string;
+    company_name?: string;
     slug: string;
     description: string;
     category: string;
@@ -236,7 +238,7 @@ const RegionPage = () => {
                                     <div className="relative w-full sm:w-36 md:w-44 lg:w-52 h-48 sm:h-36 md:h-44 lg:h-52 overflow-hidden rounded-lg flex-shrink-0 bg-gray-50">
                                         <img
                                             src={listing.logo_url || '/placeholder-business.png'}
-                                            alt={listing.name}
+                                            alt={listing.company_name || listing.name}
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                         />
 
@@ -263,7 +265,7 @@ const RegionPage = () => {
                                         <div>
                                             <div className="flex items-center justify-between">
                                                 <h3 className="text-base sm:text-lg lg:text-xl font-black text-gray-900 group-hover:text-[#007EA7] transition-colors flex items-center gap-2">
-                                                    {listing.name}
+                                                    {listing.company_name || listing.name}
                                                     <CheckCircle2 size={16} className="text-[#007F00] fill-[#007F00] hidden sm:block" />
                                                 </h3>
                                             </div>
@@ -329,7 +331,7 @@ const RegionPage = () => {
                                                         <img src={listing.logo_url || '/placeholder-business.png'} className="w-full h-full object-cover" />
                                                     </div>
                                                     <h4 className="font-black text-gray-900 mb-1 flex items-center gap-1">
-                                                        {listing.name}
+                                                        {listing.company_name || listing.name}
                                                         <CheckCircle2 size={12} className="text-[#007F00]" />
                                                     </h4>
                                                     <p className="text-[10px] font-bold text-gray-500 mb-3 uppercase">{listing.categories?.[0]?.name || 'Service Provider'}</p>
@@ -406,7 +408,7 @@ export const AgentModal = ({ listing, onClose }: {
         const fullMessage = `
 --- HIRED AN AGENT ---
 Interested in: ${categoriesList}
-Target Provider: ${listing?.name || 'Any verified provider'}
+Target Provider: ${listing?.company_name || listing?.name || 'Any verified provider'}
 User Message: ${formData.message}
         `.trim();
 
@@ -440,30 +442,20 @@ User Message: ${formData.message}
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[85vh]">
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
                 <div className="p-6 md:p-12 overflow-y-auto flex-1 custom-scrollbar">
-                    <div className="flex justify-between items-start mb-8">
-                        <div>
+                    <div className="flex justify-between items-start mb-8 gap-4">
+                        <div className="flex-1 min-w-0">
                             <span className="inline-block px-3 py-1 bg-blue-50 text-[#007EA7] text-[10px] font-black uppercase tracking-widest rounded-full mb-3 border border-blue-100">Concierge Request</span>
-                            <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight">Hire your Agent</h2>
+                            <h2 className="text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tight leading-tight break-words">Hire your Agent</h2>
                         </div>
-                        <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                        <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors shrink-0">
                             <X size={24} className="text-gray-400" />
                         </button>
                     </div>
 
-                    <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100 mb-8 flex gap-4">
-                        <div className="w-12 h-12 bg-white rounded-2xl border border-gray-100 flex items-center justify-center shrink-0">
-                            <Star size={24} className="text-[#007F00]" />
-                        </div>
-                        <div>
-                            <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Expert Negotiation</p>
-                            <p className="text-sm font-medium text-gray-600 leading-relaxed">
-                                Our agent will handle the technical search and pricing negotiation with <span className="text-gray-900 font-bold">{listing?.name || 'our network of installers'}</span> for your project.
-                            </p>
-                        </div>
-                    </div>
+                    <HireAgentDetails />
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
