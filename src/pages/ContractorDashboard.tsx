@@ -1,8 +1,10 @@
 import { useEffect, useState, Fragment } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
-import { LogOut, HardHat, ClipboardList, CheckCircle2, Clock, X, TrendingUp, DollarSign, Briefcase, Calendar, MapPin, ArrowRight, ArrowLeft, AlertTriangle, Settings, MessageCircle, User, Menu } from 'lucide-react';
+import { LogOut, HardHat, ClipboardList, CheckCircle2, Clock, X, TrendingUp, DollarSign, Briefcase, Calendar, MapPin, ArrowRight, ArrowLeft, AlertTriangle, Settings, MessageCircle, User, Menu, Plus } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
+import { DatePicker } from '../components/ui/DatePicker';
+import { geocodeAddress } from '../lib/geocoding';
 
 import toast from 'react-hot-toast';
 
@@ -79,10 +81,14 @@ const ContractorDashboard = () => {
 
     const [view, setView] = useState<'available' | 'my_quotes' | 'active' | 'settings'>('available');
     const [profile, setProfile] = useState<any>(null);
+    const [catalogueListing, setCatalogueListing] = useState<any>(null);
     const [availableJobs, setAvailableJobs] = useState<Assessment[]>([]);
     const [myQuotes, setMyQuotes] = useState<Quote[]>([]);
     const [activeJobs, setActiveJobs] = useState<Assessment[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Date constants for restrictions (tomorrow)
+    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
 
     const [selectedJob, setSelectedJob] = useState<Assessment | null>(null);
     const [quoteModalOpen, setQuoteModalOpen] = useState(false);
@@ -93,6 +99,17 @@ const ContractorDashboard = () => {
     const [schedulingJob, setSchedulingJob] = useState<Assessment | null>(null);
     const [scheduledDate, setScheduledDate] = useState('');
     const [completingJob, setCompletingJob] = useState<Assessment | null>(null);
+
+    // Auto-detect home county from address
+    useEffect(() => {
+        if (catalogueListing?.address) {
+            const addressLower = catalogueListing.address.toLowerCase();
+            const detectedCounty = COUNTIES.find(c => addressLower.includes(c.toLowerCase()));
+            if (detectedCounty && detectedCounty !== profile?.home_county) {
+                setProfile((prev: any) => ({ ...prev, home_county: detectedCounty }));
+            }
+        }
+    }, [catalogueListing?.address]);
     const [certUrl, setCertUrl] = useState('');
 
     // Multi-step Quoting & Rejection States
@@ -137,6 +154,17 @@ const ContractorDashboard = () => {
 
             if (!profileError && profileData) {
                 setProfile(profileData);
+            }
+
+            // 1b. Fetch Catalogue Listing Data
+            const { data: listingData, error: listingError } = await supabase
+                .from('catalogue_listings')
+                .select('*')
+                .eq('email', user?.email)
+                .maybeSingle();
+
+            if (!listingError && listingData) {
+                setCatalogueListing(listingData);
             }
 
             // 2. Fetch Available Jobs (submitted status, no quote from this contractor yet)
@@ -1157,9 +1185,10 @@ const ContractorDashboard = () => {
                                     <h3 className="text-gray-600 font-medium mb-8 flex items-center justify-center gap-2 text-lg">
                                         Select Your County Lead Preferences <MapPin className="text-gray-700 fill-gray-700" size={24} />
                                     </h3>
+                                    <p className="text-sm text-gray-500 mb-6">Select the counties where you want to receive job notifications.</p>
                                     <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 px-4">
                                         {COUNTIES.map(county => {
-                                            const isSelected = profile?.preferred_counties?.includes(county) || profile?.home_county === county;
+                                            const isSelected = profile?.preferred_counties?.includes(county);
                                             return (
                                                 <button
                                                     key={county}
@@ -1173,16 +1202,14 @@ const ContractorDashboard = () => {
                                                         }
 
                                                         // Update local state first for immediate UI response
-                                                        const newHomeCounty = newCounties[0] || '';
-                                                        setProfile({ ...profile, preferred_counties: newCounties, home_county: newHomeCounty });
+                                                        setProfile({ ...profile, preferred_counties: newCounties });
 
                                                         // Auto-save to database
                                                         try {
                                                             const { error } = await supabase
                                                                 .from('profiles')
                                                                 .update({
-                                                                    preferred_counties: newCounties,
-                                                                    home_county: newHomeCounty
+                                                                    preferred_counties: newCounties
                                                                 })
                                                                 .eq('id', user?.id);
 
@@ -1231,9 +1258,6 @@ const ContractorDashboard = () => {
                                                 onChange={(e) => setProfile({ ...profile, about_me: e.target.value })}
                                                 className="w-full min-h-[120px] p-4 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none"
                                             />
-                                            <div className="text-[10px] text-gray-400 mt-1">
-                                                0/200 words
-                                            </div>
                                         </div>
 
                                         <div>
@@ -1257,32 +1281,230 @@ const ContractorDashboard = () => {
                                             />
                                         </div>
 
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-700 mb-1 ml-1">Company Logo URL</label>
+                                            <input
+                                                type="url"
+                                                value={catalogueListing?.logo_url || ''}
+                                                onChange={(e) => setCatalogueListing({ ...catalogueListing, logo_url: e.target.value })}
+                                                className="w-full p-3 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                                                placeholder="https://example.com/logo.png"
+                                            />
+                                            <p className="text-[10px] text-gray-400 mt-1 ml-1">Provide a URL to your company logo (PNG, JPG, or SVG).</p>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-700 mb-1 ml-1">Business Address</label>
+                                            <input
+                                                type="text"
+                                                value={catalogueListing?.address || ''}
+                                                onChange={(e) => setCatalogueListing({ ...catalogueListing, address: e.target.value })}
+                                                className="w-full p-3 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                                                placeholder="e.g. Navan, Co. Meath"
+                                            />
+                                            <p className="text-[10px] text-gray-400 mt-1 ml-1">This address will be displayed on the catalogue listing.</p>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-700 mb-1 ml-1">Home County (Auto-detected)</label>
+                                            <p className="text-[10px] text-gray-500 mb-2 ml-1">Your business location on the map is automatically detecting from your address.</p>
+                                            <input
+                                                type="text"
+                                                value={profile?.home_county || 'Not detected'}
+                                                readOnly
+                                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-500 cursor-not-allowed"
+                                            />
+                                        </div>
+
+                                        {/* Social Media */}
+                                        <div className="pt-4">
+                                            <label className="block text-xs font-medium text-gray-700 mb-2 ml-1">Social Media <span className="text-gray-400 font-normal">(optional)</span></label>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <div>
+                                                    <label className="block text-[10px] text-gray-500 mb-1 ml-1">Facebook</label>
+                                                    <input
+                                                        type="url"
+                                                        value={catalogueListing?.social_media?.facebook || ''}
+                                                        onChange={(e) => setCatalogueListing({ ...catalogueListing, social_media: { ...catalogueListing?.social_media, facebook: e.target.value } })}
+                                                        className="w-full p-3 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                                                        placeholder="https://facebook.com/..."
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] text-gray-500 mb-1 ml-1">Instagram</label>
+                                                    <input
+                                                        type="url"
+                                                        value={catalogueListing?.social_media?.instagram || ''}
+                                                        onChange={(e) => setCatalogueListing({ ...catalogueListing, social_media: { ...catalogueListing?.social_media, instagram: e.target.value } })}
+                                                        className="w-full p-3 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                                                        placeholder="https://instagram.com/..."
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] text-gray-500 mb-1 ml-1">LinkedIn</label>
+                                                    <input
+                                                        type="url"
+                                                        value={catalogueListing?.social_media?.linkedin || ''}
+                                                        onChange={(e) => setCatalogueListing({ ...catalogueListing, social_media: { ...catalogueListing?.social_media, linkedin: e.target.value } })}
+                                                        className="w-full p-3 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                                                        placeholder="https://linkedin.com/in/..."
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Features */}
+                                        <div className="pt-4">
+                                            <label className="block text-xs font-medium text-gray-700 mb-1 ml-1">Features / Services <span className="text-gray-400 font-normal">(optional)</span></label>
+                                            <p className="text-[10px] text-gray-400 mb-2 ml-1">Highlight key services on your listing (e.g. "Fast Turnaround", "24hr E-certs").</p>
+                                            <div className="flex gap-2 mb-3">
+                                                <input
+                                                    type="text"
+                                                    id="dashboardFeatureInput"
+                                                    className="flex-1 p-3 bg-white border border-gray-300 rounded-md text-sm text-gray-700 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                                                    placeholder="Type and press Enter or click Add"
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            e.preventDefault();
+                                                            const input = e.currentTarget;
+                                                            const val = input.value.trim();
+                                                            if (val && !(catalogueListing?.features || []).includes(val)) {
+                                                                setCatalogueListing({ ...catalogueListing, features: [...(catalogueListing?.features || []), val] });
+                                                                input.value = '';
+                                                            }
+                                                        }
+                                                    }}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const input = document.getElementById('dashboardFeatureInput') as HTMLInputElement;
+                                                        const val = input?.value.trim();
+                                                        if (val && !(catalogueListing?.features || []).includes(val)) {
+                                                            setCatalogueListing({ ...catalogueListing, features: [...(catalogueListing?.features || []), val] });
+                                                            input.value = '';
+                                                        }
+                                                    }}
+                                                    className="px-4 py-2 bg-[#5CB85C] text-white rounded-md text-sm font-medium hover:bg-green-600 transition-colors flex items-center gap-1"
+                                                >
+                                                    <Plus size={14} /> Add
+                                                </button>
+                                            </div>
+                                            {(catalogueListing?.features || []).length > 0 && (
+                                                <div className="flex flex-wrap gap-2">
+                                                    {(catalogueListing?.features || []).map((feature: string, i: number) => (
+                                                        <span key={i} className="inline-flex items-center gap-1 bg-green-50 border border-green-500 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
+                                                            {feature}
+                                                            <button type="button" onClick={() => setCatalogueListing({ ...catalogueListing, features: (catalogueListing?.features || []).filter((_: string, idx: number) => idx !== i) })} className="hover:text-red-500 transition-colors">
+                                                                <X size={12} />
+                                                            </button>
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
                                         <div className="flex justify-center gap-4 pt-8 pb-12">
                                             <button
                                                 onClick={async () => {
-                                                    const { error } = await supabase
-                                                        .from('profiles')
-                                                        .update({
-                                                            about_me: profile.about_me,
-                                                            company_name: profile.company_name,
-                                                            website_url: profile.website_url,
-                                                            // Save preferred_counties if the column exists, otherwise this might fail silently or error
-                                                            // We'll also save home_county as the first preferred county for backward compatibility
-                                                            home_county: profile.home_county,
-                                                            preferred_counties: profile.preferred_counties
-                                                        })
-                                                        .eq('id', user?.id);
+                                                    setIsSubmitting(true);
+                                                    try {
+                                                        // Fetch coordinates silently via Nominatim
+                                                        let finalLat = catalogueListing?.latitude || null;
+                                                        let finalLng = catalogueListing?.longitude || null;
 
-                                                    if (error) {
+                                                        if (catalogueListing?.address) {
+                                                            const coords = await geocodeAddress(catalogueListing.address);
+                                                            if (coords) {
+                                                                finalLat = coords.latitude;
+                                                                finalLng = coords.longitude;
+                                                            }
+                                                        }
+
+
+                                                        // Update profile
+                                                        const { error: profileErr } = await supabase
+                                                            .from('profiles')
+                                                            .update({
+                                                                about_me: profile.about_me || '',
+                                                                company_name: profile.company_name,
+                                                                website_url: profile.website_url,
+                                                                home_county: profile.home_county,
+                                                                preferred_counties: profile.preferred_counties
+                                                            })
+                                                            .eq('id', user?.id);
+
+                                                        if (profileErr) throw profileErr;
+
+                                                        // Update catalogue listing if it exists
+                                                        if (catalogueListing) {
+                                                            const { error: listErr } = await supabase
+                                                                .from('catalogue_listings')
+                                                                .update({
+                                                                    name: profile.full_name,
+                                                                    company_name: profile.company_name,
+                                                                    description: profile.about_me || '',
+                                                                    address: catalogueListing.address,
+                                                                    website: profile.website_url,
+                                                                    phone: profile.phone,
+                                                                    logo_url: catalogueListing.logo_url,
+                                                                    latitude: finalLat,
+                                                                    longitude: finalLng,
+                                                                    features: catalogueListing.features || [],
+                                                                    social_media: catalogueListing.social_media || {}
+                                                                })
+                                                                .eq('id', catalogueListing.id);
+
+                                                            if (listErr) throw listErr;
+
+
+                                                            // Update location mapping if home_county is set
+                                                            if (profile.home_county) {
+                                                                // 1. Get the location ID for the home county
+                                                                const { data: locData } = await supabase
+                                                                    .from('catalogue_locations')
+                                                                    .select('id')
+                                                                    .eq('name', profile.home_county)
+                                                                    .maybeSingle();
+
+                                                                if (locData) {
+                                                                    // 2. Remove existing location links for this listing
+                                                                    await supabase
+                                                                        .from('catalogue_listing_locations')
+                                                                        .delete()
+                                                                        .eq('listing_id', catalogueListing.id);
+
+                                                                    // 3. Insert new location link
+                                                                    const { error: locErr } = await supabase
+                                                                        .from('catalogue_listing_locations')
+                                                                        .insert({
+                                                                            listing_id: catalogueListing.id,
+                                                                            location_id: locData.id
+                                                                        });
+
+                                                                    if (locErr) console.error('Failed to update location link:', locErr);
+                                                                }
+                                                            }
+                                                        }
+
+                                                        toast.success('Profile and Business details updated');
+                                                    } catch (error: any) {
                                                         console.error('Update error:', error);
-                                                        toast.error('Failed to save changes. Check console for details.');
-                                                    } else {
-                                                        toast.success('Profile updated successfully');
+                                                        toast.error(error.message || 'Failed to save changes');
+                                                    } finally {
+                                                        setIsSubmitting(false);
                                                     }
                                                 }}
-                                                className="px-8 py-2 bg-[#007BFF] text-white rounded font-medium hover:bg-blue-600 transition-colors text-sm"
+                                                disabled={isSubmitting}
+                                                className={`px-8 py-2 bg-[#007BFF] text-white rounded font-medium transition-colors text-sm flex items-center gap-2 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:bg-blue-600'}`}
                                             >
-                                                Submit
+                                                {isSubmitting ? (
+                                                    <>
+                                                        <Clock className="w-4 h-4 animate-spin" /> Saving...
+                                                    </>
+                                                ) : (
+                                                    'Submit'
+                                                )}
                                             </button>
                                             <Link
                                                 to={`/profiles/${user?.id}`}
@@ -1298,121 +1520,113 @@ const ContractorDashboard = () => {
                         ) : null}
                     </div>
                 </div>
-            </main >
+            </main>
 
             {/* Job Details Modal - STEP 1 */}
-            {
-                jobDetailsModalOpen && selectedJob && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
-                        <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-                            <div className="bg-white border-b border-gray-100 p-8 flex justify-between items-start">
-                                <div>
-                                    <h3 className="text-2xl font-black text-gray-900">Job Opportunity</h3>
-                                    <p className="text-sm text-gray-500 font-medium mt-1">Review the details before proceeding</p>
-                                </div>
-                                <button onClick={() => setJobDetailsModalOpen(false)} className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors">
-                                    <X size={24} />
-                                </button>
+            {jobDetailsModalOpen && selectedJob && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="bg-white border-b border-gray-100 p-8 flex justify-between items-start">
+                            <div>
+                                <h3 className="text-2xl font-black text-gray-900">Job Opportunity</h3>
+                                <p className="text-sm text-gray-500 font-medium mt-1">Review the details before proceeding</p>
                             </div>
+                            <button onClick={() => setJobDetailsModalOpen(false)} className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors">
+                                <X size={24} />
+                            </button>
+                        </div>
 
-                            <div className="p-8 space-y-8">
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                                    <div className="space-y-1">
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Location</span>
-                                        <p className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                                            <MapPin size={14} className="text-[#007EA7]" />
-                                            {selectedJob.town}, {selectedJob.county}
-                                        </p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Property Type</span>
-                                        <p className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                                            <HardHat size={14} className="text-[#007EA7]" />
-                                            {selectedJob.property_type}
-                                        </p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Size</span>
-                                        <p className="text-sm font-bold text-gray-900">{selectedJob.property_size}</p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Bedrooms</span>
-                                        <p className="text-sm font-bold text-gray-900">{selectedJob.bedrooms}</p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Purpose</span>
-                                        <p className="text-sm font-bold text-gray-900">{selectedJob.ber_purpose}</p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Heat Pump</span>
-                                        <p className="text-sm font-bold text-gray-900">{selectedJob.heat_pump}</p>
-                                    </div>
-                                </div>
-
-                                <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
-                                    <div className="grid md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <span className="text-[10px] font-black text-[#007EA7] uppercase tracking-widest block">Preferred Schedule</span>
-                                            <p className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                                                <Calendar size={14} />
-                                                {selectedJob.preferred_date} at {selectedJob.preferred_time}
-                                            </p>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <span className="text-[10px] font-black text-[#007EA7] uppercase tracking-widest block">Features</span>
-                                            <div className="flex flex-wrap gap-1">
-                                                {selectedJob.additional_features && selectedJob.additional_features.length > 0 ? (
-                                                    selectedJob.additional_features.map((feature, i) => (
-                                                        <span key={i} className="text-[10px] bg-white border border-gray-200 text-gray-600 px-2 py-0.5 rounded-full font-medium">
-                                                            {feature}
-                                                        </span>
-                                                    ))
-                                                ) : (
-                                                    <span className="text-xs text-gray-400">Standard property</span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="bg-blue-50/50 rounded-2xl p-6 border border-blue-100">
-                                    <span className="text-[10px] font-black text-[#007EA7] uppercase tracking-widest block mb-2">Internal Reference</span>
-                                    <p className="text-base font-bold text-gray-900 leading-relaxed italic">
-                                        "{selectedJob.property_address}"
+                        <div className="p-8 space-y-8">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                                <div className="space-y-1">
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Location</span>
+                                    <p className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                                        <MapPin size={14} className="text-[#007EA7]" />
+                                        {selectedJob.town}, {selectedJob.county}
                                     </p>
                                 </div>
+                                <div className="space-y-1">
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Size</span>
+                                    <p className="text-sm font-bold text-gray-900">{selectedJob.property_size}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Bedrooms</span>
+                                    <p className="text-sm font-bold text-gray-900">{selectedJob.bedrooms}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Purpose</span>
+                                    <p className="text-sm font-bold text-gray-900">{selectedJob.ber_purpose}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Heat Pump</span>
+                                    <p className="text-sm font-bold text-gray-900">{selectedJob.heat_pump}</p>
+                                </div>
+                            </div>
 
-                                <div className="flex flex-col gap-4">
-                                    <div className="flex gap-4">
-                                        <button
-                                            onClick={() => {
-                                                setJobDetailsModalOpen(false);
-                                                setRejectionModalOpen(true);
-                                            }}
-                                            className="flex-1 py-4 text-red-500 rounded-2xl font-bold bg-red-50 hover:bg-red-100 transition-all flex items-center justify-center gap-2"
-                                        >
-                                            <X size={20} />
-                                            Reject Lead
-                                        </button>
-                                        <button
-                                            onClick={handleStartQuote}
-                                            className="flex-[2] py-4 bg-[#007EA7] text-white rounded-2xl font-black text-lg hover:bg-[#005F7E] transition-all shadow-xl shadow-blue-100 flex items-center justify-center gap-3"
-                                        >
-                                            Start Quoting
-                                            <ArrowRight size={20} />
-                                        </button>
+                            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <span className="text-[10px] font-black text-[#007EA7] uppercase tracking-widest block">Preferred Schedule</span>
+                                        <p className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                                            <Calendar size={14} />
+                                            {selectedJob.preferred_date} at {selectedJob.preferred_time}
+                                        </p>
                                     </div>
+                                    <div className="space-y-2">
+                                        <span className="text-[10px] font-black text-[#007EA7] uppercase tracking-widest block">Features</span>
+                                        <div className="flex flex-wrap gap-1">
+                                            {selectedJob.additional_features && selectedJob.additional_features.length > 0 ? (
+                                                selectedJob.additional_features.map((feature, i) => (
+                                                    <span key={i} className="text-[10px] bg-white border border-gray-200 text-gray-600 px-2 py-0.5 rounded-full font-medium">
+                                                        {feature}
+                                                    </span>
+                                                ))
+                                            ) : (
+                                                <span className="text-xs text-gray-400">Standard property</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-blue-50/50 rounded-2xl p-6 border border-blue-100">
+                                <span className="text-[10px] font-black text-[#007EA7] uppercase tracking-widest block mb-2">Internal Reference</span>
+                                <p className="text-base font-bold text-gray-900 leading-relaxed italic">
+                                    "{selectedJob.property_address}"
+                                </p>
+                            </div>
+
+                            <div className="flex flex-col gap-4">
+                                <div className="flex gap-4">
                                     <button
-                                        onClick={() => setJobDetailsModalOpen(false)}
-                                        className="text-sm text-gray-400 font-bold hover:text-gray-600"
+                                        onClick={() => {
+                                            setJobDetailsModalOpen(false);
+                                            setRejectionModalOpen(true);
+                                        }}
+                                        className="flex-1 py-4 text-red-500 rounded-2xl font-bold bg-red-50 hover:bg-red-100 transition-all flex items-center justify-center gap-2"
                                     >
-                                        Decide Later
+                                        <X size={20} />
+                                        Reject Lead
+                                    </button>
+                                    <button
+                                        onClick={handleStartQuote}
+                                        className="flex-[2] py-4 bg-[#007EA7] text-white rounded-2xl font-black text-lg hover:bg-[#005F7E] transition-all shadow-xl shadow-blue-100 flex items-center justify-center gap-3"
+                                    >
+                                        Start Quoting
+                                        <ArrowRight size={20} />
                                     </button>
                                 </div>
+                                <button
+                                    onClick={() => setJobDetailsModalOpen(false)}
+                                    className="text-sm text-gray-400 font-bold hover:text-gray-600"
+                                >
+                                    Decide Later
+                                </button>
                             </div>
                         </div>
                     </div>
-                )
+                </div>
+            )
             }
 
             {/* Quote Modal - DATE PICKER + QUOTE FORM */}
@@ -1448,7 +1662,8 @@ const ContractorDashboard = () => {
                                     <div className="grid grid-cols-5 gap-3 max-h-[400px] overflow-y-auto p-2">
                                         {Array.from({ length: 30 }, (_, i) => {
                                             const date = new Date();
-                                            date.setDate(date.getDate() + i);
+                                            // Start from tomorrow (i + 1)
+                                            date.setDate(date.getDate() + i + 1);
                                             const dateStr = date.toISOString().split('T')[0];
                                             const isPreferred = selectedJob.preferred_date === dateStr ||
                                                 new Date(selectedJob.preferred_date).toDateString() === date.toDateString();
@@ -1562,7 +1777,7 @@ const ContractorDashboard = () => {
                                             <div className="p-6 space-y-4">
                                                 <p className="text-sm text-green-700 text-center italic">Include SEAI fees.</p>
                                                 <p className="text-sm text-green-700 text-center italic">Include VAT (if registered).</p>
-                                                <p className="text-sm text-green-700 text-center italic">Include €30 BerCert.com fee.</p>
+                                                <p className="text-sm text-green-700 text-center italic">Include €30 platform fee.</p>
 
                                                 <div className="relative mt-4">
                                                     <input
@@ -1573,6 +1788,9 @@ const ContractorDashboard = () => {
                                                         placeholder="170"
                                                     />
                                                 </div>
+                                                <p className="text-sm text-center font-bold text-gray-600">
+                                                    You will receive: €{quotePrice ? (parseInt(quotePrice) - 30) : 0} (direct from customer)
+                                                </p>
                                                 <p className="text-xs text-gray-400 text-center">Eg. 170, no euro sign or cents.</p>
 
                                                 <div className="flex items-start gap-2 mt-4">
@@ -1679,11 +1897,12 @@ const ContractorDashboard = () => {
                             <div className="space-y-6">
                                 <div>
                                     <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Inspection Date</label>
-                                    <input
-                                        type="date"
+                                    <DatePicker
                                         value={scheduledDate}
-                                        onChange={(e) => setScheduledDate(e.target.value)}
-                                        className="w-full border-2 border-gray-100 rounded-2xl px-4 py-3 focus:outline-none focus:border-[#007EA7] transition-colors font-bold text-gray-900"
+                                        onChange={setScheduledDate}
+                                        min={tomorrow}
+                                        label=""
+                                        placeholder="Select inspection date"
                                     />
                                 </div>
                                 <button
@@ -1736,7 +1955,7 @@ const ContractorDashboard = () => {
             }
 
 
-        </div >
+        </div>
     );
 };
 

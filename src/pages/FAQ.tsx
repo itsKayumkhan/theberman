@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 interface FaqItem {
     id: string;
@@ -373,9 +373,6 @@ const FAQ = () => {
                                 <p className="text-sm text-green-700/80 mb-6 font-medium leading-relaxed">Trusted by 10,000+ homeowners across the country.</p>
                                 <p className="text-sm text-green-700/80 mb-6 font-medium leading-relaxed">Call 087 4421653</p>
                                 <p className="text-sm text-green-700/80 mb-6 font-medium leading-relaxed">Email: info@theberman.eu</p>
-                                <Link to="/catalogue" className="w-full bg-[#007F00] text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#006400] transition-colors shadow-sm">
-                                    Hire an Agent
-                                </Link>
                             </div>
                         </div>
                     </div>

@@ -2,14 +2,12 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import toast from 'react-hot-toast';
-import { Check } from 'lucide-react';
+import { Check, Plus, X } from 'lucide-react';
 
-const COUNTIES = [
-    'Carlow', 'Cavan', 'Clare', 'Cork', 'Donegal', 'Dublin', 'Galway', 'Kerry',
-    'Kildare', 'Kilkenny', 'Laois', 'Leitrim', 'Limerick', 'Longford', 'Louth',
-    'Mayo', 'Meath', 'Monaghan', 'Offaly', 'Roscommon', 'Sligo', 'Tipperary',
-    'Waterford', 'Westmeath', 'Wexford', 'Wicklow'
-];
+import { TOWNS_BY_COUNTY } from '../data/irishTowns';
+import { geocodeAddress } from '../lib/geocoding';
+
+const COUNTIES = Object.keys(TOWNS_BY_COUNTY).sort();
 
 const ContractorOnboarding = () => {
     const { user } = useAuth();
@@ -19,13 +17,36 @@ const ContractorOnboarding = () => {
     const [formData, setFormData] = useState({
         phone: '',
         homeCounty: '',
+        homeTown: '',
         seaiNumber: '',
         seaiYear: new Date().getFullYear().toString(),
         insuranceHolder: false,
         vatRegistered: false,
         assessorTypes: ['Domestic Assessor'] as string[],
-        serviceAreas: [] as string[]
+        serviceAreas: [] as string[],
+        selectedCategories: [] as string[],
+        companyName: '',
+        website: '',
+        socialFacebook: '',
+        socialInstagram: '',
+        socialLinkedin: '',
+        features: [] as string[]
     });
+
+    const [featureInput, setFeatureInput] = useState('');
+
+    const [categories, setCategories] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            const { data } = await supabase
+                .from('catalogue_categories')
+                .select('*')
+                .order('name');
+            if (data) setCategories(data);
+        };
+        fetchCategories();
+    }, []);
 
     useEffect(() => {
         if (user) {
@@ -58,6 +79,17 @@ const ContractorOnboarding = () => {
         });
     };
 
+    const handleCategoryToggle = (id: string) => {
+        setFormData(prev => {
+            const current = [...prev.selectedCategories];
+            if (current.includes(id)) {
+                return { ...prev, selectedCategories: current.filter(c => c !== id) };
+            } else {
+                return { ...prev, selectedCategories: [...current, id] };
+            }
+        });
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -73,28 +105,148 @@ const ContractorOnboarding = () => {
 
         setLoading(true);
         try {
-            const { error } = await supabase
+            // Fetch coordinates silently in the background
+            let latitude = null;
+            let longitude = null;
+
+            const fullAddress = `${formData.homeTown}, Co. ${formData.homeCounty}`;
+            const coords = await geocodeAddress(fullAddress);
+            if (coords) {
+                latitude = coords.latitude;
+                longitude = coords.longitude;
+            }
+
+
+
+            // Update profile
+            const { error: profileError } = await supabase
                 .from('profiles')
                 .update({
                     phone: formData.phone,
                     home_county: formData.homeCounty,
                     seai_number: formData.seaiNumber,
-                    seai_since_year: parseInt(formData.seaiYear),
                     insurance_holder: formData.insuranceHolder,
                     vat_registered: formData.vatRegistered,
                     assessor_type: formData.assessorTypes.join(' & '),
-                    preferred_counties: formData.serviceAreas
+                    preferred_counties: formData.serviceAreas,
+                    company_name: formData.companyName,
+                    website_url: formData.website
                 })
                 .eq('id', user?.id);
 
-            if (error) throw error;
+            if (profileError) {
+                console.error('Profile Update Error:', profileError);
+                throw new Error(`Profile update failed: ${profileError.message} (${profileError.details || 'no details'})`);
+            }
+
+            // Link categories to the contractor listing
+            // First, find or create a listing for this contractor
+            let { data: listing, error: findError } = await supabase
+                .from('catalogue_listings')
+                .select('id')
+                .eq('email', user?.email)
+                .maybeSingle();
+
+            if (findError) {
+                console.warn('Error finding listing:', findError);
+            }
+
+            if (!listing) {
+                const { data: newListing, error: listError } = await supabase
+                    .from('catalogue_listings')
+                    .insert({
+                        name: user?.user_metadata?.full_name || 'Service Provider',
+                        email: user?.email,
+                        phone: formData.phone,
+                        company_name: formData.companyName || user?.user_metadata?.full_name || '',
+                        is_active: true,
+                        description: '',
+                        address: `${formData.homeTown}, Co. ${formData.homeCounty}`,
+                        website: formData.website || '',
+                        logo_url: '',
+                        latitude: latitude,
+                        longitude: longitude,
+                        features: formData.features.length > 0 ? formData.features : [],
+                        social_media: {
+                            facebook: formData.socialFacebook || undefined,
+                            instagram: formData.socialInstagram || undefined,
+                            linkedin: formData.socialLinkedin || undefined
+                        },
+                        slug: generateSlug(user?.user_metadata?.full_name || `provider-${user?.id?.slice(0, 8)}`)
+                    })
+                    .select()
+                    .single();
+
+                if (listError) {
+                    console.error('Listing Create Error:', listError);
+                    throw new Error(`Catalogue listing creation failed: ${listError.message}`);
+                }
+                listing = newListing;
+            } else {
+                // Update existing listing with phone and address
+                await supabase
+                    .from('catalogue_listings')
+                    .update({
+                        phone: formData.phone,
+                        company_name: formData.companyName || undefined,
+                        address: `${formData.homeTown}, Co. ${formData.homeCounty}`,
+                        website: formData.website || '',
+                        latitude: latitude,
+                        longitude: longitude,
+                        features: formData.features.length > 0 ? formData.features : [],
+                        social_media: {
+                            facebook: formData.socialFacebook || undefined,
+                            instagram: formData.socialInstagram || undefined,
+                            linkedin: formData.socialLinkedin || undefined
+                        }
+                    })
+                    .eq('id', listing.id);
+            }
+
+            if (listing && formData.selectedCategories.length > 0) {
+                // Clear existing and insert new
+                const { error: delCatError } = await supabase.from('catalogue_listing_categories').delete().eq('listing_id', listing.id);
+                if (delCatError) console.warn('Error deleting old categories:', delCatError);
+
+                const categoryLinks = formData.selectedCategories.map(catId => ({
+                    listing_id: listing.id,
+                    category_id: catId
+                }));
+                const { error: insCatError } = await supabase.from('catalogue_listing_categories').insert(categoryLinks);
+                if (insCatError) {
+                    console.error('Category Link Error:', insCatError);
+                    // Don't fail the whole thing for category linking if profile is updated
+                }
+
+                // Also update location mapping
+                const { error: delLocError } = await supabase.from('catalogue_listing_locations').delete().eq('listing_id', listing.id);
+                if (delLocError) console.warn('Error deleting old locations:', delLocError);
+
+                // Get location ID for the home county
+                const { data: locData } = await supabase
+                    .from('catalogue_locations')
+                    .select('id')
+                    .eq('name', formData.homeCounty)
+                    .maybeSingle();
+
+                if (locData) {
+                    const { error: insLocError } = await supabase.from('catalogue_listing_locations').insert({
+                        listing_id: listing.id,
+                        location_id: locData.id
+                    });
+                    if (insLocError) console.error('Location Link Error:', insLocError);
+                }
+            }
 
             toast.success('Profile completed successfully!');
             // Force reload to update auth context with new profile data
-            window.location.href = '/dashboard/ber-assessor';
+            setTimeout(() => {
+                window.location.href = '/dashboard/ber-assessor';
+            }, 1500);
+
         } catch (error: any) {
-            console.error('Error updating profile:', error);
-            toast.error(error.message || 'Failed to update profile');
+            console.error('Onboarding Submission Error:', error);
+            toast.error(error.message || 'Failed to complete onboarding. Please check console for details.');
         } finally {
             setLoading(false);
         }
@@ -156,10 +308,28 @@ const ContractorOnboarding = () => {
                                     required
                                     className="mt-1 block w-full border border-gray-200 rounded-xl shadow-sm py-3 px-4 focus:ring-[#007F00] focus:border-[#007F00] transition-colors bg-white"
                                     value={formData.homeCounty}
-                                    onChange={(e) => setFormData({ ...formData, homeCounty: e.target.value })}
+                                    onChange={(e) => setFormData({ ...formData, homeCounty: e.target.value, homeTown: '' })}
                                 >
                                     <option value="">Select County</option>
                                     {COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label htmlFor="homeTown" className="block text-sm font-bold text-gray-700 mb-1">Home Town</label>
+                                <select
+                                    id="homeTown"
+                                    name="homeTown"
+                                    required
+                                    disabled={!formData.homeCounty}
+                                    className={`mt-1 block w-full border border-gray-200 rounded-xl shadow-sm py-3 px-4 focus:ring-[#007F00] focus:border-[#007F00] transition-colors bg-white ${!formData.homeCounty ? 'bg-gray-50 opacity-50 cursor-not-allowed' : ''}`}
+                                    value={formData.homeTown}
+                                    onChange={(e) => setFormData({ ...formData, homeTown: e.target.value })}
+                                >
+                                    <option value="">{formData.homeCounty ? 'Select Town' : 'Select County First'}</option>
+                                    {formData.homeCounty && TOWNS_BY_COUNTY[formData.homeCounty]?.map(town => (
+                                        <option key={town} value={town}>{town}</option>
+                                    ))}
                                 </select>
                             </div>
 
@@ -189,6 +359,124 @@ const ContractorOnboarding = () => {
                                     {years.map(y => <option key={y} value={y}>{y}</option>)}
                                 </select>
                             </div>
+                        </div>
+
+                        {/* BUSINESS DETAILS */}
+                        <div className="pt-8 border-t border-gray-100">
+                            <label className="block text-lg font-bold text-gray-900 mb-4">
+                                Business Details
+                            </label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label htmlFor="companyName" className="block text-sm font-bold text-gray-700 mb-1">Company Name</label>
+                                    <input
+                                        type="text"
+                                        name="companyName"
+                                        id="companyName"
+                                        className="mt-1 block w-full border border-gray-200 rounded-xl shadow-sm py-3 px-4 focus:ring-[#007F00] focus:border-[#007F00] transition-colors"
+                                        value={formData.companyName}
+                                        onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                                        placeholder="e.g. ABC Energy Assessments"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="website" className="block text-sm font-bold text-gray-700 mb-1">Website</label>
+                                    <input
+                                        type="url"
+                                        name="website"
+                                        id="website"
+                                        className="mt-1 block w-full border border-gray-200 rounded-xl shadow-sm py-3 px-4 focus:ring-[#007F00] focus:border-[#007F00] transition-colors"
+                                        value={formData.website}
+                                        onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                                        placeholder="https://www.example.com"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* SOCIAL MEDIA */}
+                        <div className="pt-6">
+                            <label className="block text-sm font-bold text-gray-700 mb-3">Social Media <span className="text-gray-400 font-normal">(optional)</span></label>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-xs text-gray-500 mb-1 ml-1">Facebook</label>
+                                    <input
+                                        type="url"
+                                        className="block w-full border border-gray-200 rounded-xl shadow-sm py-3 px-4 focus:ring-[#007F00] focus:border-[#007F00] transition-colors text-sm"
+                                        value={formData.socialFacebook}
+                                        onChange={(e) => setFormData({ ...formData, socialFacebook: e.target.value })}
+                                        placeholder="https://facebook.com/..."
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-gray-500 mb-1 ml-1">Instagram</label>
+                                    <input
+                                        type="url"
+                                        className="block w-full border border-gray-200 rounded-xl shadow-sm py-3 px-4 focus:ring-[#007F00] focus:border-[#007F00] transition-colors text-sm"
+                                        value={formData.socialInstagram}
+                                        onChange={(e) => setFormData({ ...formData, socialInstagram: e.target.value })}
+                                        placeholder="https://instagram.com/..."
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-gray-500 mb-1 ml-1">LinkedIn</label>
+                                    <input
+                                        type="url"
+                                        className="block w-full border border-gray-200 rounded-xl shadow-sm py-3 px-4 focus:ring-[#007F00] focus:border-[#007F00] transition-colors text-sm"
+                                        value={formData.socialLinkedin}
+                                        onChange={(e) => setFormData({ ...formData, socialLinkedin: e.target.value })}
+                                        placeholder="https://linkedin.com/in/..."
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* FEATURES */}
+                        <div className="pt-6">
+                            <label className="block text-sm font-bold text-gray-700 mb-1">Features / Services <span className="text-gray-400 font-normal">(optional)</span></label>
+                            <p className="text-xs text-gray-500 mb-3">Add key services or features to highlight on your listing (e.g. "Fast Turnaround", "24hr E-certs").</p>
+                            <div className="flex gap-2 mb-3">
+                                <input
+                                    type="text"
+                                    className="flex-1 border border-gray-200 rounded-xl shadow-sm py-2 px-4 focus:ring-[#007F00] focus:border-[#007F00] transition-colors text-sm"
+                                    value={featureInput}
+                                    onChange={(e) => setFeatureInput(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            if (featureInput.trim() && !formData.features.includes(featureInput.trim())) {
+                                                setFormData({ ...formData, features: [...formData.features, featureInput.trim()] });
+                                                setFeatureInput('');
+                                            }
+                                        }
+                                    }}
+                                    placeholder="Type a feature and press Enter"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (featureInput.trim() && !formData.features.includes(featureInput.trim())) {
+                                            setFormData({ ...formData, features: [...formData.features, featureInput.trim()] });
+                                            setFeatureInput('');
+                                        }
+                                    }}
+                                    className="px-4 py-2 bg-[#007F00] text-white rounded-xl text-sm font-bold hover:bg-[#006600] transition-colors flex items-center gap-1"
+                                >
+                                    <Plus size={16} /> Add
+                                </button>
+                            </div>
+                            {formData.features.length > 0 && (
+                                <div className="flex flex-wrap gap-2">
+                                    {formData.features.map((feature, i) => (
+                                        <span key={i} className="inline-flex items-center gap-1 bg-green-50 border border-[#007F00] text-[#007F00] px-3 py-1.5 rounded-full text-xs font-bold">
+                                            {feature}
+                                            <button type="button" onClick={() => setFormData({ ...formData, features: formData.features.filter((_, idx) => idx !== i) })} className="hover:text-red-500 transition-colors">
+                                                <X size={12} />
+                                            </button>
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         {/* BOOLEANS */}
@@ -248,6 +536,33 @@ const ContractorOnboarding = () => {
                         </div>
 
 
+                        {/* Service Selection */}
+                        <div className="pt-8 border-t border-gray-100">
+                            <label className="block text-lg font-bold text-gray-900 mb-4">
+                                Select which parts of the catalogue you offer:
+                            </label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {categories.map(cat => (
+                                    <div
+                                        key={cat.id}
+                                        onClick={() => handleCategoryToggle(cat.id)}
+                                        className={`
+                                            cursor-pointer p-4 rounded-xl border flex items-center justify-between transition-all select-none
+                                            ${formData.selectedCategories.includes(cat.id)
+                                                ? 'bg-green-50/50 border-[#007F00] text-[#007F00] shadow-sm'
+                                                : 'bg-white border-gray-200 hover:border-green-300 text-gray-600'}
+                                        `}
+                                    >
+                                        <div className="flex flex-col">
+                                            <span className="font-bold text-sm uppercase tracking-wide">{cat.name}</span>
+                                        </div>
+                                        {formData.selectedCategories.includes(cat.id) && <Check size={16} className="text-[#007EA7]" />}
+                                    </div>
+                                ))}
+                            </div>
+                            <p className="text-xs text-gray-500 mt-2 text-right">{formData.selectedCategories.length} categories selected</p>
+                        </div>
+
                         {/* Service Areas */}
                         <div className="pt-8">
                             <label className="block text-lg font-bold text-gray-900 mb-4">
@@ -287,6 +602,16 @@ const ContractorOnboarding = () => {
             </div>
         </div>
     );
+};
+
+const generateSlug = (text: string) => {
+    return text
+        .toString()
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-');
 };
 
 export default ContractorOnboarding;
