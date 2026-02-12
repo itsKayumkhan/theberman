@@ -143,20 +143,32 @@ Deno.serve(async (req: Request) => {
             }
 
             // 3. Notify Relevant Contractors
+            // First, get list of contractors who have already quoted
+            const { data: existingQuotes } = await supabase
+                .from('quotes')
+                .select('created_by')
+                .eq('assessment_id', assessmentId);
+
+            const quotedContractorIds = new Set((existingQuotes || []).map(q => q.created_by));
+
             const { data: contractors } = await supabase
                 .from('profiles')
-                .select('email, full_name, preferred_counties')
+                .select('id, email, full_name, preferred_counties')
                 .eq('role', 'contractor')
                 .eq('is_active', true);
 
             if (contractors && contractors.length > 0) {
-                // Filter by county if preferred_counties is set
+                // Filter by county AND check if they haven't quoted yet
                 const relevantContractors = contractors.filter(c => {
+                    // 1. Check if they already quoted
+                    if (quotedContractorIds.has(c.id)) return false;
+
+                    // 2. Check location preference
                     if (!c.preferred_counties || c.preferred_counties.length === 0) return true; // Notify if no preference set
                     return c.preferred_counties.includes(county);
                 });
 
-                console.log(`[INFO] Job in ${county}. Notifying ${relevantContractors.length} relevant contractors out of ${contractors.length} total.`);
+                console.log(`[INFO] Job in ${county}. Notifying ${relevantContractors.length} relevant contractors out of ${contractors.length} total. Excluded ${quotedContractorIds.size} who already quoted.`);
 
                 for (const contractor of relevantContractors) {
                     try {

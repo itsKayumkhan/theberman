@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { LogOut, RefreshCw, MessageSquare, Trash2, Eye, X, Mail, Phone, MapPin, Home, Calendar, ChevronDown, Loader2, AlertTriangle, TrendingUp, Briefcase, Menu, Pencil, CheckCircle2, Users } from 'lucide-react';
+import { LogOut, RefreshCw, MessageSquare, Trash2, Eye, X, Mail, Phone, MapPin, Home, Calendar, ChevronDown, Loader2, AlertTriangle, TrendingUp, Briefcase, Menu, Pencil, CheckCircle2, Users, Search } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
@@ -248,10 +248,68 @@ const Admin = () => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
     const [isSavingSettings, setIsSavingSettings] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const filteredUsers = users_list.filter(u =>
+        u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.role?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const filteredLeads = leads.filter(l =>
+        l.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        l.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        l.town?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (l.status || 'new').toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const filteredAssessments = assessments.filter(a =>
+        a.property_address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        a.town?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        a.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (a.profiles?.full_name || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    useEffect(() => {
+        setSearchTerm('');
+    }, [view]);
     const [isUpdatingBanner, setIsUpdatingBanner] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<{ id: string, type: 'lead' | 'sponsor' | 'assessment' } | null>(null);
     const [itemToSuspend, setItemToSuspend] = useState<{ id: string, name: string, currentStatus: boolean } | null>(null);
     const [showSuspendModal, setShowSuspendModal] = useState(false);
+
+    const handleExportPayments = () => {
+        if (payments.length === 0) {
+            toast.error("No payments to export");
+            return;
+        }
+
+        const headers = ["ID", "Amount", "Currency", "Status", "User", "Email", "Date", "Assessment ID"];
+        const csvRows = [
+            headers.join(","),
+            ...payments.map(p => [
+                p.id,
+                p.amount,
+                p.currency,
+                p.status,
+                `"${p.profiles?.full_name || 'Unknown'}"`,
+                p.profiles?.email || 'N/A',
+                new Date(p.created_at).toLocaleDateString(),
+                p.assessment_id
+            ].join(","))
+        ];
+
+        const csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\n");
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `berman_payments_export_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        toast.success("Payments report exported successfully");
+    };
 
     // Sponsor Modal State
     const [showSponsorModal, setShowSponsorModal] = useState(false);
@@ -1432,183 +1490,239 @@ const Admin = () => {
                     </div>
                 ) : view === 'users' ? (
                     /* USERS VIEW */
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left text-sm text-gray-600">
-                                <thead className="bg-gray-50/50 text-gray-900 font-bold uppercase tracking-wider text-xs border-b border-gray-100">
-                                    <tr>
-                                        <th className="px-6 py-4">Status</th>
-                                        <th className="px-6 py-4">User Details</th>
-                                        <th className="px-6 py-4">Role</th>
-                                        <th className="px-6 py-4">Activity</th>
-                                        <th className="px-6 py-4 text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-50">
-                                    {users_list.map((u) => (
-                                        <tr key={u.id} className="hover:bg-green-50/30 transition-colors group">
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-2">
-                                                    <div className={`w-2 h-2 rounded-full ${u.is_active !== false ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                                                    <span className="text-xs font-bold uppercase tracking-tight text-gray-500">
-                                                        {u.is_active !== false ? 'Active' : 'Suspended'}
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 font-medium text-gray-900">
-                                                {u.full_name}
-                                                <div className="text-xs text-gray-400 font-normal">{u.email}</div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className={`inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${u.role === 'admin' ? 'bg-red-50 text-red-700' :
-                                                    u.role === 'contractor' ? 'bg-blue-50 text-blue-700' :
-                                                        'bg-gray-50 text-gray-700'
-                                                    }`}>
-                                                    {u.role === 'contractor' ? 'BER Assessor' : u.role}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-500 font-medium">
-                                                {u.role === 'contractor' ? (
-                                                    <div className="flex items-center gap-1 text-blue-600">
-                                                        <Briefcase size={14} />
-                                                        <span>{assessments.filter(a => a.contractor_id === u.id).length} Jobs</span>
-                                                    </div>
-                                                ) : u.role === 'homeowner' || u.role === 'user' ? (
-                                                    <div className="flex items-center gap-1 text-green-600">
-                                                        <Home size={14} />
-                                                        <span>{assessments.filter(a => a.user_id === u.id).length} Requests</span>
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-xs text-gray-400">N/A</span>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <button
-                                                        onClick={() => setSelectedUser(u)}
-                                                        className="text-gray-400 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-all"
-                                                        title="View User Details"
-                                                    >
-                                                        <Eye size={16} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => {
-                                                            setItemToSuspend({
-                                                                id: u.id,
-                                                                name: u.full_name,
-                                                                currentStatus: u.is_active !== false
-                                                            });
-                                                            setShowSuspendModal(true);
-                                                        }}
-                                                        className={`p-2 rounded-lg transition-all ${u.is_active !== false
-                                                            ? 'text-red-400 hover:text-red-600 hover:bg-red-50'
-                                                            : 'text-green-400 hover:text-green-600 hover:bg-green-50'
-                                                            }`}
-                                                        title={u.is_active !== false ? 'Suspend User' : 'Activate User'}
-                                                    >
-                                                        <AlertTriangle size={16} />
-                                                    </button>
-                                                </div>
-                                            </td>
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                            <div className="relative w-full max-w-md">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                <input
+                                    type="text"
+                                    placeholder="Search by name, email, or role..."
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00] transition-all text-sm"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                            <div className="text-xs text-gray-400 font-medium">
+                                Showing {filteredUsers.length} of {users_list.length} users
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left text-sm text-gray-600">
+                                    <thead className="bg-gray-50/50 text-gray-900 font-bold uppercase tracking-wider text-xs border-b border-gray-100">
+                                        <tr>
+                                            <th className="px-6 py-4">Status</th>
+                                            <th className="px-6 py-4">User Details</th>
+                                            <th className="px-6 py-4">Role</th>
+                                            <th className="px-6 py-4">Activity</th>
+                                            <th className="px-6 py-4 text-right">Actions</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-50">
+                                        {filteredUsers.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={5} className="px-6 py-12 text-center text-gray-400 italic">
+                                                    No users found matching your search.
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            filteredUsers.map((u) => (
+                                                <tr key={u.id} className="hover:bg-green-50/30 transition-colors group">
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className={`w-2 h-2 rounded-full ${u.is_active !== false ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                                            <span className="text-xs font-bold uppercase tracking-tight text-gray-500">
+                                                                {u.is_active !== false ? 'Active' : 'Suspended'}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 font-medium text-gray-900">
+                                                        {u.full_name}
+                                                        <div className="text-xs text-gray-400 font-normal">{u.email}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className={`inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${u.role === 'admin' ? 'bg-red-50 text-red-700' :
+                                                            u.role === 'contractor' ? 'bg-blue-50 text-blue-700' :
+                                                                'bg-gray-50 text-gray-700'
+                                                            }`}>
+                                                            {u.role === 'contractor' ? 'BER Assessor' : u.role}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-gray-500 font-medium">
+                                                        {u.role === 'contractor' ? (
+                                                            <div className="flex items-center gap-1 text-blue-600">
+                                                                <Briefcase size={14} />
+                                                                <span>{assessments.filter(a => a.contractor_id === u.id).length} Jobs</span>
+                                                            </div>
+                                                        ) : u.role === 'homeowner' || u.role === 'user' ? (
+                                                            <div className="flex items-center gap-1 text-green-600">
+                                                                <Home size={14} />
+                                                                <span>{assessments.filter(a => a.user_id === u.id).length} Requests</span>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-xs text-gray-400">N/A</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        <div className="flex items-center justify-end gap-2">
+                                                            <button
+                                                                onClick={() => setSelectedUser(u)}
+                                                                className="text-gray-400 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-all"
+                                                                title="View User Details"
+                                                            >
+                                                                <Eye size={16} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    setItemToSuspend({
+                                                                        id: u.id,
+                                                                        name: u.full_name,
+                                                                        currentStatus: u.is_active !== false
+                                                                    });
+                                                                    setShowSuspendModal(true);
+                                                                }}
+                                                                className={`p-2 rounded-lg transition-all ${u.is_active !== false
+                                                                    ? 'text-red-400 hover:text-red-600 hover:bg-red-50'
+                                                                    : 'text-green-400 hover:text-green-600 hover:bg-green-50'
+                                                                    }`}
+                                                                title={u.is_active !== false ? 'Suspend User' : 'Activate User'}
+                                                            >
+                                                                <AlertTriangle size={16} />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 ) : view === 'leads' ? (
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        {/* Mobile View: Cards */}
-                        <div className="md:hidden">
-                            {leads.map((lead) => (
-                                <div key={lead.id} className="p-4 border-b border-gray-100 space-y-3">
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <p className="font-bold text-gray-900">{lead.name}</p>
-                                            <p className="text-xs text-gray-500">{new Date(lead.created_at).toLocaleDateString()}</p>
-                                        </div>
-                                        <div className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${getStatusColor(lead.status || 'new')}`}>
-                                            {lead.status || 'new'}
-                                        </div>
-                                    </div>
-                                    <div className="text-sm text-gray-600">
-                                        <p>{lead.email}</p>
-                                        <p className="mt-1">{lead.town}, {lead.county}</p>
-                                    </div>
-                                    <div className="flex justify-end gap-2 pt-2">
-                                        <button
-                                            onClick={() => setSelectedLead(lead)}
-                                            className="text-xs bg-gray-50 border border-gray-200 px-3 py-2 rounded-lg font-bold text-gray-700"
-                                        >
-                                            View Details
-                                        </button>
-                                        <button
-                                            onClick={() => handleDeleteClick(lead.id, 'lead')}
-                                            className="text-xs bg-red-50 border border-red-100 px-3 py-2 rounded-lg font-bold text-red-600 hover:bg-red-100 transition-colors"
-                                        >
-                                            Delete
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                            <div className="relative w-full max-w-md">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                <input
+                                    type="text"
+                                    placeholder="Search by name, email, location, or status..."
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00] transition-all text-sm"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                            <div className="text-xs text-gray-400 font-medium">
+                                Showing {filteredLeads.length} of {leads.length} leads
+                            </div>
                         </div>
 
-                        {/* Desktop View: Table */}
-                        <div className="hidden md:block overflow-x-auto">
-                            <table className="w-full text-left text-sm text-gray-600">
-                                <thead className="bg-gray-50/50 text-gray-900 font-bold uppercase tracking-wider text-xs border-b border-gray-100">
-                                    <tr>
-                                        <th className="px-6 py-4">Status</th>
-                                        <th className="px-6 py-4">Date</th>
-                                        <th className="px-6 py-4">Client Name</th>
-                                        <th className="px-6 py-4">Location</th>
-                                        <th className="px-6 py-4">Purpose</th>
-                                        <th className="px-6 py-4 text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-50">
-                                    {leads.map((lead) => (
-                                        <tr key={lead.id} className="hover:bg-green-50/30 transition-colors group">
-                                            <td className="px-6 py-4">
-                                                <div className={`inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${getStatusColor(lead.status || 'new')}`}>
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                            {/* Mobile View: Cards */}
+                            <div className="md:hidden">
+                                {filteredLeads.length === 0 ? (
+                                    <div className="p-12 text-center text-gray-400 italic">No leads found.</div>
+                                ) : (
+                                    filteredLeads.map((lead) => (
+                                        <div key={lead.id} className="p-4 border-b border-gray-100 space-y-3">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <p className="font-bold text-gray-900">{lead.name}</p>
+                                                    <p className="text-xs text-gray-500">{new Date(lead.created_at).toLocaleDateString()}</p>
+                                                </div>
+                                                <div className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${getStatusColor(lead.status || 'new')}`}>
                                                     {lead.status || 'new'}
                                                 </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                                                {new Date(lead.created_at).toLocaleDateString()}
-                                            </td>
-                                            <td className="px-6 py-4 font-medium text-gray-900">
-                                                {lead.name}
-                                                <div className="text-xs text-gray-400 font-normal">{lead.email}</div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                {lead.town ? `${lead.town}, ${lead.county || ''} ` : '-'}
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-500">
-                                                {lead.purpose || '-'}
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <button
-                                                        onClick={() => setSelectedLead(lead)}
-                                                        className="flex items-center gap-1 bg-white border border-gray-200 text-gray-600 hover:text-[#007F00] hover:border-[#007F00] px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm"
-                                                    >
-                                                        <Eye size={14} />
-                                                        View More
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteClick(lead.id, 'lead')}
-                                                        className="text-gray-400 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
-                                                        title="Delete Lead"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
-                                            </td>
+                                            </div>
+                                            <div className="text-sm text-gray-600">
+                                                <p>{lead.email}</p>
+                                                <p className="mt-1">{lead.town}, {lead.county}</p>
+                                            </div>
+                                            <div className="flex justify-end gap-2 pt-2">
+                                                <button
+                                                    onClick={() => setSelectedLead(lead)}
+                                                    className="text-xs bg-gray-50 border border-gray-200 px-3 py-2 rounded-lg font-bold text-gray-700"
+                                                >
+                                                    View Details
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteClick(lead.id, 'lead')}
+                                                    className="text-xs bg-red-50 border border-red-100 px-3 py-2 rounded-lg font-bold text-red-600 hover:bg-red-100 transition-colors"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+
+                            {/* Desktop View: Table */}
+                            <div className="hidden md:block overflow-x-auto">
+                                <table className="w-full text-left text-sm text-gray-600">
+                                    <thead className="bg-gray-50/50 text-gray-900 font-bold uppercase tracking-wider text-xs border-b border-gray-100">
+                                        <tr>
+                                            <th className="px-6 py-4">Status</th>
+                                            <th className="px-6 py-4">Date</th>
+                                            <th className="px-6 py-4">Client Name</th>
+                                            <th className="px-6 py-4">Location</th>
+                                            <th className="px-6 py-4">Purpose</th>
+                                            <th className="px-6 py-4 text-right">Actions</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-50">
+                                        {filteredLeads.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={6} className="px-6 py-12 text-center text-gray-400 italic">
+                                                    No leads found matching your search.
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            filteredLeads.map((lead) => (
+                                                <tr key={lead.id} className="hover:bg-green-50/30 transition-colors group">
+                                                    <td className="px-6 py-4">
+                                                        <div className={`inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${getStatusColor(lead.status || 'new')}`}>
+                                                            {lead.status || 'new'}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                                                        {new Date(lead.created_at).toLocaleDateString()}
+                                                    </td>
+                                                    <td className="px-6 py-4 font-medium text-gray-900">
+                                                        {lead.name}
+                                                        <div className="text-xs text-gray-400 font-normal">{lead.email}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        {lead.town ? `${lead.town}, ${lead.county || ''} ` : '-'}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-gray-500">
+                                                        {lead.purpose || '-'}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        <div className="flex items-center justify-end gap-2">
+                                                            <button
+                                                                onClick={() => setSelectedLead(lead)}
+                                                                className="flex items-center gap-1 bg-white border border-gray-200 text-gray-600 hover:text-[#007F00] hover:border-[#007F00] px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm"
+                                                            >
+                                                                <Eye size={14} />
+                                                                View More
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteClick(lead.id, 'lead')}
+                                                                className="text-gray-400 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
+                                                                title="Delete Lead"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 ) : view === 'assessments' ? (
@@ -1628,7 +1742,7 @@ const Admin = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50">
-                                    {assessments.map((assessment) => (
+                                    {filteredAssessments.map((assessment) => (
                                         <tr key={assessment.id} className="hover:bg-green-50/30 transition-colors group">
                                             <td className="px-6 py-4">
                                                 <div className={`inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${getStatusColor(assessment.status)}`}>
@@ -1698,7 +1812,7 @@ const Admin = () => {
                             </div>
                             <div className="flex gap-2">
                                 <button
-                                    onClick={() => toast('Exporting CSV...', { icon: '📄' })}
+                                    onClick={handleExportPayments}
                                     className="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors shadow-sm"
                                 >
                                     Export Report

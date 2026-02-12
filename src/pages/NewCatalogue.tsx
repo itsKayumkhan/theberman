@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Search, MapPin, Star, Loader2, X, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
+import HireAgentDetails from '../components/HireAgentDetails';
 
 const HERO_SLIDES = [
     { image: 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?q=80&w=1600' },
@@ -10,11 +11,9 @@ const HERO_SLIDES = [
     { image: 'https://images.unsplash.com/photo-1613665813446-82a78c468a1d?q=80&w=1600' }
 ];
 
-const IRELAND_COUNTIES = [
-    "Carlow", "Cavan", "Clare", "Cork", "Donegal", "Dublin", "Galway", "Kerry", "Kildare", "Kilkenny",
-    "Laois", "Leitrim", "Limerick", "Longford", "Louth", "Mayo", "Meath", "Monaghan", "Offaly",
-    "Roscommon", "Sligo", "Tipperary", "Waterford", "Westmeath", "Wexford", "Wicklow"
-];
+import { TOWNS_BY_COUNTY } from '../data/irishTowns';
+
+const IRELAND_COUNTIES = Object.keys(TOWNS_BY_COUNTY).sort();
 
 interface Category {
     id: string;
@@ -31,6 +30,7 @@ interface Location {
 interface CatalogueListing {
     id: string;
     name: string;
+    company_name?: string;
     slug: string;
     description: string;
     long_description: string | null;
@@ -219,7 +219,7 @@ const NewCatalogue = () => {
                         <span className="text-[#9ACD32]">Businesses Catalogue.</span>
                     </h1>
                     <p className="text-lg md:text-xl text-gray-200 max-w-2xl mx-auto leading-relaxed mb-10">
-                        Explore the best solutions for a warmer home. We help you navigate grants, installers, and the latest technology.
+                        When businesses sign up they can click which parts they do and they will appear here on the catalogue for that type of service.
                     </p>
 
                     {/* Search Bar Inside Hero */}
@@ -336,7 +336,7 @@ const NewCatalogue = () => {
                                         {/* Background Image/Logo */}
                                         <img
                                             src={listing.logo_url || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=400'}
-                                            alt={listing.name}
+                                            alt={listing.company_name || listing.name}
                                             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700"
                                         />
 
@@ -357,7 +357,7 @@ const NewCatalogue = () => {
                                         <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between gap-4">
                                             <div className="flex flex-col gap-1 flex-1 min-w-0">
                                                 <h3 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight flex flex-wrap items-center gap-2 drop-shadow-lg leading-tight">
-                                                    {listing.name}
+                                                    {listing.company_name || listing.name}
 
                                                 </h3>
                                                 <div className="flex items-center gap-2 text-white/70">
@@ -480,30 +480,20 @@ User Message: ${formData.message}
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[85vh]">
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
                 <div className="p-6 md:p-12 overflow-y-auto flex-1 custom-scrollbar">
-                    <div className="flex justify-between items-start mb-8">
-                        <div>
+                    <div className="flex justify-between items-start mb-8 gap-4">
+                        <div className="flex-1 min-w-0">
                             <span className="inline-block px-3 py-1 bg-blue-50 text-[#007EA7] text-[10px] font-black uppercase tracking-widest rounded-full mb-3 border border-blue-100">Concierge Request</span>
-                            <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight">Hire your Agent</h2>
+                            <h2 className="text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tight leading-tight break-words">Hire your Agent</h2>
                         </div>
-                        <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                        <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors shrink-0">
                             <X size={24} className="text-gray-400" />
                         </button>
                     </div>
 
-                    <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100 mb-8 flex gap-4">
-                        <div className="w-12 h-12 bg-white rounded-2xl border border-gray-100 flex items-center justify-center shrink-0">
-                            <Star size={24} className="text-[#007F00]" />
-                        </div>
-                        <div>
-                            <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Expert Negotiation</p>
-                            <p className="text-sm font-medium text-gray-600 leading-relaxed">
-                                Our agent will handle the technical search and pricing negotiation with <span className="text-gray-900 font-bold">{listing?.name || 'our network of installers'}</span> for your project.
-                            </p>
-                        </div>
-                    </div>
+                    <HireAgentDetails />
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -545,15 +535,34 @@ User Message: ${formData.message}
                             </div>
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">County</label>
-                                <input
+                                <select
                                     required
-                                    type="text"
-                                    placeholder="e.g. Dublin"
                                     value={formData.county}
-                                    onChange={e => setFormData({ ...formData, county: e.target.value })}
-                                    className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-[#007F00] focus:bg-white rounded-2xl outline-none font-bold text-sm transition-all"
-                                />
+                                    onChange={e => setFormData({ ...formData, county: e.target.value, town: '' })}
+                                    className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-[#007F00] focus:bg-white rounded-2xl outline-none font-bold text-sm transition-all appearance-none cursor-pointer"
+                                >
+                                    <option value="">Select County</option>
+                                    {IRELAND_COUNTIES.map(county => (
+                                        <option key={county} value={county}>{county}</option>
+                                    ))}
+                                </select>
                             </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Town</label>
+                            <select
+                                required
+                                disabled={!formData.county}
+                                value={formData.town}
+                                onChange={e => setFormData({ ...formData, town: e.target.value })}
+                                className={`w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:border-[#007F00] focus:bg-white rounded-2xl outline-none font-bold text-sm transition-all appearance-none cursor-pointer ${!formData.county ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            >
+                                <option value="">{formData.county ? 'Select Town' : 'Select County First'}</option>
+                                {formData.county && TOWNS_BY_COUNTY[formData.county]?.map(town => (
+                                    <option key={town} value={town}>{town}</option>
+                                ))}
+                            </select>
                         </div>
 
                         <div className="space-y-2">

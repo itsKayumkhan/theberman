@@ -11,7 +11,6 @@ const NAV_LINKS = [
     { label: 'About', path: '/about' },
     { label: 'Services', path: '/services' },
     { label: 'Locations', path: '/locations' },
-    { label: 'Hire an Agent', path: '/catalogue' },
     { label: 'Pricing', path: '/pricing' },
     { label: 'Contact', path: '/contact' },
 ];
@@ -70,11 +69,24 @@ const Layout = () => {
                 <div className="container mx-auto px-6 h-20 flex justify-between items-center">
 
                     {/* Logo Section */}
-                    <Link to="/" onClick={closeMenu}>
-                        <div className="relative">
-                            <img src="/logo.svg" alt="The Berman Logo" className="h-18 w-auto relative z-10" />
-                        </div>
-                    </Link>
+                    <div className="flex items-center gap-8">
+                        <Link to="/" onClick={closeMenu}>
+                            <div className="relative">
+                                <img src="/logo.svg" alt="The Berman Logo" className="h-18 w-auto relative z-10" />
+                            </div>
+                        </Link>
+
+                        {/* Catalogue Hub Link - Desktop */}
+                        <Link
+                            to="/catalogue"
+                            className="hidden md:flex items-center gap-3 px-6 py-2 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-all group"
+                        >
+                            <div className="w-2 h-2 rounded-full bg-[#9ACD32] group-hover:animate-pulse"></div>
+                            <span className="text-sm font-black text-white uppercase tracking-wider">
+                                Home Energy <span className="text-[#9ACD32]">Catalogue</span>
+                            </span>
+                        </Link>
+                    </div>
 
                     {/* Menu Button - Visible on all screens */}
                     {/* Menu Button - Visible on all screens */}
