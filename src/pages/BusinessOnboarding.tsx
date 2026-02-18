@@ -49,6 +49,13 @@ const BusinessOnboarding = () => {
     const [linkedin, setLinkedin] = useState('');
     const [twitter, setTwitter] = useState('');
 
+    // Compliance fields (Stage 3)
+    const [tradingName, setTradingName] = useState('');
+    const [companyNumber, setCompanyNumber] = useState('');
+    const [vatNumber, setVatNumber] = useState('');
+    const [insuranceExpiry, setInsuranceExpiry] = useState('');
+    const [certifications, setCertifications] = useState<string[]>([]);
+
     useEffect(() => {
         if (profile?.full_name) {
             setCompanyName(profile.full_name);
@@ -169,6 +176,21 @@ const BusinessOnboarding = () => {
                 }
             }
 
+            // 4. Store compliance data in user metadata (Fallback for restricted schema modification)
+            const { error: metadataError } = await supabase.auth.updateUser({
+                data: {
+                    compliance_data: {
+                        trading_name: tradingName,
+                        company_number: companyNumber,
+                        vat_number: vatNumber,
+                        insurance_expiry: insuranceExpiry,
+                        certifications: certifications,
+                    }
+                }
+            });
+
+            if (metadataError) console.error('Metadata update error:', metadataError);
+
             toast.success('Business profile created successfully!');
             navigate('/dashboard/business', { replace: true });
         } catch (error: any) {
@@ -224,7 +246,7 @@ const BusinessOnboarding = () => {
                                 </div>
 
                                 <div className="grid md:grid-cols-2 gap-5">
-                                    <div className="md:col-span-2">
+                                    <div className="md:col-span-1">
                                         <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Full Business Name *</label>
                                         <input
                                             type="text"
@@ -232,6 +254,17 @@ const BusinessOnboarding = () => {
                                             onChange={e => setCompanyName(e.target.value)}
                                             className="w-full bg-gray-50 border border-gray-200 rounded-xl px-5 py-3.5 font-medium text-gray-900 focus:ring-2 focus:ring-[#007F00] focus:border-transparent outline-none transition-all"
                                             placeholder="Acme Energy Solutions"
+                                        />
+                                    </div>
+
+                                    <div className="md:col-span-1">
+                                        <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Trading Name (if different)</label>
+                                        <input
+                                            type="text"
+                                            value={tradingName}
+                                            onChange={e => setTradingName(e.target.value)}
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-5 py-3.5 font-medium text-gray-900 focus:ring-2 focus:ring-[#007F00] focus:border-transparent outline-none transition-all"
+                                            placeholder="Acme Renewables"
                                         />
                                     </div>
 
@@ -302,6 +335,61 @@ const BusinessOnboarding = () => {
                                             className="w-full bg-gray-50 border border-gray-200 rounded-xl px-5 py-3.5 font-medium text-gray-900 focus:ring-2 focus:ring-[#007F00] focus:border-transparent outline-none transition-all resize-none"
                                             placeholder="Describe your business and services..."
                                         />
+                                    </div>
+
+                                    <div className="md:col-span-2">
+                                        <div className="grid md:grid-cols-3 gap-5">
+                                            <div>
+                                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Company Number</label>
+                                                <input
+                                                    type="text"
+                                                    value={companyNumber}
+                                                    onChange={e => setCompanyNumber(e.target.value)}
+                                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-5 py-3.5 font-medium text-gray-900 focus:ring-2 focus:ring-[#007F00] focus:border-transparent outline-none transition-all"
+                                                    placeholder="123456"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">VAT Number</label>
+                                                <input
+                                                    type="text"
+                                                    value={vatNumber}
+                                                    onChange={e => setVatNumber(e.target.value)}
+                                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-5 py-3.5 font-medium text-gray-900 focus:ring-2 focus:ring-[#007F00] focus:border-transparent outline-none transition-all"
+                                                    placeholder="IE1234567A"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Insurance Expiry</label>
+                                                <input
+                                                    type="date"
+                                                    value={insuranceExpiry}
+                                                    onChange={e => setInsuranceExpiry(e.target.value)}
+                                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-5 py-3.5 font-medium text-gray-900 focus:ring-2 focus:ring-[#007F00] focus:border-transparent outline-none transition-all"
+                                                />
+                                            </div>
+                                            <div className="md:col-span-2">
+                                                <div className="bg-gray-50/50 border border-gray-100 rounded-2xl p-6">
+                                                    <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-4">Professional Certifications</label>
+                                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                                        {['SafePass', 'SEAI Registered', 'RECI Certified', 'NSAI Certified', 'FQAI Registered', 'Safe Electric'].map(cert => (
+                                                            <label key={cert} className="flex items-center gap-3 p-3 bg-white border border-gray-100 rounded-xl cursor-pointer hover:border-[#007F00] transition-all group shadow-sm">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={certifications.includes(cert)}
+                                                                    onChange={e => {
+                                                                        if (e.target.checked) setCertifications([...certifications, cert]);
+                                                                        else setCertifications(certifications.filter(c => c !== cert));
+                                                                    }}
+                                                                    className="w-4 h-4 rounded border-gray-300 text-[#007F00] focus:ring-[#007F00]"
+                                                                />
+                                                                <span className="text-sm font-bold text-gray-700 group-hover:text-[#007F00]">{cert}</span>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 

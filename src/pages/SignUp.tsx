@@ -1,4 +1,3 @@
-
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -66,6 +65,12 @@ const SignUp = () => {
             if (error) throw error;
 
             if (authData?.user) {
+                // Handle business registration separately as it's a "leads" flow
+                if (data.role === 'business') {
+                    navigate('/registration-pending');
+                    return;
+                }
+
                 const isConfirmationRequired = !authData.session;
 
                 if (isConfirmationRequired) {
@@ -78,8 +83,6 @@ const SignUp = () => {
                     // Redirect to appropriate destination
                     if (data.role === 'contractor') {
                         navigate('/assessor-onboarding');
-                    } else if (data.role === 'business') {
-                        navigate('/business-onboarding');
                     } else {
                         navigate('/dashboard/user');
                     }
@@ -116,30 +119,30 @@ const SignUp = () => {
                                 <button
                                     type="button"
                                     onClick={() => setValue('role', 'user')}
-                                    className={`py-3 px-4 text-sm font-medium transition-all border-b-2 -mb-px ${selectedRole === 'user'
+                                    className={`py - 3 px - 4 text - sm font - medium transition - all border - b - 2 - mb - px ${selectedRole === 'user'
                                         ? 'border-gray-400 text-gray-700'
                                         : 'border-transparent text-gray-400 hover:text-gray-600'
-                                        }`}
+                                        } `}
                                 >
                                     Homeowner
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setValue('role', 'contractor')}
-                                    className={`py-3 px-4 text-sm font-medium transition-all border-b-2 -mb-px ${selectedRole === 'contractor'
+                                    className={`py - 3 px - 4 text - sm font - medium transition - all border - b - 2 - mb - px ${selectedRole === 'contractor'
                                         ? 'border-gray-400 text-gray-700'
                                         : 'border-transparent text-gray-400 hover:text-gray-600'
-                                        }`}
+                                        } `}
                                 >
                                     BER Assessor
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setValue('role', 'business')}
-                                    className={`py-3 px-4 text-sm font-medium transition-all border-b-2 -mb-px ${selectedRole === 'business'
+                                    className={`py - 3 px - 4 text - sm font - medium transition - all border - b - 2 - mb - px ${selectedRole === 'business'
                                         ? 'border-gray-400 text-gray-700'
                                         : 'border-transparent text-gray-400 hover:text-gray-600'
-                                        }`}
+                                        } `}
                                 >
                                     Business
                                 </button>

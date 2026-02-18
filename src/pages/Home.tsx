@@ -60,6 +60,9 @@ const HomePage = () => {
                             The fastest, most reliable way to get your Building Energy Rating. Guaranteed lowest prices from 100+ assessors nationwide.
                         </p>
 
+                        <p className="text-[#007F00] font-bold my-6 animate-fade-in text-2xl md:text-3xl">
+                            Get the Best Quotes from local BER Assessors today.
+                        </p>
                         {/* Dual Primary CTAs */}
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-2xl mx-auto mb-16 px-4">
                             <Link to="/get-quote" className="w-full sm:w-auto">
@@ -68,12 +71,6 @@ const HomePage = () => {
                                     <ArrowRight size={32} strokeWidth={3} />
                                 </button>
                             </Link>
-                            <button
-                                onClick={() => document.getElementById('newsletter')?.scrollIntoView({ behavior: 'smooth' })}
-                                className="w-full sm:w-auto sm:px-10 py-6 bg-white hover:bg-gray-50 text-gray-900 text-lg md:text-xl font-black rounded-2xl border-2 border-gray-100 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-3 cursor-pointer"
-                            >
-                                Subscribe to News
-                            </button>
                         </div>
 
                         {/* Fast Benefits Row */}
@@ -380,6 +377,11 @@ const HomePage = () => {
                                     <button className="px-10 py-5 bg-[#007F00] text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-[#006400] transition-all shadow-xl shadow-green-100 flex items-center gap-3 active:scale-95 cursor-pointer">
                                         Browse Catalogue
                                         <ArrowRight size={18} />
+                                    </button>
+                                </Link>
+                                <Link to="/signup?role=business">
+                                    <button className="px-10 py-5 bg-white text-gray-900 border-2 border-[#007F00] font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-green-50 transition-all flex items-center gap-3 active:scale-95 cursor-pointer">
+                                        Register your Business
                                     </button>
                                 </Link>
                                 <Link to="/hire-agent">
