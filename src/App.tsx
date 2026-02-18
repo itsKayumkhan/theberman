@@ -20,6 +20,7 @@ import BusinessDashboard from './pages/BusinessDashboard';
 import SignUp from './pages/SignUp';
 import ContractorOnboarding from './pages/ContractorOnboarding';
 import BusinessOnboarding from './pages/BusinessOnboarding';
+import RegistrationPending from './pages/RegistrationPending';
 import ForgotPassword from './pages/ForgotPassword';
 import UpdatePassword from './pages/UpdatePassword';
 import QuoteForm from './pages/QuoteForm';
@@ -80,6 +81,7 @@ function App() {
                         <Route path="news" element={<News />} />
                         <Route path="news/:id" element={<NewsDetail />} />
                         <Route path="hire-agent" element={<HireAgent />} />
+                        <Route path="registration-pending" element={<RegistrationPending />} />
                         <Route path="/get-solar-quote" element={<SolarQuoteForm />} />
                     </Route>
 
@@ -130,7 +132,7 @@ function App() {
                     <Route
                         path="/business-onboarding"
                         element={
-                            <ProtectedRoute allowedRoles={['business']}>
+                            <ProtectedRoute allowedRoles={['business', 'admin']}>
                                 <BusinessOnboarding />
                             </ProtectedRoute>
                         }

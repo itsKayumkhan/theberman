@@ -25,7 +25,7 @@ const Layout = () => {
     const [expandedProvince, setExpandedProvince] = useState<string | null>(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const navigate = useNavigate();
-    const { user, role, signOut } = useAuth();
+    const { user, role, profile, signOut } = useAuth();
     const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
     const [hasBusinessListing, setHasBusinessListing] = useState(false);
 
@@ -97,6 +97,24 @@ const Layout = () => {
 
                     {/* Menu Button - Visible on all screens */}
                     <div className="flex items-center gap-4 relative">
+                        {/* Subscribe Button - Desktop */}
+                        <button
+                            onClick={() => {
+                                if (window.location.pathname === '/') {
+                                    document.getElementById('newsletter')?.scrollIntoView({ behavior: 'smooth' });
+                                } else {
+                                    navigate('/#newsletter');
+                                    // Small delay to ensure navigation happened if needed, though hash should handle it on load if handled by router
+                                    setTimeout(() => {
+                                        document.getElementById('newsletter')?.scrollIntoView({ behavior: 'smooth' });
+                                    }, 100);
+                                }
+                            }}
+                            className="hidden lg:flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-all text-xs font-bold text-white uppercase tracking-wider cursor-pointer"
+                        >
+                            Subscribe to News
+                        </button>
+
                         {/* Catalogue Hub Link - Desktop */}
                         <Link
                             to="/catalogue"
@@ -227,13 +245,15 @@ const Layout = () => {
                                                     <p className="text-xs text-gray-500 font-medium">Signed in as</p>
                                                     <p className="text-sm font-bold text-gray-900 truncate">{user.email}</p>
                                                 </div>
-                                                <Link
-                                                    to={getDashboardLink()}
-                                                    onClick={closeMenu}
-                                                    className="block px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 uppercase tracking-wide border-b border-gray-100/50"
-                                                >
-                                                    {role === 'business' ? 'Business Portal' : role === 'contractor' ? 'Assessor Dashboard' : 'Dashboard'}
-                                                </Link>
+                                                {role && (role !== 'business' || profile?.registration_status === 'active') && (
+                                                    <Link
+                                                        to={getDashboardLink()}
+                                                        onClick={closeMenu}
+                                                        className="block px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 uppercase tracking-wide border-b border-gray-100/50"
+                                                    >
+                                                        {role === 'business' ? 'Business Portal' : role === 'contractor' ? 'Assessor Dashboard' : 'Dashboard'}
+                                                    </Link>
+                                                )}
                                                 {role === 'contractor' && hasBusinessListing && (
                                                     <Link
                                                         to="/dashboard/business"

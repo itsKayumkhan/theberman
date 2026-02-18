@@ -29,6 +29,11 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
         return <Navigate to="/dashboard/user" replace />;
     }
 
+    // Stage 1 Gating: Redirect pending businesses
+    if (role === 'business' && profile?.registration_status === 'pending' && location.pathname !== '/registration-pending') {
+        return <Navigate to="/registration-pending" replace />;
+    }
+
     const isContractor = role === 'contractor';
 
     // If contractor and missing SEAI number, and NOT already on onboarding page, redirect

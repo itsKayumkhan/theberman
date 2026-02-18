@@ -37,7 +37,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
             if (data) {
                 setRole(data.role);
-                setProfile(data);
+                // Fallback for registration_status from user metadata if missing in profile table
+                const profileWithMetadata = {
+                    ...data,
+                    registration_status: data.registration_status || user?.user_metadata?.registration_status
+                };
+                setProfile(profileWithMetadata);
             } else {
                 setRole('user');
                 setProfile(null);
@@ -110,6 +115,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 data: {
                     full_name: fullName,
                     role: role,
+                    registration_status: role === 'business' ? 'pending' : 'active',
                 },
             },
         });

@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { LogOut, RefreshCw, MessageSquare, Trash2, Eye, X, Mail, Phone, MapPin, Home, Calendar, ChevronDown, Loader2, AlertTriangle, TrendingUp, Briefcase, Menu, Pencil, CheckCircle2, Users, Search, Newspaper } from 'lucide-react';
+import { LogOut, RefreshCw, MessageSquare, Trash2, Eye, X, Mail, Phone, MapPin, Home, Calendar, ChevronDown, Loader2, AlertTriangle, TrendingUp, Briefcase, Menu, Pencil, CheckCircle2, Search, Newspaper } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
@@ -27,6 +27,7 @@ interface Profile {
     email: string;
     role: 'admin' | 'contractor' | 'user' | 'homeowner' | 'business';
     is_active?: boolean;
+    registration_status?: 'pending' | 'active' | 'rejected';
 }
 
 interface Assessment {
@@ -99,49 +100,6 @@ interface AppSettings {
 }
 
 
-interface CatalogueListing {
-    id: string;
-    name: string;
-    slug: string;
-    company_name: string;
-    email: string;
-    phone: string;
-    description: string;
-    address: string;
-    website: string;
-    logo_url: string;
-    features: string[];
-    is_verified: boolean;
-    featured: boolean;
-    is_active: boolean;
-    created_at: string;
-    images?: { id: string, url: string, display_order: number }[];
-    social_media?: {
-        facebook?: string;
-        instagram?: string;
-        linkedin?: string;
-        twitter?: string;
-    };
-    locations?: { location_id: string }[];
-    categories?: { category_id: string }[];
-    latitude?: number;
-    longitude?: number;
-    owner_id?: string | null;
-}
-
-interface CatalogueCategory {
-    id: string;
-    name: string;
-    icon: string;
-    description: string;
-}
-
-interface CatalogueLocation {
-    id: string;
-    name: string;
-    slug: string;
-}
-
 interface NewsArticle {
     id: string;
     created_at: string;
@@ -155,76 +113,6 @@ interface NewsArticle {
     read_time: string;
 }
 
-const generateSlug = (text: string) => {
-    return text
-        .toString()
-        .toLowerCase()
-        .trim()
-        .replace(/\s+/g, '-')     // Replace spaces with -
-        .replace(/[^\w\-]+/g, '') // Remove all non-word chars
-        .replace(/\-\-+/g, '-');  // Replace multiple - with single -
-};
-
-const geocodeAddress = async (address: string): Promise<{ lat: number, lon: number } | null> => {
-    // Helper to fetch
-    const fetchCoords = async (query: string) => {
-        try {
-            console.log(`Geocoding attempt: ${query}`);
-            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
-            const data = await response.json();
-            if (data && data.length > 0) {
-                console.log(`Geocoding success for ${query}:`, data[0]);
-                return {
-                    lat: parseFloat(data[0].lat),
-                    lon: parseFloat(data[0].lon)
-                };
-            }
-        } catch (error) {
-            console.error('Geocoding error:', error);
-        }
-        return null;
-    };
-
-    // 1. Try full address
-    let coords = await fetchCoords(address);
-    if (coords) return coords;
-
-    // 2. Try separating by newlines if present
-    // User might paste:
-    // Street
-    // City
-    // County
-    // Eircode
-    // Let's try to extract Eircode first as it is most accurate
-    const eircodeRegex = /([AC-FHKNPRTV-Y]\d{2}|D6W)[0-9AC-FHKNPRTV-Y]{4}/i;
-    const eircodeMatch = address.match(eircodeRegex);
-    if (eircodeMatch) {
-        // Try simply searching the Eircode
-        coords = await fetchCoords(eircodeMatch[0] + ', Ireland');
-        if (coords) return coords;
-    }
-
-    // 3. Try cleaning up structure: Split by newlines or commas, take first 2 parts + last part?
-    // Or just try "City, County" if we can detect them.
-    // Let's try a fallback of just the first line + "Ireland" if it's a multi-line string
-    const lines = address.split(/[\n,]/).map(s => s.trim()).filter(s => s);
-    if (lines.length > 1) {
-        // Try first part (Street/House) + last part (Country/County?)
-        // Often user puts "Co. Dublin" or "Dublin" near end.
-        const cityOrCounty = lines.find(l => l.toLowerCase().includes('dublin') || l.toLowerCase().includes('cork') || l.toLowerCase().includes('galway') || l.toLowerCase().includes('limerick'));
-        if (cityOrCounty) {
-            coords = await fetchCoords(`${lines[0]}, ${cityOrCounty}, Ireland`);
-            if (coords) return coords;
-        }
-
-        // Try just first line + Ireland
-        coords = await fetchCoords(`${lines[0]}, Ireland`);
-        if (coords) return coords;
-    }
-
-    return null;
-};
-
 const Admin = () => {
     const [leads, setLeads] = useState<Lead[]>([]);
     const [assessments, setAssessments] = useState<Assessment[]>([]);
@@ -233,7 +121,8 @@ const Admin = () => {
     const [sponsors, setSponsors] = useState<Sponsor[]>([]);
     const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
     const [newsArticles, setNewsArticles] = useState<NewsArticle[]>([]);
-    const [view, setView] = useState<'stats' | 'leads' | 'assessments' | 'users' | 'payments' | 'settings' | 'catalogue' | 'referrals' | 'news'>('stats');
+    const [view, setView] = useState<'stats' | 'leads' | 'assessments' | 'users' | 'payments' | 'settings' | 'news' | 'business-leads'>('stats');
+    const [listings, setListings] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
     const [selectedAssessment, setSelectedAssessment] = useState<Assessment | null>(null);
@@ -263,7 +152,6 @@ const Admin = () => {
         l.town?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (l.status || 'new').toLowerCase().includes(searchTerm.toLowerCase())
     );
-
     const filteredAssessments = assessments.filter(a =>
         a.property_address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         a.town?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -271,13 +159,19 @@ const Admin = () => {
         (a.profiles?.full_name || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const filteredBusinessLeads = users_list.filter(u => u.role === 'business').filter(u =>
+        u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     useEffect(() => {
         setSearchTerm('');
     }, [view]);
     const [isUpdatingBanner, setIsUpdatingBanner] = useState(false);
-    const [itemToDelete, setItemToDelete] = useState<{ id: string, type: 'lead' | 'sponsor' | 'assessment' } | null>(null);
+    const [itemToDelete, setItemToDelete] = useState<{ id: string, type: 'lead' | 'sponsor' | 'assessment' | 'user' } | null>(null);
     const [itemToSuspend, setItemToSuspend] = useState<{ id: string, name: string, currentStatus: boolean } | null>(null);
     const [showSuspendModal, setShowSuspendModal] = useState(false);
+    const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
 
     const handleExportPayments = () => {
         if (payments.length === 0) {
@@ -330,29 +224,6 @@ const Admin = () => {
     // Message Form State
     const [messageContent, setMessageContent] = useState('');
 
-    // Catalogue Management State
-    const [catalogueTab, setCatalogueTab] = useState<'listings' | 'categories'>('listings');
-    const [catalogueListings, setCatalogueListings] = useState<CatalogueListing[]>([]);
-    const [catalogueCategories, setCatalogueCategories] = useState<CatalogueCategory[]>([]);
-    const [catalogueLocations, setCatalogueLocations] = useState<CatalogueLocation[]>([]); // New State
-    const [showListingModal, setShowListingModal] = useState(false);
-    const [showCategoryModal, setShowCategoryModal] = useState(false);
-    const [editingListing, setEditingListing] = useState<CatalogueListing | null>(null);
-    const [editingCategory, setEditingCategory] = useState<CatalogueCategory | null>(null);
-    const [isSavingCatalogue, setIsSavingCatalogue] = useState(false);
-    const [listingImages, setListingImages] = useState<string[]>(['', '', '']); // State for multiple images
-    const [selectedLocationId, setSelectedLocationId] = useState<string>(''); // New State for form
-    const [selectedCategoryId, setSelectedCategoryId] = useState<string>(''); // New State for Category
-
-    // Address breakdown state
-    const [addressFields, setAddressFields] = useState({
-        street: '',
-        town: '',
-        county: '',
-        eircode: ''
-    });
-
-
     const { signOut, user } = useAuth();
     const navigate = useNavigate();
 
@@ -381,13 +252,32 @@ const Admin = () => {
                 .select('*')
                 .order('created_at', { ascending: false });
 
-            if (error) throw error;
+            if (error) {
+                if (error.message?.includes('column "registration_status" does not exist')) {
+                    toast.error('Registration status column missing. Please run the SQL migration.');
+                } else {
+                    throw error;
+                }
+            }
             setUsersList(data || []);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error fetching users:', error);
-            toast.error('Failed to load users');
+            toast.error(error.message || 'Failed to load users');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchListings = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('catalogue_listings')
+                .select('id, user_id, business_name, status');
+
+            if (error) throw error;
+            setListings(data || []);
+        } catch (error) {
+            console.error('Error fetching listings:', error);
         }
     };
 
@@ -410,6 +300,72 @@ const Admin = () => {
             toast.error('Failed to load assessments');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const updateRegistrationStatus = async (userId: string, status: 'active' | 'rejected') => {
+        setIsUpdating(true);
+        // Optimistic update to UI
+        const previousUsers = [...users_list];
+        setUsersList(users_list.map(u => u.id === userId ? { ...u, registration_status: status } : u));
+
+        try {
+            console.log(`[Admin] Attempting to update user ${userId} to status ${status}`);
+
+            const { data, error } = await supabase
+                .from('profiles')
+                .update({ registration_status: status })
+                .eq('id', userId)
+                .select();
+
+            if (error) {
+                console.error('[Admin] Database update error:', error);
+                throw error;
+            }
+
+            if (!data || data.length === 0) {
+                console.warn('[Admin] No rows updated. Check if registration_status column exists and RLS allows updates.');
+                throw new Error('Update failed: No rows were changed. This usually means the "registration_status" column is missing from the database schema or an RLS policy is blocking the update.');
+            }
+
+            console.log('[Admin] Update successful:', data);
+            toast.success(`Business registration ${status === 'active' ? 'approved' : 'rejected'} successfully`);
+            fetchUsers(); // Refresh the list to sync with DB
+        } catch (error: any) {
+            console.error('Error updating registration status:', error);
+            // Rollback optimistic update
+            setUsersList(previousUsers);
+
+            if (error.message?.includes('column "registration_status" does not exist')) {
+                toast.error('Database Error: The "registration_status" column is missing. Please run the SQL migration I provided.');
+            } else {
+                toast.error(error.message || 'Failed to update registration status');
+            }
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const handleSendOnboardingEmail = async (u: any) => {
+        setSendingEmailId(u.id);
+        try {
+            console.log(`[Admin] Sending onboarding email to ${u.email}...`);
+            const { error } = await supabase.functions.invoke('send-onboarding-link', {
+                body: {
+                    fullName: u.full_name,
+                    email: u.email,
+                    town: u.town || 'Your Business Profile',
+                    onboardingUrl: `${window.location.origin}/business-onboarding`
+                }
+            });
+
+            if (error) throw error;
+            toast.success('Onboarding email sent successfully!');
+        } catch (error: any) {
+            console.error('Error sending onboarding email:', error);
+            toast.error(error.message || 'Failed to send onboarding email');
+        } finally {
+            setSendingEmailId(null);
         }
     };
 
@@ -445,54 +401,6 @@ const Admin = () => {
             setAppSettings(data);
         } catch (error) {
             console.error('Error fetching settings:', error);
-        }
-    };
-
-    const fetchCatalogueLocations = async () => {
-        try {
-            const { data, error } = await supabase
-                .from('catalogue_locations')
-                .select('*')
-                .order('name');
-            if (error) throw error;
-            setCatalogueLocations(data || []);
-        } catch (error) {
-            console.error('Error fetching locations:', error);
-            toast.error('Failed to load locations');
-        }
-    };
-
-    // Catalogue Fetch Functions
-    const fetchCatalogueListings = async () => {
-        try {
-            const { data, error } = await supabase
-                .from('catalogue_listings')
-                .select(`
-                    *,
-                    images:catalogue_listing_images(id, url, display_order),
-                    locations:catalogue_listing_locations(location_id),
-                    categories:catalogue_listing_categories(category_id)
-                `)
-                .order('created_at', { ascending: false });
-            if (error) throw error;
-            setCatalogueListings(data || []);
-        } catch (error) {
-            console.error('Error fetching listings:', error);
-            toast.error('Failed to load listings');
-        }
-    };
-
-    const fetchCatalogueCategories = async () => {
-        try {
-            const { data, error } = await supabase
-                .from('catalogue_categories')
-                .select('*')
-                .order('name');
-            if (error) throw error;
-            setCatalogueCategories(data || []);
-        } catch (error) {
-            console.error('Error fetching categories:', error);
-            toast.error('Failed to load categories');
         }
     };
 
@@ -537,182 +445,6 @@ const Admin = () => {
         }
     };
 
-    const handleSaveListing = async (listingData: Partial<CatalogueListing>) => {
-        setIsSavingCatalogue(true);
-        try {
-            // Generate slug if missing
-            if (!listingData.slug && listingData.name) {
-                listingData.slug = generateSlug(listingData.name);
-            }
-
-            // Geocode using structured data hierarchy
-            let coords = null;
-
-            // 1. Try Eircode first (Most Accurate)
-            if (addressFields.eircode) {
-                coords = await geocodeAddress(`${addressFields.eircode}, Ireland`);
-            }
-
-            // 2. Try Street + Town + County if no Eircode match
-            if (!coords && addressFields.street && (addressFields.town || addressFields.county)) {
-                const query = `${addressFields.street}, ${addressFields.town} ${addressFields.county}, Ireland`;
-                coords = await geocodeAddress(query);
-            }
-
-            // 3. Last attempt: Just the concatenated address string
-            if (!coords && listingData.address) {
-                coords = await geocodeAddress(listingData.address);
-            }
-
-            if (coords) {
-                listingData.latitude = coords.lat;
-                listingData.longitude = coords.lon;
-            } else {
-                console.warn("Could not geocode address:", listingData.address);
-            }
-
-            let listingId = editingListing?.id;
-
-            if (editingListing) {
-                const { error } = await supabase
-                    .from('catalogue_listings')
-                    .update(listingData)
-                    .eq('id', editingListing.id);
-                if (error) throw error;
-                toast.success('Listing updated successfully');
-            } else {
-                const { data, error } = await supabase
-                    .from('catalogue_listings')
-                    .insert(listingData)
-                    .select()
-                    .single();
-                if (error) throw error;
-                listingId = data.id;
-                toast.success('Listing created successfully');
-            }
-
-            // Handle Images
-            if (listingId) {
-                // Delete existing images first (simple replacement strategy)
-                await supabase.from('catalogue_listing_images').delete().eq('listing_id', listingId);
-
-                // Insert new images
-                const imagesToInsert = listingImages
-                    .filter(url => url && url.trim() !== '')
-                    .map((url, index) => ({
-                        listing_id: listingId,
-                        url,
-                        display_order: index
-                    }));
-
-                if (imagesToInsert.length > 0) {
-                    const { error: imgError } = await supabase.from('catalogue_listing_images').insert(imagesToInsert);
-                    if (imgError) throw imgError;
-                }
-            }
-
-            // Handle Location Link
-            if (listingId && selectedLocationId) {
-                // Delete existing location links (assuming 1-to-1 for now, or just clearing to reset)
-                await supabase.from('catalogue_listing_locations').delete().eq('listing_id', listingId);
-
-                // Insert new location link
-                const { error: locError } = await supabase.from('catalogue_listing_locations').insert({
-                    listing_id: listingId,
-                    location_id: selectedLocationId
-                });
-
-                if (locError) {
-                    console.error('Error linking location:', locError);
-                    toast.error('Listing saved, but failed to link location');
-                }
-            }
-
-            // Handle Category Link
-            if (listingId && selectedCategoryId) {
-                // Delete existing category links
-                await supabase.from('catalogue_listing_categories').delete().eq('listing_id', listingId);
-
-                // Insert new category link
-                const { error: catError } = await supabase.from('catalogue_listing_categories').insert({
-                    listing_id: listingId,
-                    category_id: selectedCategoryId
-                });
-
-                if (catError) {
-                    console.error('Error linking category:', catError);
-                    toast.error('Listing saved, but failed to link category');
-                }
-            }
-
-            setShowListingModal(false);
-            setEditingListing(null);
-            setListingImages(['', '', '']);
-            setSelectedLocationId('');
-            setSelectedCategoryId('');
-            fetchCatalogueListings();
-        } catch (error) {
-            console.error('Error saving listing:', error);
-            toast.error('Failed to save listing');
-        } finally {
-            setIsSavingCatalogue(false);
-        }
-    };
-
-    const handleDeleteListing = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this listing?')) return;
-        try {
-            const { error } = await supabase.from('catalogue_listings').delete().eq('id', id);
-            if (error) throw error;
-            toast.success('Listing deleted');
-            fetchCatalogueListings();
-        } catch (error) {
-            console.error('Error deleting listing:', error);
-            toast.error('Failed to delete listing');
-        }
-    };
-
-    const handleSaveCategory = async (categoryData: Partial<CatalogueCategory>) => {
-        setIsSavingCatalogue(true);
-        try {
-            if (editingCategory) {
-                const { error } = await supabase
-                    .from('catalogue_categories')
-                    .update(categoryData)
-                    .eq('id', editingCategory.id);
-                if (error) throw error;
-                toast.success('Category updated successfully');
-            } else {
-                const { error } = await supabase
-                    .from('catalogue_categories')
-                    .insert(categoryData);
-                if (error) throw error;
-                toast.success('Category created successfully');
-            }
-            setShowCategoryModal(false);
-            setEditingCategory(null);
-            fetchCatalogueCategories();
-        } catch (error) {
-            console.error('Error saving category:', error);
-            toast.error('Failed to save category');
-        } finally {
-            setIsSavingCatalogue(false);
-        }
-    };
-
-    const handleDeleteCategory = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this category?')) return;
-        try {
-            const { error } = await supabase.from('catalogue_categories').delete().eq('id', id);
-            if (error) throw error;
-            toast.success('Category deleted');
-            fetchCatalogueCategories();
-        } catch (error) {
-            console.error('Error deleting category:', error);
-            toast.error('Failed to delete category');
-        }
-    };
-
     const logAudit = async (action: string, entityType: string, entityId: string, details: any) => {
         try {
             await supabase.from('audit_logs').insert({
@@ -750,7 +482,7 @@ const Admin = () => {
         }
     };
 
-    const handleDeleteClick = (id: string, type: 'lead' | 'sponsor' | 'assessment') => {
+    const handleDeleteClick = (id: string, type: 'lead' | 'sponsor' | 'assessment' | 'user') => {
         setItemToDelete({ id, type });
         setShowDeleteModal(true);
     };
@@ -763,6 +495,7 @@ const Admin = () => {
             if (itemToDelete.type === 'lead') table = 'leads';
             else if (itemToDelete.type === 'sponsor') table = 'sponsors';
             else if (itemToDelete.type === 'assessment') table = 'assessments';
+            else if (itemToDelete.type === 'user') table = 'profiles' as any;
 
             const { error } = await supabase
                 .from(table)
@@ -782,6 +515,9 @@ const Admin = () => {
                 setAssessments(assessments.filter(a => a.id !== itemToDelete.id));
                 if (selectedAssessment?.id === itemToDelete.id) setSelectedAssessment(null);
                 toast.success('Assessment deleted successfully');
+            } else if (itemToDelete.type === 'user') {
+                setUsersList(users_list.filter(u => u.id !== itemToDelete.id));
+                toast.success('User deleted successfully');
             }
             setShowDeleteModal(false);
         } catch (error: any) {
@@ -932,27 +668,23 @@ const Admin = () => {
                 if (view === 'leads') await fetchLeads();
                 else if (view === 'assessments') await fetchAssessments();
                 else if (view === 'users') await fetchUsers();
+                else if (view === 'business-leads') {
+                    await fetchUsers();
+                    await fetchListings();
+                }
                 else if (view === 'payments') await fetchPayments();
                 else if (view === 'settings') {
                     await fetchAppSettings();
                     await fetchPromoSettings();
                     await fetchSponsors();
                 }
-                else if (view === 'stats' || view === 'referrals') {
+                else if (view === 'stats') {
                     // Fetch assessments and listings for referrals or stats
                     await Promise.all([
                         fetchLeads(),
                         fetchAssessments(),
                         fetchUsers(),
-                        fetchPayments(),
-                        fetchCatalogueListings()
-                    ]);
-                }
-                else if (view === 'catalogue') {
-                    await Promise.all([
-                        fetchCatalogueListings(),
-                        fetchCatalogueCategories(),
-                        fetchCatalogueLocations() // Fetch locations
+                        fetchPayments()
                     ]);
                 }
                 else if (view === 'news') {
@@ -974,8 +706,6 @@ const Admin = () => {
             .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => fetchUsers())
             .on('postgres_changes', { event: '*', schema: 'public', table: 'payments' }, () => fetchPayments())
             .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, () => fetchAppSettings())
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'catalogue_listings' }, () => fetchCatalogueListings())
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'catalogue_categories' }, () => fetchCatalogueCategories())
             .subscribe();
 
         return () => {
@@ -994,6 +724,8 @@ const Admin = () => {
         completedAssessments: assessments.filter(a => a.status === 'completed').length,
         pendingQuotes: assessments.filter(a => a.status === 'submitted' || a.status === 'pending_quote').length,
         acceptedQuotes: assessments.filter(a => a.status === 'quote_accepted' || a.status === 'scheduled' || a.status === 'completed').length,
+        businessLeads: users_list.filter(u => u.role === 'business').length,
+        pendingOnboarding: users_list.filter(u => u.role === 'business' && !listings.some(l => l.user_id === u.id)).length,
     };
 
     const handleAssignContractor = async (contractorId: string) => {
@@ -1340,7 +1072,7 @@ const Admin = () => {
                             {isMenuOpen && (
                                 <div className="absolute right-0 top-full mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
                                     <div className="p-2 space-y-1">
-                                        {(['stats', 'leads', 'assessments', 'users', 'payments', 'settings', 'catalogue', 'referrals', 'news'] as const).map((v) => (
+                                        {(['stats', 'leads', 'business-leads', 'assessments', 'users', 'payments', 'settings', 'news'] as const).map((v) => (
                                             <button
                                                 key={v}
                                                 onClick={() => { setView(v); setIsMenuOpen(false); }}
@@ -1382,20 +1114,19 @@ const Admin = () => {
                                 {view === 'stats' ? 'System Overview' :
                                     view === 'leads' ? 'Leads & Inquiries' :
                                         view === 'assessments' ? 'BER Assessments' :
-                                            view === 'users' ? 'User Management' :
-                                                view === 'payments' ? 'Financials' :
-                                                    view === 'settings' ? 'System Settings' :
-                                                        view === 'news' ? 'News & Updates' :
-                                                            view === 'referrals' ? 'Referral Performance' : 'Admin'}
+                                            view === 'business-leads' ? 'Business Leads' :
+                                                view === 'users' ? 'User Management' :
+                                                    view === 'payments' ? 'Financials' :
+                                                        view === 'news' ? 'News & Updates' : 'Admin'}
                             </h2>
                             <p className="text-gray-500 text-sm mt-1">
                                 {view === 'stats' ? 'Key metrics and business performance.' :
                                     view === 'leads' ? 'Manage your website submissions.' :
                                         view === 'assessments' ? 'Manage homeowner assessment requests.' :
-                                            view === 'users' ? 'Manage homeowners and BER Assessors.' :
-                                                view === 'payments' ? 'View and export payment records.' :
-                                                    view === 'settings' ? 'Configure global platform settings.' :
-                                                        view === 'referrals' ? 'Track conversions from partner referral links.' : ''}
+                                            view === 'business-leads' ? 'Review business interest and send onboarding links.' :
+                                                view === 'users' ? 'Manage homeowners and BER Assessors.' :
+                                                    view === 'payments' ? 'View and export payment records.' :
+                                                        view === 'settings' ? 'Configure global platform settings.' : ''}
                             </p>
                         </div>
                     </div>
@@ -1416,7 +1147,7 @@ const Admin = () => {
                 ) : view === 'stats' ? (
                     <div className="space-y-8">
                         {/* Stats Cards Row 1 */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
                             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Users</p>
                                 <div className="flex items-end justify-between">
@@ -1443,6 +1174,15 @@ const Admin = () => {
                                     <h3 className="text-3xl font-bold text-gray-900">{stats.activeAssessments}</h3>
                                     <div className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
                                         Pending Complete
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Business Leads</p>
+                                <div className="flex items-end justify-between">
+                                    <h3 className="text-3xl font-bold text-gray-900">{stats.businessLeads}</h3>
+                                    <div className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded">
+                                        {stats.pendingOnboarding} Pending
                                     </div>
                                 </div>
                             </div>
@@ -1738,6 +1478,142 @@ const Admin = () => {
                                                     </td>
                                                 </tr>
                                             ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                ) : view === 'business-leads' ? (
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                            <div className="relative w-full max-w-md">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                <input
+                                    type="text"
+                                    placeholder="Search by business name or email..."
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00] transition-all text-sm"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                            <div className="text-xs text-gray-400 font-medium">
+                                Showing {filteredBusinessLeads.length} of {users_list.filter(u => u.role === 'business').length} businesses
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left text-sm text-gray-600">
+                                    <thead className="bg-gray-50/50 text-gray-900 font-bold uppercase tracking-wider text-xs border-b border-gray-100">
+                                        <tr>
+                                            <th className="px-6 py-4">Status</th>
+                                            <th className="px-6 py-4">Business Details</th>
+                                            <th className="px-6 py-4">Signup Date</th>
+                                            <th className="px-6 py-4">Registration</th>
+                                            <th className="px-6 py-4 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-50">
+                                        {filteredBusinessLeads.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={5} className="px-6 py-12 text-center text-gray-400 italic">
+                                                    No business leads found.
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            filteredBusinessLeads.map((u) => {
+                                                const hasListing = listings.some(l => l.user_id === u.id);
+
+                                                return (
+                                                    <tr key={u.id} className="hover:bg-green-50/30 transition-colors group">
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex flex-col gap-1">
+                                                                <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${u.registration_status === 'active' ? 'bg-green-50 text-green-700 border-green-200' :
+                                                                    u.registration_status === 'rejected' ? 'bg-red-50 text-red-700 border-red-200' :
+                                                                        'bg-amber-50 text-amber-700 border-amber-200'
+                                                                    }`}>
+                                                                    <div className={`w-1.5 h-1.5 rounded-full ${u.registration_status === 'active' ? 'bg-green-500' :
+                                                                        u.registration_status === 'rejected' ? 'bg-red-500' :
+                                                                            'bg-amber-500'
+                                                                        }`}></div>
+                                                                    {u.registration_status || 'pending'}
+                                                                </div>
+                                                                {hasListing && (
+                                                                    <span className="text-[9px] text-gray-400 font-bold uppercase tracking-tighter">Listing Created</span>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 font-medium text-gray-900">
+                                                            {u.full_name}
+                                                            <div className="text-xs text-gray-400 font-normal">{u.email}</div>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-gray-500">
+                                                            {new Date(u.created_at).toLocaleDateString()}
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            {u.registration_status === 'active' && !hasListing && (
+                                                                <button
+                                                                    onClick={() => handleSendOnboardingEmail(u)}
+                                                                    disabled={sendingEmailId === u.id}
+                                                                    className="flex items-center gap-1.5 bg-[#007F00] text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-green-700 transition-all shadow-sm disabled:opacity-50 w-fit animate-pulse hover:animate-none"
+                                                                >
+                                                                    {sendingEmailId === u.id ? (
+                                                                        <div className="w-14 h-4 flex items-center justify-center">
+                                                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <>
+                                                                            <Mail size={14} />
+                                                                            Send Form
+                                                                        </>
+                                                                    )}
+                                                                </button>
+                                                            )}
+                                                            {u.registration_status === 'active' && hasListing && (
+                                                                <div className="flex items-center gap-1.5 text-green-600 font-bold text-xs">
+                                                                    <CheckCircle2 size={14} />
+                                                                    Registration Complete
+                                                                </div>
+                                                            )}
+                                                            {u.registration_status === 'pending' && (
+                                                                <span className="text-[10px] text-gray-400 font-medium italic">Pending Approval</span>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-right">
+                                                            <div className="flex items-center justify-end gap-2">
+                                                                {u.registration_status !== 'active' && (
+                                                                    <button
+                                                                        onClick={() => updateRegistrationStatus(u.id, 'active')}
+                                                                        disabled={isUpdating}
+                                                                        className="flex items-center gap-1.5 bg-white border border-green-200 text-green-600 hover:bg-green-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50 shadow-sm"
+                                                                    >
+                                                                        <CheckCircle2 size={14} />
+                                                                        Approve
+                                                                    </button>
+                                                                )}
+                                                                {u.registration_status === 'pending' && (
+                                                                    <button
+                                                                        onClick={() => updateRegistrationStatus(u.id, 'rejected')}
+                                                                        disabled={isUpdating}
+                                                                        className="flex items-center gap-1.5 bg-white border border-red-200 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50 shadow-sm"
+                                                                    >
+                                                                        <X size={14} />
+                                                                        Reject
+                                                                    </button>
+                                                                )}
+                                                                <button
+                                                                    onClick={() => handleDeleteClick(u.id, 'user')}
+                                                                    className="text-gray-400 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
+                                                                    title="Delete Business"
+                                                                >
+                                                                    <Trash2 size={16} />
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })
                                         )}
                                     </tbody>
                                 </table>
@@ -2108,362 +1984,6 @@ const Admin = () => {
                                     </button>
                                 </div>
                             </form>
-                        </div>
-                    </div>
-                ) : view === 'catalogue' ? (
-                    <div className="space-y-6">
-                        {/* Header */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-lg font-bold text-gray-900">Manage Catalogue</h3>
-                                <Link
-                                    to="/catalogue"
-                                    className="text-[#007F00] text-sm font-bold hover:underline flex items-center gap-1"
-                                >
-                                    <Eye size={16} />
-                                    View Public Catalogue
-                                </Link>
-                            </div>
-
-                            {/* Sub-Tabs */}
-                            <div className="flex gap-2 border-b border-gray-200">
-                                {(['listings', 'categories'] as const).map((tab) => (
-                                    <button
-                                        key={tab}
-                                        onClick={() => {
-                                            setCatalogueTab(tab);
-                                            if (tab === 'listings') fetchCatalogueListings();
-                                            if (tab === 'categories') fetchCatalogueCategories();
-                                        }}
-                                        className={`px-4 py-2 text-sm font-bold capitalize transition-colors border-b-2 -mb-px ${catalogueTab === tab
-                                            ? 'border-[#007F00] text-[#007F00]'
-                                            : 'border-transparent text-gray-500 hover:text-gray-700'
-                                            }`}
-                                    >
-                                        {tab}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Listings Tab */}
-                        {catalogueTab === 'listings' && (
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h4 className="font-bold text-gray-800">Listings ({catalogueListings.length})</h4>
-                                    <button
-                                        onClick={() => {
-                                            setEditingListing(null);
-                                            setSelectedLocationId(''); // Reset location
-                                            setAddressFields({ street: '', town: '', county: '', eircode: '' }); // Reset address
-                                            setListingImages(['', '', '']);
-                                            setShowListingModal(true);
-                                        }}
-                                        className="bg-[#007F00] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#006600] transition-colors"
-                                    >
-                                        + Add Listing
-                                    </button>
-                                </div>
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-sm">
-                                        <thead className="bg-gray-50">
-                                            <tr>
-                                                <th className="px-4 py-3 text-left font-bold text-gray-600">Name / Slug</th>
-                                                <th className="px-4 py-3 text-left font-bold text-gray-600">Company</th>
-                                                <th className="px-4 py-3 text-left font-bold text-gray-600">Email</th>
-                                                <th className="px-4 py-3 text-left font-bold text-gray-600">Status</th>
-                                                <th className="px-4 py-3 text-right font-bold text-gray-600">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-gray-100">
-                                            {catalogueListings.map((listing) => (
-                                                <tr key={listing.id} className="hover:bg-gray-50">
-                                                    <td className="px-4 py-3">
-                                                        <div className="font-bold text-gray-900">{listing.name}</div>
-                                                        <div className="text-[10px] font-mono text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded inline-block mt-1">
-                                                            {listing.slug}
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-4 py-3 text-gray-600">{listing.company_name}</td>
-                                                    <td className="px-4 py-3 text-gray-600">{listing.email}</td>
-                                                    <td className="px-4 py-3">
-                                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${listing.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                                                            {listing.is_active ? 'Active' : 'Inactive'}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-4 py-3 text-right">
-                                                        <div className="flex items-center justify-end gap-2">
-                                                            <button
-                                                                onClick={() => {
-                                                                    setEditingListing(listing);
-                                                                    // Load images
-                                                                    const urls = listing.images?.sort((a, b) => a.display_order - b.display_order).map(i => i.url) || [];
-                                                                    // Pad to 3
-                                                                    while (urls.length < 3) urls.push('');
-                                                                    setListingImages(urls.slice(0, 3));
-
-                                                                    // Load Location
-                                                                    const locId = listing.locations?.[0]?.location_id || '';
-                                                                    setSelectedLocationId(locId);
-
-                                                                    // Load Category
-                                                                    const catId = listing.categories?.[0]?.category_id || '';
-                                                                    setSelectedCategoryId(catId);
-
-                                                                    // Parse Address
-                                                                    const parts = (listing.address || '').split(',').map(s => s.trim()).filter(Boolean);
-                                                                    let street = listing.address || '';
-                                                                    let town = '';
-                                                                    let county = '';
-                                                                    let eircode = '';
-
-                                                                    // Simple heuristic for existing structured data
-                                                                    if (parts.length >= 3) {
-                                                                        // Check for Eircode
-                                                                        const eircodeIndex = parts.findIndex(p => /([AC-FHKNPRTV-Y]\d{2}|D6W)[0-9AC-FHKNPRTV-Y]{4}/i.test(p));
-                                                                        if (eircodeIndex !== -1) {
-                                                                            eircode = parts[eircodeIndex];
-                                                                        }
-
-                                                                        // Map fields
-                                                                        street = parts[0];
-                                                                        if (parts.length > 1) town = parts[1];
-                                                                        if (parts.length > 2) {
-                                                                            const p = parts[2];
-                                                                            // If it's not the Eircode and not Country, assume County
-                                                                            if (p !== eircode && !['IRL', 'IRELAND'].includes(p.toUpperCase())) {
-                                                                                county = p;
-                                                                            }
-                                                                        }
-                                                                    }
-
-                                                                    setAddressFields({
-                                                                        street,
-                                                                        town,
-                                                                        county,
-                                                                        eircode
-                                                                    });
-
-                                                                    setShowListingModal(true);
-                                                                }}
-                                                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                                                title="Edit Listing"
-                                                            >
-                                                                <Pencil size={18} />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleDeleteListing(listing.id)}
-                                                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                                title="Delete Listing"
-                                                            >
-                                                                <Trash2 size={18} />
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                            {catalogueListings.length === 0 && (
-                                                <tr>
-                                                    <td colSpan={5} className="px-4 py-8 text-center text-gray-500 italic">
-                                                        No listings found. Click "Add Listing" to create one.
-                                                    </td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Categories Tab */}
-                        {catalogueTab === 'categories' && (
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h4 className="font-bold text-gray-800">Categories ({catalogueCategories.length})</h4>
-                                    <button
-                                        onClick={() => { setEditingCategory(null); setShowCategoryModal(true); }}
-                                        className="bg-[#007F00] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#006600] transition-colors"
-                                    >
-                                        + Add Category
-                                    </button>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {catalogueCategories.map((category) => (
-                                        <div key={category.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                                            <div className="flex justify-between items-start">
-                                                <div>
-                                                    <h5 className="font-bold text-gray-900">{category.name}</h5>
-                                                    <p className="text-xs text-gray-500 mt-1">{category.description || 'No description'}</p>
-                                                </div>
-                                                <div className="flex gap-1">
-                                                    <button
-                                                        onClick={() => { setEditingCategory(category); setShowCategoryModal(true); }}
-                                                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                                                        title="Edit Category"
-                                                    >
-                                                        <Pencil size={16} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteCategory(category.id)}
-                                                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                                                        title="Delete Category"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {catalogueCategories.length === 0 && (
-                                        <div className="col-span-full text-center py-8 text-gray-500 italic">
-                                            No categories found. Click "Add Category" to create one.
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                ) : view === 'referrals' ? (
-                    <div className="space-y-8">
-                        {/* Referral Overview Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Referrals</p>
-                                <div className="flex items-end justify-between">
-                                    <h3 className="text-3xl font-bold text-gray-900">
-                                        {assessments.filter(a => a.referred_by_listing_id).length}
-                                    </h3>
-                                    <div className="bg-blue-100 p-2 rounded-lg text-blue-700">
-                                        <Users size={20} />
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Referral Rate</p>
-                                <div className="flex items-end justify-between">
-                                    <h3 className="text-3xl font-bold text-gray-900">
-                                        {assessments.length > 0
-                                            ? Math.round((assessments.filter(a => a.referred_by_listing_id).length / assessments.length) * 100)
-                                            : 0}%
-                                    </h3>
-                                    <TrendingUp size={20} className="text-green-600 mb-1" />
-                                </div>
-                            </div>
-                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Active Partners</p>
-                                <div className="flex items-end justify-between">
-                                    <h3 className="text-3xl font-bold text-gray-900">
-                                        {new Set(assessments.filter(a => a.referred_by_listing_id).map(a => a.referred_by_listing_id)).size}
-                                    </h3>
-                                    <div className="bg-green-100 p-2 rounded-lg text-green-700">
-                                        <Briefcase size={20} />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Partner Breakdown Table */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                            <div className="p-6 border-b border-gray-100 bg-gray-50/50">
-                                <h3 className="text-lg font-bold text-gray-900">Partner Breakdown</h3>
-                                <p className="text-sm text-gray-500">Conversions attributed to specific business partners.</p>
-                            </div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left text-sm text-gray-600">
-                                    <thead className="bg-gray-50/50 text-gray-900 font-bold uppercase tracking-wider text-xs border-b border-gray-100">
-                                        <tr>
-                                            <th className="px-6 py-4">Partner Name</th>
-                                            <th className="px-6 py-4">Conversions</th>
-                                            <th className="px-6 py-4">Last Activity</th>
-                                            <th className="px-6 py-4 text-right">Progress</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-50">
-                                        {catalogueListings.map(listing => {
-                                            const conversions = assessments.filter(a => a.referred_by_listing_id === listing.id);
-                                            if (conversions.length === 0) return null;
-                                            return (
-                                                <tr key={listing.id} className="hover:bg-green-50/30 transition-colors">
-                                                    <td className="px-6 py-4 font-bold text-gray-900">
-                                                        {listing.name}
-                                                        <div className="text-xs text-gray-400 font-normal">{listing.company_name}</div>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-lg font-bold text-gray-900">{conversions.length}</span>
-                                                            <span className="text-xs text-gray-500">Jobs</span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-gray-500">
-                                                        {new Date(conversions[0].created_at).toLocaleDateString()}
-                                                    </td>
-                                                    <td className="px-6 py-4 text-right">
-                                                        <div className="w-32 ml-auto bg-gray-100 h-1.5 rounded-full overflow-hidden">
-                                                            <div
-                                                                className="bg-[#007F00] h-full"
-                                                                style={{ width: `${Math.min((conversions.length / 10) * 100, 100)}%` }}
-                                                            ></div>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                        {catalogueListings.filter(l => assessments.some(a => a.referred_by_listing_id === l.id)).length === 0 && (
-                                            <tr>
-                                                <td colSpan={4} className="px-6 py-8 text-center text-gray-400 italic">
-                                                    No referrals tracked yet.
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        {/* Recent Referred Assessments */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                            <div className="p-6 border-b border-gray-100 bg-gray-50/50">
-                                <h3 className="text-lg font-bold text-gray-900">Recent Referrals</h3>
-                                <p className="text-sm text-gray-500">The latest assessments arriving via partner links.</p>
-                            </div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left text-sm text-gray-600">
-                                    <thead className="bg-gray-50/50 text-gray-900 font-bold uppercase tracking-wider text-xs border-b border-gray-100">
-                                        <tr>
-                                            <th className="px-6 py-4">Date</th>
-                                            <th className="px-6 py-4">Property</th>
-                                            <th className="px-6 py-4">Referred By</th>
-                                            <th className="px-6 py-4">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-50">
-                                        {assessments
-                                            .filter(a => a.referred_by_listing_id)
-                                            .slice(0, 10)
-                                            .map(assessment => (
-                                                <tr key={assessment.id} className="hover:bg-gray-50">
-                                                    <td className="px-6 py-4 text-gray-500">
-                                                        {new Date(assessment.created_at).toLocaleDateString()}
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <div className="font-bold text-gray-900">{assessment.property_address}</div>
-                                                        <div className="text-xs text-gray-400">{assessment.profiles?.full_name}</div>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-1 rounded">
-                                                            {assessment.referred_by?.name || 'Partner'}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <div className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${getStatusColor(assessment.status)}`}>
-                                                            {assessment.status.replace('_', ' ')}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                    </tbody>
-                                </table>
-                            </div>
                         </div>
                     </div>
                 ) : null}
@@ -3453,261 +2973,7 @@ const Admin = () => {
                 </div>
             )}
 
-            {/* LISTING MODAL */}
-            {showListingModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
-                    <form
-                        onSubmit={(e) => {
-                            e.preventDefault();
-                            const form = e.target as HTMLFormElement;
-                            const formData = new FormData(form);
-                            handleSaveListing({
-                                name: formData.get('name') as string,
-                                company_name: formData.get('company_name') as string,
-                                email: formData.get('email') as string,
-                                phone: formData.get('phone') as string,
-                                description: (formData.get('description') as string) || '',
-                                address: formData.get('address') as string,
-                                website: formData.get('website') as string,
-                                logo_url: formData.get('logo_url') as string,
-                                is_active: formData.get('is_active') === 'on',
-                                featured: formData.get('is_featured') === 'on',
-                                is_verified: formData.get('is_verified') === 'on',
-                                owner_id: formData.get('owner_id') as string || null,
-                                features: formData.get('features') ? (formData.get('features') as string).split(',').map(s => s.trim()).filter(s => s) : [],
-                                social_media: {
-                                    facebook: formData.get('social_facebook') as string || undefined,
-                                    instagram: formData.get('social_instagram') as string || undefined,
-                                    linkedin: formData.get('social_linkedin') as string || undefined,
-                                    twitter: formData.get('social_twitter') as string || undefined,
-                                }
-                            });
-                        }}
-                        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl animate-in zoom-in-95 duration-200 max-h-[80vh] flex flex-col overflow-hidden"
-                    >
-                        {/* Header */}
-                        <div className="flex justify-between items-center px-8 py-6 border-b border-gray-100 bg-white shrink-0">
-                            <div>
-                                <h3 className="text-2xl font-black text-gray-900 tracking-tight">{editingListing ? 'Edit Listing' : 'Add New Listing'}</h3>
-                                <p className="text-sm font-bold text-gray-400 mt-1 uppercase tracking-wider">Catalogue Management</p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => { setShowListingModal(false); setEditingListing(null); setListingImages(['', '', '']); }}
-                                className="p-2 bg-gray-50 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
-                            >
-                                <X size={20} />
-                            </button>
-                        </div>
 
-                        {/* Scrollable Content */}
-                        <div className="flex-1 overflow-y-auto p-8 space-y-6">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-1">Name *</label>
-                                    <input name="name" defaultValue={editingListing?.name || ''} required className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-1">Company Name *</label>
-                                    <input name="company_name" defaultValue={editingListing?.company_name || ''} required className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-1">Email *</label>
-                                    <input name="email" type="email" defaultValue={editingListing?.email || ''} required className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-1">Phone *</label>
-                                    <input name="phone" defaultValue={editingListing?.phone || ''} required className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-1">Location Category *</label>
-                                    <select
-                                        value={selectedLocationId}
-                                        onChange={(e) => setSelectedLocationId(e.target.value)}
-                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                                    >
-                                        <option value="">Select Location</option>
-                                        {catalogueLocations.map(loc => (
-                                            <option key={loc.id} value={loc.id}>{loc.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-1">Upgrade Type (Category) *</label>
-                                    <select
-                                        value={selectedCategoryId}
-                                        onChange={(e) => setSelectedCategoryId(e.target.value)}
-                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                                    >
-                                        <option value="">Select Upgrade Type</option>
-                                        {catalogueCategories.map(cat => (
-                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-1">Business Owner (Portal Access)</label>
-                                    <select
-                                        name="owner_id"
-                                        defaultValue={editingListing?.owner_id || ''}
-                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                                    >
-                                        <option value="">No Owner Assigned</option>
-                                        {users_list.filter(u => u.role === 'business' || u.role === 'contractor').map(user => (
-                                            <option key={user.id} value={user.id}>{user.full_name} ({user.email}) [{user.role}]</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-1">Website</label>
-                                    <input name="website" defaultValue={editingListing?.website || ''} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-1">Logo URL</label>
-                                    <input name="logo_url" defaultValue={editingListing?.logo_url || ''} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-                                </div>
-
-                                <div className="col-span-2">
-                                    <label className="block text-sm font-bold text-gray-700 mb-1">Description</label>
-                                    <textarea name="description" defaultValue={editingListing?.description || ''} rows={3} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-                                </div>
-
-                                <div className="col-span-2">
-                                    <label className="block text-sm font-bold text-gray-700 mb-1">Features (comma separated)</label>
-                                    <textarea
-                                        name="features"
-                                        defaultValue={editingListing?.features?.join(', ') || ''}
-                                        rows={2}
-                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                                        placeholder="e.g. Free Quote, 24/7 Support, SEAI Registered"
-                                    />
-                                </div>
-
-                                <div className="col-span-2 space-y-3 pt-4 border-t border-gray-100">
-                                    <label className="block text-sm font-bold text-gray-900 uppercase tracking-widest">Social Media</label>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 mb-1">Facebook URL</label>
-                                            <input name="social_facebook" defaultValue={editingListing?.social_media?.facebook || ''} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="https://facebook.com/..." />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 mb-1">Instagram URL</label>
-                                            <input name="social_instagram" defaultValue={editingListing?.social_media?.instagram || ''} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="https://instagram.com/..." />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 mb-1">LinkedIn URL</label>
-                                            <input name="social_linkedin" defaultValue={editingListing?.social_media?.linkedin || ''} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="https://linkedin.com/..." />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 mb-1">Twitter / X URL</label>
-                                            <input name="social_twitter" defaultValue={editingListing?.social_media?.twitter || ''} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="https://twitter.com/..." />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="col-span-2 space-y-3 pt-4 border-t border-gray-100">
-                                    <label className="block text-sm font-bold text-gray-900 uppercase tracking-widest">Hero Images (Carousel)</label>
-                                    <p className="text-xs text-gray-500 mb-2">Add up to 3 images for the top carousel.</p>
-                                    {listingImages.map((img, index) => (
-                                        <div key={index}>
-                                            <input
-                                                value={img}
-                                                onChange={(e) => {
-                                                    const newImages = [...listingImages];
-                                                    newImages[index] = e.target.value;
-                                                    setListingImages(newImages);
-                                                }}
-                                                placeholder={`Image URL #${index + 1}`}
-                                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="flex gap-6 pt-2">
-                                <label className="flex items-center gap-2">
-                                    <input type="checkbox" name="is_active" defaultChecked={editingListing?.is_active ?? true} className="w-4 h-4 text-[#007F00]" />
-                                    <span className="text-sm font-medium">Active</span>
-                                </label>
-                                <label className="flex items-center gap-2">
-                                    <input type="checkbox" name="is_featured" defaultChecked={editingListing?.featured ?? false} className="w-4 h-4 text-[#007F00]" />
-                                    <span className="text-sm font-medium">Featured</span>
-                                </label>
-                                <label className="flex items-center gap-2">
-                                    <input type="checkbox" name="is_verified" defaultChecked={editingListing?.is_verified ?? false} className="w-4 h-4 text-[#007F00]" />
-                                    <span className="text-sm font-medium">Verified</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        {/* Footer */}
-                        <div className="flex justify-end gap-3 px-8 py-5 border-t border-gray-100 bg-gray-50/50 shrink-0">
-                            <button
-                                type="button"
-                                onClick={() => { setShowListingModal(false); setEditingListing(null); setListingImages(['', '', '']); }}
-                                className="px-6 py-2.5 text-gray-600 font-bold hover:bg-gray-100 rounded-xl transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={isSavingCatalogue}
-                                className="bg-[#007F00] text-white px-8 py-2.5 rounded-xl font-black uppercase tracking-wider text-xs shadow-lg shadow-green-900/10 hover:shadow-green-900/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {isSavingCatalogue ? <Loader2 size={16} className="animate-spin" /> : null}
-                                {editingListing ? 'Save Changes' : 'Create Listing'}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            )
-            }
-
-            {/* CATEGORY MODAL */}
-            {
-                showCategoryModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-                        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 animate-in zoom-in-95 duration-200">
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-xl font-bold text-gray-900">{editingCategory ? 'Edit Category' : 'Add New Category'}</h3>
-                                <button onClick={() => { setShowCategoryModal(false); setEditingCategory(null); }} className="text-gray-400 hover:text-gray-600">
-                                    <X size={24} />
-                                </button>
-                            </div>
-                            <form onSubmit={(e) => {
-                                e.preventDefault();
-                                const form = e.target as HTMLFormElement;
-                                const formData = new FormData(form);
-                                handleSaveCategory({
-                                    name: formData.get('name') as string,
-                                    icon: formData.get('icon') as string,
-                                    description: formData.get('description') as string,
-                                });
-                            }} className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-1">Name *</label>
-                                    <input name="name" defaultValue={editingCategory?.name || ''} required className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-1">Icon (lucide name)</label>
-                                    <input name="icon" defaultValue={editingCategory?.icon || ''} placeholder="e.g., home, briefcase, zap" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-1">Description</label>
-                                    <textarea name="description" defaultValue={editingCategory?.description || ''} rows={3} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-                                </div>
-                                <div className="flex justify-end gap-3 pt-4 border-t">
-                                    <button type="button" onClick={() => { setShowCategoryModal(false); setEditingCategory(null); }} className="px-4 py-2 text-gray-600 font-bold hover:bg-gray-50 rounded-lg">Cancel</button>
-                                    <button type="submit" disabled={isSavingCatalogue} className="bg-[#007F00] text-white px-6 py-2 rounded-lg font-bold flex items-center gap-2 disabled:opacity-50">
-                                        {isSavingCatalogue ? <Loader2 size={18} className="animate-spin" /> : null}
-                                        {editingCategory ? 'Update Category' : 'Create Category'}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )
-            }
 
         </div>
     );
