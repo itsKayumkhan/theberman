@@ -9,7 +9,7 @@ import QuoteModal from './QuoteModal';
 const NAV_LINKS = [
     { label: 'Home', path: '/' },
     { label: 'About', path: '/about' },
-    { label: 'Home Energy Catalogue', path: '/catalogue' },
+    { label: 'Home Energy Upgrade Catalogue', path: '/catalogue' },
     { label: 'Speak to an Energy Advisor', path: '/hire-agent' },
     { label: 'Find BER Assessor', path: '/get-quote' },
     { label: 'Our News', path: '/news' },
@@ -31,6 +31,18 @@ const Layout = () => {
 
     // Dynamic Positioning Refs and State
     const locationsRef = useRef<HTMLButtonElement>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (isMenuOpen && menuRef.current && !menuRef.current.contains(e.target as Node)) {
+                closeMenu();
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isMenuOpen]);
 
 
 
@@ -96,24 +108,7 @@ const Layout = () => {
                     </div>
 
                     {/* Menu Button - Visible on all screens */}
-                    <div className="flex items-center gap-4 relative">
-                        {/* Subscribe Button - Desktop */}
-                        <button
-                            onClick={() => {
-                                if (window.location.pathname === '/') {
-                                    document.getElementById('newsletter')?.scrollIntoView({ behavior: 'smooth' });
-                                } else {
-                                    navigate('/#newsletter');
-                                    // Small delay to ensure navigation happened if needed, though hash should handle it on load if handled by router
-                                    setTimeout(() => {
-                                        document.getElementById('newsletter')?.scrollIntoView({ behavior: 'smooth' });
-                                    }, 100);
-                                }
-                            }}
-                            className="hidden lg:flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-all text-xs font-bold text-white uppercase tracking-wider cursor-pointer"
-                        >
-                            Subscribe to News
-                        </button>
+                    <div ref={menuRef} className="flex items-center gap-4 relative">
 
                         {/* Catalogue Hub Link - Desktop */}
                         <Link
@@ -122,7 +117,7 @@ const Layout = () => {
                         >
                             <div className="w-2 h-2 rounded-full bg-[#9ACD32] group-hover:animate-pulse"></div>
                             <span className="text-sm font-black text-white uppercase tracking-wider">
-                                Home Energy <span className="text-[#9ACD32]">Catalogue</span>
+                                Home Energy <span className="text-[#9ACD32]">Upgrade Catalogue</span>
                             </span>
                         </Link>
                         <button
@@ -213,6 +208,24 @@ const Layout = () => {
                                         )
                                     ))}
 
+                                    {/* Subscribe to News */}
+                                    <button
+                                        onClick={() => {
+                                            closeMenu();
+                                            if (window.location.pathname === '/') {
+                                                document.getElementById('newsletter')?.scrollIntoView({ behavior: 'smooth' });
+                                            } else {
+                                                navigate('/#newsletter');
+                                                setTimeout(() => {
+                                                    document.getElementById('newsletter')?.scrollIntoView({ behavior: 'smooth' });
+                                                }, 100);
+                                            }
+                                        }}
+                                        className="w-full px-5 py-3 text-left text-sm font-semibold text-gray-700 hover:bg-gray-50 uppercase tracking-wide border-b border-gray-100"
+                                    >
+                                        Subscribe to News
+                                    </button>
+
                                     {/* Auth Section */}
                                     <div className="border-t border-gray-200 mt-2 pt-2">
                                         {!user ? (
@@ -289,7 +302,7 @@ const Layout = () => {
             {/* FOOTER */}
             <footer className="bg-gray-900 text-white border-t border-green-900 pt-16 pb-8">
                 <div className="container mx-auto px-6">
-                    <div className="grid md:grid-cols-4 gap-12 mb-12">
+                    <div className="grid md:grid-cols-5 gap-12 mb-12">
                         {/* Column 1: Brand */}
                         <div className="col-span-1">
                             <div className="flex items-center gap-2 mb-6">
@@ -332,6 +345,7 @@ const Layout = () => {
                                         FAQ
                                     </Link>
                                 </li>
+
                             </ul>
                         </div>
 
@@ -356,8 +370,55 @@ const Layout = () => {
                                         Sign Up
                                     </Link>
                                 </li>
+                                <li>
+                                    <button
+                                        onClick={() => {
+                                            if (window.location.pathname === '/') {
+                                                document.getElementById('newsletter')?.scrollIntoView({ behavior: 'smooth' });
+                                            } else {
+                                                navigate('/#newsletter');
+                                                setTimeout(() => {
+                                                    document.getElementById('newsletter')?.scrollIntoView({ behavior: 'smooth' });
+                                                }, 100);
+                                            }
+                                        }}
+                                        className="text-gray-400 hover:text-white transition text-sm flex items-center gap-2 cursor-pointer"
+                                    >
+                                        Subscribe to News
+                                    </button>
+                                </li>
                             </ul>
                         </div>
+
+
+
+                        {/* Column 5: Legal */}
+                        <div>
+                            <h4 className="text-sm font-bold uppercase tracking-wider text-[#9ACD32] mb-6">Legal</h4>
+                            <ul className="space-y-3">
+                                <li>
+                                    <Link to="/privacy" className="text-gray-400 hover:text-white transition text-sm flex items-center gap-2">
+                                        Privacy Policy
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/terms" className="text-gray-400 hover:text-white transition text-sm flex items-center gap-2">
+                                        Terms & Conditions
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/cookie-policy" className="text-gray-400 hover:text-white transition text-sm flex items-center gap-2">
+                                        Cookie Policy
+                                    </Link>
+                                </li>
+                                <li>
+                                    <a href="https://www.seai.ie" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition text-sm flex items-center gap-2">
+                                        SEAI.ie
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+
 
                         {/* Column 4: Contact */}
                         <div>

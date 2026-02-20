@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { supabase } from '../lib/supabase';
 import {
-    Loader2, Send, Mail, MapPin, Clock
+    Loader2, Send, Mail, Globe
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { TOWNS_BY_COUNTY } from '../data/irishTowns';
@@ -110,7 +110,7 @@ const Contact = () => {
                                     value="info@theberman.eu"
                                     href="mailto:info@theberman.eu"
                                 />
-                                <div className="space-y-3">
+                                {/* <div className="space-y-3">
                                     <InfoItem
                                         icon={<MapPin size={20} />}
                                         title="Visit Us"
@@ -125,13 +125,13 @@ const Contact = () => {
                                     >
                                         View in Map <MapPin size={10} />
                                     </button>
-                                </div>
+                                </div> */}
 
                                 <div className="pt-6 border-t border-gray-50">
                                     <InfoItem
-                                        icon={<Clock size={20} />}
-                                        title="Office Hours"
-                                        value="Mon - Fri: 9:00 AM - 5:30 PM"
+                                        icon={<Globe size={20} />}
+                                        title="Website"
+                                        value="theberman.eu"
                                     />
                                 </div>
                             </div>

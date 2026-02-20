@@ -192,8 +192,8 @@ const HomePage = () => {
                                         </div>
                                     </div>
                                     <div className="bg-gray-50 p-8 rounded-3xl border border-gray-100">
-                                        <div className="text-4xl font-black text-gray-900 mb-2">24h</div>
-                                        <div className="text-sm font-bold text-gray-500 uppercase">Turnaround Time</div>
+                                        <div className="text-4xl font-black text-gray-900 mb-2">Fast</div>
+                                        <div className="text-sm font-bold text-gray-500 uppercase">Turnaround</div>
                                     </div>
                                 </div>
                             </div>
@@ -462,6 +462,65 @@ const HomePage = () => {
                                 Get a Quote Online
                             </button>
                         </Link>
+                    </div>
+                </div>
+            </section>
+
+            {/* WHY CHOOSE THE BERMAN */}
+            <section className="py-20 bg-white border-t border-gray-100">
+                <div className="container mx-auto px-6">
+                    <h2 className="text-3xl md:text-4xl font-black text-center text-[#007F00] mb-14">
+                        Why Choose The Berman?
+                    </h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 md:gap-12 max-w-4xl mx-auto mb-14">
+                        {[
+                            { icon: '€', title: 'Best Value Rates', color: 'text-[#007F00]' },
+                            { icon: <ZapIcon size={28} />, title: 'Quick Results', color: 'text-[#007F00]' },
+                            { icon: <ShieldCheck size={28} />, title: 'SEAI Certified Experts', color: 'text-[#007F00]' },
+                            { icon: <CheckCircle2 size={28} />, title: 'Smooth & Stress-Free', color: 'text-[#007F00]' },
+                            { icon: <Shield size={28} />, title: 'Satisfaction Guaranteed', color: 'text-[#007F00]' },
+                            { icon: <Clock size={28} />, title: 'Pick Your Schedule', color: 'text-[#007F00]' },
+                        ].map((item, i) => (
+                            <div key={i} className="flex flex-col items-center text-center gap-3 group">
+                                <div className={`${item.color} text-3xl font-black group-hover:scale-110 transition-transform`}>
+                                    {item.icon}
+                                </div>
+                                <p className="text-sm font-bold text-gray-600 uppercase tracking-wide">{item.title}</p>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="text-center">
+                        <Link to="/get-quote">
+                            <button className="px-12 py-5 bg-[#007F00] hover:bg-[#006400] text-white text-lg font-black rounded-full shadow-xl shadow-green-100 transition-all transform hover:-translate-y-1 hover:scale-105 cursor-pointer">
+                                Get BER Quotes Now
+                            </button>
+                        </Link>
+                    </div>
+                </div>
+            </section>
+
+            {/* WE COVER ALL COUNTIES */}
+            <section className="py-20 bg-gray-50 border-t border-gray-100">
+                <div className="container mx-auto px-6">
+                    <h2 className="text-3xl md:text-4xl font-black text-center text-[#007F00] mb-12">
+                        We Cover All Counties
+                    </h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-16 gap-y-3 max-w-4xl mx-auto">
+                        {[
+                            'Carlow', 'Cavan', 'Clare', 'Cork', 'Donegal', 'Dublin',
+                            'Galway', 'Kerry', 'Kildare', 'Kilkenny', 'Laois', 'Leitrim',
+                            'Limerick', 'Longford', 'Louth', 'Mayo', 'Meath', 'Monaghan',
+                            'Offaly', 'Roscommon', 'Sligo', 'Tipperary', 'Waterford', 'Westmeath',
+                            'Wexford', 'Wicklow'
+                        ].map((county) => (
+                            <Link
+                                key={county}
+                                to="/get-quote"
+                                className="text-gray-600 hover:text-[#007F00] transition-colors text-sm font-semibold py-1 text-center"
+                            >
+                                BER Cert {county}
+                            </Link>
+                        ))}
                     </div>
                 </div>
             </section>
