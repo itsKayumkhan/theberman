@@ -26,6 +26,7 @@ import UpdatePassword from './pages/UpdatePassword';
 import QuoteForm from './pages/QuoteForm';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+import CookiePolicy from './pages/CookiePolicy';
 import FAQ from './pages/FAQ';
 import PublicAssessorProfile from './pages/PublicAssessorProfile';
 import AssessorTerms from './pages/AssessorTerms';
@@ -74,6 +75,7 @@ function App() {
                         <Route path="region/:slug" element={<RegionPage />} />
                         <Route path="privacy" element={<PrivacyPolicy />} />
                         <Route path="terms" element={<TermsOfService />} />
+                        <Route path="cookie-policy" element={<CookiePolicy />} />
                         <Route path="assessor-terms" element={<AssessorTerms />} />
                         <Route path="login" element={<Login />} />
                         <Route path="signup" element={<SignUp />} />
