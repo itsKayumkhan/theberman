@@ -1,3 +1,4 @@
+/// <reference lib="deno.ns" />
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 import { generatePromoHtml } from "./templates/promo-section.ts"
@@ -11,7 +12,7 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-serve(async (req) => {
+serve(async (req: Request) => {
     // Handle CORS preflight requests
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders })
@@ -47,7 +48,7 @@ serve(async (req) => {
                 'Authorization': `Bearer ${RESEND_API_KEY}`
             },
             body: JSON.stringify({
-                from: 'The Berman <onboarding@resend.dev>',
+                from: 'Theberman.eu <onboarding@resend.dev>',
                 to: ['hello@theberman.eu'],
                 subject: `New Lead: ${record.name}`,
                 html: generateAdminEmail(record, sponsors || [], promoHtml)
@@ -62,7 +63,7 @@ serve(async (req) => {
                 'Authorization': `Bearer ${RESEND_API_KEY}`
             },
             body: JSON.stringify({
-                from: 'The Berman <onboarding@resend.dev>',
+                from: 'Theberman.eu <onboarding@resend.dev>',
                 to: [record.email],
                 subject: `Confirmation: We've received your inquiry`,
                 html: generateCustomerEmail(record, promoHtml)
@@ -82,7 +83,7 @@ serve(async (req) => {
         )
     } catch (error) {
         return new Response(
-            JSON.stringify({ error: error.message }),
+            JSON.stringify({ error: (error as Error).message }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
         )
     }
