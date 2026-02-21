@@ -115,13 +115,13 @@ Deno.serve(async (req: Request) => {
         const smtpUsername = Deno.env.get('SMTP_USERNAME')
         const smtpPassword = Deno.env.get('SMTP_PASSWORD')
         // Use SMTP_FROM or fallback to username (email)
-        const smtpFrom = Deno.env.get('SMTP_FROM') || smtpUsername
+        const smtpFromEnv = Deno.env.get('SMTP_FROM') || 'no-reply@theberman.eu';
+        const smtpFrom = smtpFromEnv.includes('<') ? smtpFromEnv : `Theberman.eu <${smtpFromEnv}>`;
 
         if (!smtpHostname || !smtpUsername || !smtpPassword) {
             console.error("[Edge Function] SMTP Configuration Missing!", {
                 hasHost: !!smtpHostname,
                 hasUser: !!smtpUsername,
-                hasPass: !!smtpPassword
             });
             throw new Error('SMTP configuration missing in Edge Function Environment');
         }

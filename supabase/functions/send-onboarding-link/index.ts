@@ -102,7 +102,8 @@ Deno.serve(async (req: Request) => {
         const smtpPort = parseInt(Deno.env.get('SMTP_PORT') || '587')
         const smtpUsername = Deno.env.get('SMTP_USERNAME')
         const smtpPassword = Deno.env.get('SMTP_PASSWORD')
-        const smtpFrom = Deno.env.get('SMTP_FROM') || smtpUsername
+        const smtpFromEnv = Deno.env.get('SMTP_FROM') || 'no-reply@theberman.eu';
+        const smtpFrom = smtpFromEnv.includes('<') ? smtpFromEnv : `Theberman.eu <${smtpFromEnv}>`;
 
         if (!smtpHostname || !smtpUsername || !smtpPassword) {
             throw new Error('SMTP configuration missing in environment');

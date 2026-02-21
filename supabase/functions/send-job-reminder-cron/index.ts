@@ -97,7 +97,8 @@ Deno.serve(async (req: Request) => {
         const smtpPortStr = Deno.env.get('SMTP_PORT');
         const smtpUsername = Deno.env.get('SMTP_USERNAME');
         const smtpPassword = Deno.env.get('SMTP_PASSWORD');
-        const smtpFrom = Deno.env.get('SMTP_FROM') || 'no-reply@theberman.eu';
+        const smtpFromEnv = Deno.env.get('SMTP_FROM') || 'no-reply@theberman.eu';
+        const smtpFrom = smtpFromEnv.includes('<') ? smtpFromEnv : `Theberman.eu <${smtpFromEnv}>`;
         const websiteUrl = Deno.env.get('PUBLIC_WEBSITE_URL') || 'https://theberman.eu';
 
         if (!smtpHostname || !smtpUsername || !smtpPassword) {

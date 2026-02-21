@@ -155,8 +155,8 @@ const HireAgent = () => {
                                 <InfoItem
                                     icon={<Mail size={20} />}
                                     title="Email Us"
-                                    value="info@theberman.eu"
-                                    href="mailto:info@theberman.eu"
+                                    value="support@theberman.eu"
+                                    href="mailto:support@theberman.eu"
                                 />
                                 {/* <div className="pt-6 border-t border-gray-50">
                                     <InfoItem

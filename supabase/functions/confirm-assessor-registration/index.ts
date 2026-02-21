@@ -1,5 +1,7 @@
 
+/// <reference lib="deno.ns" />
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const RESEND_API_KEY = 're_eHfq1MYG_BsYiVUPrXG96aMZNuXmHUEc7';
@@ -179,7 +181,7 @@ serve(async (req: Request) => {
                 'Authorization': `Bearer ${RESEND_API_KEY}`
             },
             body: JSON.stringify({
-                from: 'The Berman <registration@theberman.eu>',
+                from: 'Theberman.eu <registration@theberman.eu>',
                 to: [user_email],
                 subject: 'Registration Successful - Assessor Membership Active',
                 html: emailHtml

@@ -434,7 +434,7 @@ const Layout = () => {
                             <ul className="space-y-4">
                                 <li className="flex items-start gap-3 text-gray-400 text-sm">
                                     <Mail className="text-[#9ACD32] mt-0.5" size={16} />
-                                    <a href="mailto:hello@theberman.eu" className="hover:text-white transition">support@theberman.eu</a>
+                                    <a href="mailto:support@theberman.eu" className="hover:text-white transition">support@theberman.eu</a>
                                 </li>
                                 <li className="flex items-start gap-3 text-gray-400 text-sm">
                                     <Globe className="text-[#9ACD32] mt-0.5" size={16} />
