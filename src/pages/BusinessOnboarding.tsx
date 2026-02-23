@@ -5,18 +5,10 @@ import { supabase } from '../lib/supabase';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { geocodeAddress, COUNTY_COORDINATES } from '../lib/geocoding';
 
 interface Category {
     id: string;
     name: string;
-}
-
-interface Location {
-    id: string;
-    name: string;
-    slug: string;
-    parent_id: string | null;
 }
 
 const IRISH_COUNTIES = [
@@ -36,7 +28,6 @@ const BusinessOnboarding = () => {
     const userIdParam = searchParams.get('userId');
     const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
-    const [locations, setLocations] = useState<Location[]>([]);
 
     // Consolidated form state
     const [formData, setFormData] = useState({
@@ -98,11 +89,7 @@ const BusinessOnboarding = () => {
     };
 
     const fetchLocations = async () => {
-        const { data } = await supabase
-            .from('catalogue_locations')
-            .select('id, name, slug, parent_id')
-            .order('name');
-        if (data) setLocations(data);
+        // Fetch locations logic removed from here, handled in Edge Function
     };
 
     const toggleCategory = (categoryId: string) => {
@@ -123,9 +110,7 @@ const BusinessOnboarding = () => {
         }));
     };
 
-    const generateSlug = (name: string) => {
-        return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    };
+    // Slug generation moved to Edge Function
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -141,104 +126,22 @@ const BusinessOnboarding = () => {
             return;
         }
 
-        setLoading(true);
         try {
-            const slug = generateSlug(formData.companyName) + '-' + Date.now().toString(36);
-            const fullAddress = formData.businessAddress + (formData.county ? `, Co. ${formData.county}` : '');
+            // Store all registration data for payment finalization
+            const registrationData = {
+                ...formData,
+                user_id: user.id,
+                user_email: user.email,
+                user_full_name: user.user_metadata?.full_name || formData.companyName,
+            };
 
-            // 1. Create catalogue listing
-            const { data: listing, error: listingError } = await supabase
-                .from('catalogue_listings')
-                .insert({
-                    name: formData.companyName,
-                    slug,
-                    company_name: formData.companyName,
-                    description: formData.description || `${formData.companyName} - Professional services provider.`,
-                    email: formData.email,
-                    phone: formData.phone,
-                    address: fullAddress,
-                    website: formData.website,
-                    owner_id: user.id,
-                    is_active: true,
-                    social_media: {
-                        facebook: formData.facebook || undefined,
-                        instagram: formData.instagram || undefined,
-                        linkedin: formData.linkedin || undefined,
-                        twitter: formData.twitter || undefined,
-                    },
-                    latitude: null as number | null,
-                    longitude: null as number | null,
-                })
-                .select('id')
-                .single();
+            sessionStorage.setItem('pending_business_registration', JSON.stringify(registrationData));
 
-            if (listingError) throw listingError;
-
-            // 1.1 Geocode address
-            let coords = await geocodeAddress(fullAddress);
-            if (!coords && formData.county) {
-                coords = COUNTY_COORDINATES[formData.county];
-            }
-
-            if (coords && listing) {
-                await supabase
-                    .from('catalogue_listings')
-                    .update({
-                        latitude: coords.latitude,
-                        longitude: coords.longitude
-                    })
-                    .eq('id', listing.id);
-            }
-
-            // 2. Map selected categories
-            if (formData.selectedCategories.length > 0 && listing) {
-                const categoryMappings = formData.selectedCategories.map(categoryId => ({
-                    listing_id: listing.id,
-                    category_id: categoryId,
-                }));
-
-                const { error: catError } = await supabase
-                    .from('catalogue_listing_categories')
-                    .insert(categoryMappings);
-
-                if (catError) console.error('Category mapping error:', catError);
-            }
-
-            // 3. Map county location
-            if (formData.county && listing) {
-                const countyLocation = locations.find(
-                    l => l.name.toLowerCase() === formData.county.toLowerCase()
-                );
-                if (countyLocation) {
-                    await supabase
-                        .from('catalogue_listing_locations')
-                        .insert({
-                            listing_id: listing.id,
-                            location_id: countyLocation.id,
-                        });
-                }
-            }
-
-            // 4. Store compliance data in user metadata
-            const { error: metadataError } = await supabase.auth.updateUser({
-                data: {
-                    compliance_data: {
-                        trading_name: formData.tradingName,
-                        company_number: formData.companyNumber,
-                        vat_number: formData.vatNumber,
-                        insurance_expiry: formData.insuranceExpiry,
-                        certifications: formData.certifications,
-                    }
-                }
-            });
-
-            if (metadataError) console.error('Metadata update error:', metadataError);
-
-            toast.success('Business profile created successfully!');
-            navigate('/dashboard/business', { replace: true });
+            toast.success('Information saved! Please complete your registration payment.');
+            navigate('/assessor-membership', { replace: true });
         } catch (error: any) {
-            console.error('Onboarding error:', error);
-            toast.error(error.message || 'Failed to create business profile');
+            console.error('Onboarding data saving error:', error);
+            toast.error('Failed to save registration data');
         } finally {
             setLoading(false);
         }

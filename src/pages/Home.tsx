@@ -612,7 +612,7 @@ const HomePage = () => {
 
                     <div className="container mx-auto relative">
                         <a
-                            href={promo.destination_url}
+                            href='https://solarquotesireland.com/'
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center justify-center gap-2 sm:gap-4 flex-wrap pr-8"

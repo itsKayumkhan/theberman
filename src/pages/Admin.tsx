@@ -28,6 +28,9 @@ interface Profile {
     role: 'admin' | 'contractor' | 'user' | 'homeowner' | 'business';
     is_active?: boolean;
     registration_status?: 'pending' | 'active' | 'rejected';
+    subscription_status?: string;
+    subscription_end_date?: string;
+    manual_override_reason?: string;
 }
 
 interface Assessment {
@@ -121,14 +124,27 @@ const Admin = () => {
     const [sponsors, setSponsors] = useState<Sponsor[]>([]);
     const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
     const [newsArticles, setNewsArticles] = useState<NewsArticle[]>([]);
-    const [view, setView] = useState<'stats' | 'leads' | 'assessments' | 'users' | 'payments' | 'settings' | 'news' | 'business-leads'>('stats');
+    const [view, setView] = useState<'stats' | 'leads' | 'assessments' | 'homeowners' | 'businesses' | 'assessors' | 'payments' | 'settings' | 'news'>('stats');
     const [listings, setListings] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
     const [selectedAssessment, setSelectedAssessment] = useState<Assessment | null>(null);
     const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
+    const [isEditingProfile, setIsEditingProfile] = useState(false);
+    const [editForm, setEditForm] = useState<Partial<Profile>>({});
+    const [showAddUserModal, setShowAddUserModal] = useState(false);
+    const [newUserRole, setNewUserRole] = useState<'contractor' | 'business'>('contractor');
     const [showQuoteModal, setShowQuoteModal] = useState(false);
-    const [showAssignModal, setShowAssignModal] = useState(false);
+    const [showAssignModal, setShowAssignModal] = useState(false); const [vLabels] = useState<Record<string, string>>({
+        stats: 'Overview',
+        homeowners: 'Users/Homeowners',
+        businesses: 'Businesses',
+        assessors: 'BER Assessors',
+        leads: 'Leads',
+        payments: 'Financials',
+        news: 'News',
+        settings: 'Settings'
+    });
     const [selectedAssessmentForAssignment, setSelectedAssessmentForAssignment] = useState<Assessment | null>(null);
     const [showMessageModal, setShowMessageModal] = useState(false);
     const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -139,12 +155,6 @@ const Admin = () => {
     const [isUpdating, setIsUpdating] = useState(false);
     const [isSavingSettings, setIsSavingSettings] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-
-    const filteredUsers = users_list.filter(u =>
-        u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.role?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
 
     const filteredLeads = leads.filter(l =>
         l.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -667,11 +677,12 @@ const Admin = () => {
             try {
                 if (view === 'leads') await fetchLeads();
                 else if (view === 'assessments') await fetchAssessments();
-                else if (view === 'users') await fetchUsers();
-                else if (view === 'business-leads') {
+                else if (view === 'homeowners') await fetchUsers();
+                else if (view === 'businesses') {
                     await fetchUsers();
                     await fetchListings();
                 }
+                else if (view === 'assessors') await fetchUsers();
                 else if (view === 'payments') await fetchPayments();
                 else if (view === 'settings') {
                     await fetchAppSettings();
@@ -1005,6 +1016,68 @@ const Admin = () => {
         navigate('/login');
     };
 
+    const handleSaveProfile = async () => {
+        if (!selectedUser) return;
+        setIsUpdating(true);
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update(editForm)
+                .eq('id', selectedUser.id);
+
+            if (error) throw error;
+
+            setUsersList(users_list.map(u =>
+                u.id === selectedUser.id ? { ...u, ...editForm } : u
+            ));
+
+            toast.success('Profile updated successfully');
+            setIsEditingProfile(false);
+            setSelectedUser({ ...selectedUser, ...editForm } as Profile);
+        } catch (error: any) {
+            console.error('Error saving profile:', error);
+            toast.error(error.message || 'Failed to save profile');
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const handleAddUser = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const formData = new FormData(e.target as HTMLFormElement);
+        const fullName = formData.get('fullName') as string;
+        const email = formData.get('email') as string;
+
+        setIsUpdating(true);
+        try {
+            // Note: Since we can't create auth users without service key easily in client,
+            // we create a profile entry. If the user eventually signs up with this email,
+            // their profile will be linked (if the identity provider matches or via some linking logic).
+            // For now, we manually insert into profiles.
+            const { data, error } = await supabase
+                .from('profiles')
+                .insert([{
+                    full_name: fullName,
+                    email: email,
+                    role: newUserRole,
+                    registration_status: 'active',
+                    is_active: true
+                }])
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            setUsersList([data, ...users_list]);
+            toast.success(`${newUserRole === 'contractor' ? 'Assessor' : 'Business'} added successfully`);
+            setShowAddUserModal(false);
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to add user');
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
     const toggleUserStatus = async () => {
         if (!itemToSuspend) return;
         setIsUpdating(true);
@@ -1073,13 +1146,16 @@ const Admin = () => {
                             {isMenuOpen && (
                                 <div className="absolute right-0 top-full mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
                                     <div className="p-2 space-y-1">
-                                        {(['stats', 'leads', 'business-leads', 'assessments', 'users', 'payments', 'settings', 'news'] as const).map((v) => (
+                                        {(['stats', 'leads', 'homeowners', 'businesses', 'assessors', 'assessments', 'payments', 'settings', 'news'] as const).map((v) => (
                                             <button
                                                 key={v}
                                                 onClick={() => { setView(v); setIsMenuOpen(false); }}
                                                 className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-[0.1em] transition-all duration-200 ${view === v ? 'bg-[#5CB85C]/10 text-[#5CB85C]' : 'text-gray-600 hover:bg-gray-50'}`}
                                             >
-                                                {v === 'stats' ? 'Overview' : v}
+                                                {v === 'stats' ? 'Overview' :
+                                                    v === 'homeowners' ? 'Users/Homeowners' :
+                                                        v === 'businesses' ? 'Businesses' :
+                                                            v === 'assessors' ? 'BER Assessors' : v}
                                                 {view === v && <div className="w-1.5 h-1.5 rounded-full bg-[#5CB85C]"></div>}
                                             </button>
                                         ))}
@@ -1115,19 +1191,21 @@ const Admin = () => {
                                 {view === 'stats' ? 'System Overview' :
                                     view === 'leads' ? 'Leads & Inquiries' :
                                         view === 'assessments' ? 'BER Assessments' :
-                                            view === 'business-leads' ? 'Business Leads' :
-                                                view === 'users' ? 'User Management' :
-                                                    view === 'payments' ? 'Financials' :
-                                                        view === 'news' ? 'News & Updates' : 'Admin'}
+                                            view === 'businesses' ? 'Business Directory' :
+                                                view === 'assessors' ? 'BER Assessors' :
+                                                    view === 'homeowners' ? 'Users & Homeowners' :
+                                                        view === 'payments' ? 'Financials' :
+                                                            view === 'news' ? 'News & Updates' : 'Admin'}
                             </h2>
                             <p className="text-gray-500 text-sm mt-1">
                                 {view === 'stats' ? 'Key metrics and business performance.' :
                                     view === 'leads' ? 'Manage your website submissions.' :
                                         view === 'assessments' ? 'Manage homeowner assessment requests.' :
-                                            view === 'business-leads' ? 'Review business interest and send onboarding links.' :
-                                                view === 'users' ? 'Manage homeowners and BER Assessors.' :
-                                                    view === 'payments' ? 'View and export payment records.' :
-                                                        view === 'settings' ? 'Configure global platform settings.' : ''}
+                                            view === 'businesses' ? 'Review business interest and send onboarding links.' :
+                                                view === 'assessors' ? 'Manage BER Assessors and their jobs.' :
+                                                    view === 'homeowners' ? 'Manage homeowners and general users.' :
+                                                        view === 'payments' ? 'View and export payment records.' :
+                                                            view === 'settings' ? 'Configure global platform settings.' : ''}
                             </p>
                         </div>
                     </div>
@@ -1154,7 +1232,7 @@ const Admin = () => {
                                 <div className="flex items-end justify-between">
                                     <h3 className="text-3xl font-bold text-gray-900">{stats.totalUsers}</h3>
                                     <div className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded">
-                                        {stats.homeowners} Users / {stats.contractors} Assessors
+                                        {stats.homeowners} Users / {stats.contractors} Assessors / {stats.businessLeads} Businesses
                                     </div>
                                 </div>
                             </div>
@@ -1232,7 +1310,7 @@ const Admin = () => {
                                     <p className="text-sm opacity-70">Expand your system by adding new partners and tracking every step of the certification.</p>
                                 </div>
                                 <button
-                                    onClick={() => setView('users')}
+                                    onClick={() => setView('homeowners')}
                                     className="mt-6 w-full bg-white text-[#007F00] font-bold py-3 rounded-xl hover:bg-gray-50 transition-colors shadow-sm"
                                 >
                                     Manage Users
@@ -1240,30 +1318,39 @@ const Admin = () => {
                             </div>
                         </div>
                     </div>
-                ) : (view === 'leads' ? leads : view === 'assessments' ? assessments : users_list).length === 0 ? (
+                ) : (view === 'leads' ? leads : view === 'assessments' ? assessments : view === 'homeowners' || view === 'assessors' ? users_list : []).length === 0 ? (
                     <div className="text-center py-20 bg-white rounded-xl shadow-sm border border-gray-100">
                         <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
-                            {view === 'leads' ? <MessageSquare size={32} /> : view === 'users' ? <Briefcase size={32} /> : <Home size={32} />}
+                            {view === 'leads' ? <MessageSquare size={32} /> : (view === 'businesses' || view === 'assessors') ? <Briefcase size={32} /> : <Home size={32} />}
                         </div>
-                        <h3 className="text-lg font-bold text-gray-900">No {view} yet</h3>
+                        <h3 className="text-lg font-bold text-gray-900">No {vLabels[view] || view} yet</h3>
                         <p className="text-gray-500">{view === 'leads' ? 'New form submissions will appear here.' : 'New records will appear here.'}</p>
                     </div>
-                ) : view === 'users' ? (
-                    /* USERS VIEW */
+                ) : view === 'homeowners' || view === 'assessors' ? (
+                    /* HOMEOWNERS & ASSESSORS VIEW */
                     <div className="space-y-4">
-                        <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100 gap-4">
                             <div className="relative w-full max-w-md">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                 <input
                                     type="text"
-                                    placeholder="Search by name, email, or role..."
+                                    placeholder={`Search by name or email...`}
                                     className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00] transition-all text-sm"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
                             </div>
-                            <div className="text-xs text-gray-400 font-medium">
-                                Showing {filteredUsers.length} of {users_list.length} users
+                            <div className="flex items-center gap-3 w-full md:w-auto">
+                                <button
+                                    onClick={() => { setNewUserRole('contractor'); setShowAddUserModal(true); }}
+                                    className="flex items-center gap-2 bg-[#007F00] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-700 transition-all shadow-sm whitespace-nowrap"
+                                >
+                                    <TrendingUp size={16} />
+                                    Add {view === 'assessors' ? 'BER Assessor' : 'User'}
+                                </button>
+                                <div className="text-xs text-gray-400 font-medium hidden sm:block">
+                                    Showing {users_list.filter(u => view === 'assessors' ? u.role === 'contractor' : (u.role === 'user' || u.role === 'homeowner')).filter(u => u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) || u.email?.toLowerCase().includes(searchTerm.toLowerCase())).length} users
+                                </div>
                             </div>
                         </div>
 
@@ -1273,87 +1360,92 @@ const Admin = () => {
                                     <thead className="bg-gray-50/50 text-gray-900 font-bold uppercase tracking-wider text-xs border-b border-gray-100">
                                         <tr>
                                             <th className="px-6 py-4">Status</th>
-                                            <th className="px-6 py-4">User Details</th>
-                                            <th className="px-6 py-4">Role</th>
+                                            <th className="px-6 py-4">Details</th>
+                                            <th className="px-6 py-4">Sign-Up Date</th>
                                             <th className="px-6 py-4">Activity</th>
                                             <th className="px-6 py-4 text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-50">
-                                        {filteredUsers.length === 0 ? (
+                                        {users_list
+                                            .filter(u => {
+                                                const matchRole = view === 'assessors' ? u.role === 'contractor' : (u.role === 'user' || u.role === 'homeowner');
+                                                const matchSearch = u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) || u.email?.toLowerCase().includes(searchTerm.toLowerCase());
+                                                return matchRole && matchSearch;
+                                            })
+                                            .length === 0 ? (
                                             <tr>
                                                 <td colSpan={5} className="px-6 py-12 text-center text-gray-400 italic">
-                                                    No users found matching your search.
+                                                    No users found.
                                                 </td>
                                             </tr>
                                         ) : (
-                                            filteredUsers.map((u) => (
-                                                <tr key={u.id} className="hover:bg-green-50/30 transition-colors group">
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex items-center gap-2">
-                                                            <div className={`w-2 h-2 rounded-full ${u.is_active !== false ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                                                            <span className="text-xs font-bold uppercase tracking-tight text-gray-500">
-                                                                {u.is_active !== false ? 'Active' : 'Suspended'}
-                                                            </span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 font-medium text-gray-900">
-                                                        {u.full_name}
-                                                        <div className="text-xs text-gray-400 font-normal">{u.email}</div>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <div className={`inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${u.role === 'admin' ? 'bg-red-50 text-red-700' :
-                                                            u.role === 'contractor' ? 'bg-blue-50 text-blue-700' :
-                                                                'bg-gray-50 text-gray-700'
-                                                            }`}>
-                                                            {u.role === 'contractor' ? 'BER Assessor' : u.role}
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-gray-500 font-medium">
-                                                        {u.role === 'contractor' ? (
-                                                            <div className="flex items-center gap-1 text-blue-600">
-                                                                <Briefcase size={14} />
-                                                                <span>{assessments.filter(a => a.contractor_id === u.id).length} Jobs</span>
+                                            users_list
+                                                .filter(u => {
+                                                    const matchRole = view === 'assessors' ? u.role === 'contractor' : (u.role === 'user' || u.role === 'homeowner');
+                                                    const matchSearch = u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) || u.email?.toLowerCase().includes(searchTerm.toLowerCase());
+                                                    return matchRole && matchSearch;
+                                                })
+                                                .map((u) => (
+                                                    <tr key={u.id} className="hover:bg-green-50/30 transition-colors group">
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className={`w-2 h-2 rounded-full ${u.is_active !== false ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                                                <span className="text-xs font-bold uppercase tracking-tight text-gray-500">
+                                                                    {u.is_active !== false ? 'Active' : 'Suspended'}
+                                                                </span>
                                                             </div>
-                                                        ) : u.role === 'homeowner' || u.role === 'user' ? (
-                                                            <div className="flex items-center gap-1 text-green-600">
-                                                                <Home size={14} />
-                                                                <span>{assessments.filter(a => a.user_id === u.id).length} Requests</span>
+                                                        </td>
+                                                        <td className="px-6 py-4 font-medium text-gray-900">
+                                                            {u.full_name}
+                                                            <div className="text-xs text-gray-400 font-normal">{u.email}</div>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-gray-500">
+                                                            {new Date(u.created_at).toLocaleDateString()}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-gray-500 font-medium">
+                                                            {u.role === 'contractor' ? (
+                                                                <div className="flex items-center gap-1 text-blue-600">
+                                                                    <Briefcase size={14} />
+                                                                    <span>{assessments.filter(a => a.contractor_id === u.id).length} Jobs</span>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex items-center gap-1 text-green-600">
+                                                                    <Home size={14} />
+                                                                    <span>{assessments.filter(a => a.user_id === u.id).length} Requests</span>
+                                                                </div>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-right">
+                                                            <div className="flex items-center justify-end gap-2">
+                                                                <button
+                                                                    onClick={() => setSelectedUser(u)}
+                                                                    className="text-gray-400 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-all"
+                                                                    title="View/Edit User Details"
+                                                                >
+                                                                    <Pencil size={16} />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setItemToSuspend({
+                                                                            id: u.id,
+                                                                            name: u.full_name,
+                                                                            currentStatus: u.is_active !== false
+                                                                        });
+                                                                        setShowSuspendModal(true);
+                                                                    }}
+                                                                    className={`p-2 rounded-lg transition-all ${u.is_active !== false
+                                                                        ? 'text-red-400 hover:text-red-600 hover:bg-red-50'
+                                                                        : 'text-green-400 hover:text-green-600 hover:bg-green-50'
+                                                                        }`}
+                                                                    title={u.is_active !== false ? 'Suspend User' : 'Activate User'}
+                                                                >
+                                                                    <AlertTriangle size={16} />
+                                                                </button>
                                                             </div>
-                                                        ) : (
-                                                            <span className="text-xs text-gray-400">N/A</span>
-                                                        )}
-                                                    </td>
-                                                    <td className="px-6 py-4 text-right">
-                                                        <div className="flex items-center justify-end gap-2">
-                                                            <button
-                                                                onClick={() => setSelectedUser(u)}
-                                                                className="text-gray-400 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-all"
-                                                                title="View User Details"
-                                                            >
-                                                                <Eye size={16} />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => {
-                                                                    setItemToSuspend({
-                                                                        id: u.id,
-                                                                        name: u.full_name,
-                                                                        currentStatus: u.is_active !== false
-                                                                    });
-                                                                    setShowSuspendModal(true);
-                                                                }}
-                                                                className={`p-2 rounded-lg transition-all ${u.is_active !== false
-                                                                    ? 'text-red-400 hover:text-red-600 hover:bg-red-50'
-                                                                    : 'text-green-400 hover:text-green-600 hover:bg-green-50'
-                                                                    }`}
-                                                                title={u.is_active !== false ? 'Suspend User' : 'Activate User'}
-                                                            >
-                                                                <AlertTriangle size={16} />
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))
+                                                        </td>
+                                                    </tr>
+                                                ))
                                         )}
                                     </tbody>
                                 </table>
@@ -1485,9 +1577,9 @@ const Admin = () => {
                             </div>
                         </div>
                     </div>
-                ) : view === 'business-leads' ? (
+                ) : view === 'businesses' ? (
                     <div className="space-y-4">
-                        <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100 gap-4">
                             <div className="relative w-full max-w-md">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                 <input
@@ -1498,8 +1590,17 @@ const Admin = () => {
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
                             </div>
-                            <div className="text-xs text-gray-400 font-medium">
-                                Showing {filteredBusinessLeads.length} of {users_list.filter(u => u.role === 'business').length} businesses
+                            <div className="flex items-center gap-3 w-full md:w-auto">
+                                <button
+                                    onClick={() => { setNewUserRole('business'); setShowAddUserModal(true); }}
+                                    className="flex items-center gap-2 bg-[#007F00] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-700 transition-all shadow-sm whitespace-nowrap"
+                                >
+                                    <Briefcase size={16} />
+                                    Add Business
+                                </button>
+                                <div className="text-xs text-gray-400 font-medium hidden sm:block">
+                                    Showing {filteredBusinessLeads.length} of {users_list.filter(u => u.role === 'business').length} businesses
+                                </div>
                             </div>
                         </div>
 
@@ -2853,28 +2954,28 @@ const Admin = () => {
                 </div>
             )}
 
-            {/* USER DETAILS MODAL */}
-            {
-                selectedUser && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-                        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
-                            <div className="p-8">
-                                <div className="flex justify-between items-start mb-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-16 h-16 rounded-full bg-green-50 text-[#007F00] flex items-center justify-center font-bold text-2xl border border-green-100">
-                                            {selectedUser.full_name.charAt(0)}
-                                        </div>
-                                        <div>
-                                            <h3 className="text-2xl font-bold text-gray-900">{selectedUser.full_name}</h3>
-                                            <p className="text-sm text-gray-500">{selectedUser.email}</p>
-                                        </div>
+            {/* USER DETAILS / EDIT MODAL */}
+            {selectedUser && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+                        <div className="p-8 overflow-y-auto">
+                            <div className="flex justify-between items-start mb-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-16 h-16 rounded-full bg-green-50 text-[#007F00] flex items-center justify-center font-bold text-2xl border border-green-100 uppercase">
+                                        {selectedUser.full_name?.charAt(0) || 'U'}
                                     </div>
-                                    <button onClick={() => setSelectedUser(null)} className="text-gray-400 hover:text-gray-600">
-                                        <X size={24} />
-                                    </button>
+                                    <div>
+                                        <h3 className="text-2xl font-bold text-gray-900">{selectedUser.full_name}</h3>
+                                        <p className="text-sm text-gray-500">{selectedUser.email}</p>
+                                    </div>
                                 </div>
+                                <button onClick={() => { setSelectedUser(null); setIsEditingProfile(false); }} className="text-gray-400 hover:text-gray-600">
+                                    <X size={24} />
+                                </button>
+                            </div>
 
-                                <div className="space-y-4">
+                            {!isEditingProfile ? (
+                                <div className="space-y-6">
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
                                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Account Role</p>
@@ -2883,49 +2984,191 @@ const Admin = () => {
                                         <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
                                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Status</p>
                                             <p className={`text-sm font-bold capitalize ${selectedUser.is_active !== false ? 'text-green-600' : 'text-red-600'}`}>
-                                                {selectedUser.is_active !== false ? 'Active Account' : 'Suspended'}
+                                                {selectedUser.is_active !== false ? 'Active' : 'Suspended'}
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">User ID</p>
-                                        <p className="text-xs font-mono text-gray-600 break-all">{selectedUser.id}</p>
-                                    </div>
-                                    <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Member Since</p>
-                                        <p className="text-sm font-bold text-gray-900">{new Date(selectedUser.created_at).toLocaleDateString()}</p>
-                                    </div>
-                                </div>
 
-                                <div className="mt-8 flex gap-3">
-                                    <button
-                                        className="flex-1 py-3 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors text-sm"
-                                        onClick={() => setSelectedUser(null)}
-                                    >
-                                        Close
-                                    </button>
-                                    <button
-                                        className={`flex-1 py-3 font-bold rounded-xl transition-colors text-sm border ${selectedUser.is_active !== false
-                                            ? 'bg-red-50 text-red-600 border-red-100 hover:bg-red-100'
-                                            : 'bg-green-50 text-green-600 border-green-100 hover:bg-green-100'
-                                            }`}
-                                        onClick={() => {
-                                            setItemToSuspend({
-                                                id: selectedUser.id,
-                                                name: selectedUser.full_name,
-                                                currentStatus: selectedUser.is_active !== false
-                                            });
-                                            setShowSuspendModal(true);
-                                        }}
-                                    >
-                                        {selectedUser.is_active !== false ? 'Suspend Account' : 'Activate Account'}
-                                    </button>
+                                    {/* Subscription Section */}
+                                    {(selectedUser.role === 'contractor' || selectedUser.role === 'business') && (
+                                        <div className="p-6 bg-blue-50/50 rounded-2xl border border-blue-100/50">
+                                            <h4 className="text-xs font-bold text-blue-900 uppercase tracking-widest mb-4">Subscription Management</h4>
+                                            <div className="flex justify-between items-center mb-4">
+                                                <div>
+                                                    <p className="text-[10px] text-blue-600 font-bold uppercase tracking-tight">Status</p>
+                                                    <p className="text-sm font-black text-blue-900 capitalize">{selectedUser.subscription_status || 'Inactive'}</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-[10px] text-blue-600 font-bold uppercase tracking-tight">Ends On</p>
+                                                    <p className="text-sm font-black text-blue-900">
+                                                        {selectedUser.subscription_end_date ? new Date(selectedUser.subscription_end_date).toLocaleDateString() : 'N/A'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            {selectedUser.manual_override_reason && (
+                                                <div className="mb-4 p-2 bg-white rounded-lg border border-blue-100">
+                                                    <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Override Reason</p>
+                                                    <p className="text-xs text-gray-600 italic">"{selectedUser.manual_override_reason}"</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <div className="space-y-4">
+                                        <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">User ID</p>
+                                            <p className="text-xs font-mono text-gray-600 break-all">{selectedUser.id}</p>
+                                        </div>
+                                        <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Member Since</p>
+                                            <p className="text-sm font-bold text-gray-900">{new Date(selectedUser.created_at).toLocaleDateString()}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col gap-3">
+                                        <button
+                                            onClick={() => {
+                                                setEditForm({
+                                                    full_name: selectedUser.full_name,
+                                                    email: selectedUser.email,
+                                                    subscription_status: selectedUser.subscription_status || 'inactive',
+                                                    subscription_end_date: selectedUser.subscription_end_date,
+                                                    manual_override_reason: selectedUser.manual_override_reason || ''
+                                                });
+                                                setIsEditingProfile(true);
+                                            }}
+                                            className="w-full py-4 bg-[#007F00] text-white font-bold rounded-2xl hover:bg-green-700 transition-all shadow-lg shadow-green-100 flex items-center justify-center gap-2"
+                                        >
+                                            <Pencil size={18} />
+                                            Edit Profile & Subscription
+                                        </button>
+                                        <div className="flex gap-3">
+                                            <button
+                                                className={`flex-1 py-3 font-bold rounded-xl transition-colors text-sm border ${selectedUser.is_active !== false
+                                                    ? 'bg-red-50 text-red-600 border-red-100 hover:bg-red-100'
+                                                    : 'bg-green-50 text-green-600 border-green-100 hover:bg-green-100'
+                                                    }`}
+                                                onClick={() => {
+                                                    setItemToSuspend({
+                                                        id: selectedUser.id,
+                                                        name: selectedUser.full_name,
+                                                        currentStatus: selectedUser.is_active !== false
+                                                    });
+                                                    setShowSuspendModal(true);
+                                                }}
+                                            >
+                                                {selectedUser.is_active !== false ? 'Suspend Account' : 'Activate Account'}
+                                            </button>
+                                            <button
+                                                className="flex-1 py-3 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors text-sm"
+                                                onClick={() => setSelectedUser(null)}
+                                            >
+                                                Close
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Full Name</label>
+                                            <input
+                                                type="text"
+                                                value={editForm.full_name || ''}
+                                                onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
+                                                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00]"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Email Address</label>
+                                            <input
+                                                type="email"
+                                                value={editForm.email || ''}
+                                                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                                                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00]"
+                                            />
+                                        </div>
+
+                                        {(selectedUser.role === 'contractor' || selectedUser.role === 'business') && (
+                                            <>
+                                                <div className="p-4 bg-blue-50/30 rounded-2xl border border-blue-100/50 space-y-4">
+                                                    <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Subscription Override</h4>
+
+                                                    <div>
+                                                        <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Status</label>
+                                                        <select
+                                                            value={editForm.subscription_status || 'inactive'}
+                                                            onChange={(e) => setEditForm({ ...editForm, subscription_status: e.target.value })}
+                                                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#007F00]/10"
+                                                        >
+                                                            <option value="active">Active</option>
+                                                            <option value="inactive">Inactive</option>
+                                                            <option value="trial">Trial Period</option>
+                                                            <option value="lifetime">Lifetime Access</option>
+                                                        </select>
+                                                    </div>
+
+                                                    <div>
+                                                        <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Expiry Date</label>
+                                                        <div className="flex gap-2">
+                                                            <input
+                                                                type="date"
+                                                                value={editForm.subscription_end_date ? new Date(editForm.subscription_end_date).toISOString().split('T')[0] : ''}
+                                                                onChange={(e) => setEditForm({ ...editForm, subscription_end_date: new Date(e.target.value).toISOString() })}
+                                                                className="flex-grow border border-gray-200 rounded-lg px-3 py-2 text-sm"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const date = new Date();
+                                                                    date.setMonth(date.getMonth() + 3);
+                                                                    setEditForm({ ...editForm, subscription_end_date: date.toISOString(), subscription_status: 'active' });
+                                                                }}
+                                                                className="px-3 py-2 bg-blue-600 text-white text-[10px] font-bold rounded-lg hover:bg-blue-700 whitespace-nowrap"
+                                                            >
+                                                                +3 Months Free
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Reason for Adjustment</label>
+                                                        <textarea
+                                                            value={editForm.manual_override_reason || ''}
+                                                            onChange={(e) => setEditForm({ ...editForm, manual_override_reason: e.target.value })}
+                                                            placeholder="e.g., Manual upgrade for partnership..."
+                                                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm h-20 focus:ring-2 focus:ring-[#007F00]/10"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    <div className="flex gap-3">
+                                        <button
+                                            disabled={isUpdating}
+                                            onClick={handleSaveProfile}
+                                            className="flex-1 py-4 bg-[#007F00] text-white font-bold rounded-2xl hover:bg-green-700 transition-all shadow-lg shadow-green-100 flex items-center justify-center gap-2"
+                                        >
+                                            {isUpdating ? <Loader2 className="animate-spin" size={18} /> : <CheckCircle2 size={18} />}
+                                            {isUpdating ? 'Saving...' : 'Save Changes'}
+                                        </button>
+                                        <button
+                                            disabled={isUpdating}
+                                            onClick={() => setIsEditingProfile(false)}
+                                            className="px-6 py-4 bg-gray-100 text-gray-600 font-bold rounded-2xl hover:bg-gray-200 transition-all text-sm"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
-                )
-            }
+                </div>
+            )}
 
             {/* SUSPEND USER MODAL */}
             {showSuspendModal && itemToSuspend && (
@@ -2974,8 +3217,70 @@ const Admin = () => {
                 </div>
             )}
 
+            {/* ADD USER MODAL (MANUAL) */}
+            {showAddUserModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 animate-in zoom-in-95 duration-200">
+                        <div className="flex justify-between items-center mb-6">
+                            <div>
+                                <h3 className="text-xl font-black text-gray-900 uppercase tracking-tight">Manual Registration</h3>
+                                <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Adding a new {newUserRole === 'contractor' ? 'Assessor' : 'Business'}</p>
+                            </div>
+                            <button onClick={() => setShowAddUserModal(false)} className="text-gray-400 hover:text-gray-600">
+                                <X size={24} />
+                            </button>
+                        </div>
 
+                        <form onSubmit={handleAddUser} className="space-y-4">
+                            <div>
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Full Name</label>
+                                <input
+                                    type="text"
+                                    name="fullName"
+                                    required
+                                    placeholder="e.g. John Doe"
+                                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00]"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Email Address</label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    required
+                                    placeholder="john@example.com"
+                                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00]"
+                                />
+                            </div>
 
+                            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                <p className="text-[10px] text-gray-500 font-bold leading-relaxed">
+                                    <AlertTriangle size={12} className="inline mr-1 text-amber-500" />
+                                    This will create a profile entry. If the user eventually signs up with this email, their dashboard will automatically link to this record.
+                                </p>
+                            </div>
+
+                            <div className="pt-4 flex gap-3">
+                                <button
+                                    type="submit"
+                                    disabled={isUpdating}
+                                    className="flex-1 py-4 bg-[#007F00] text-white font-bold rounded-2xl hover:bg-green-700 transition-all shadow-lg shadow-green-100 flex items-center justify-center gap-2"
+                                >
+                                    {isUpdating ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />}
+                                    {isUpdating ? 'Adding...' : `Add ${newUserRole === 'contractor' ? 'Assessor' : 'Business'}`}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAddUserModal(false)}
+                                    className="px-6 py-4 bg-gray-100 text-gray-600 font-bold rounded-2xl hover:bg-gray-200 transition-all text-sm"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
