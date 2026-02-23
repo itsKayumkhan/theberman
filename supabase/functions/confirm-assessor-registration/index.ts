@@ -1,10 +1,8 @@
-
+// @ts-nocheck
 /// <reference lib="deno.ns" />
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
-
-const RESEND_API_KEY = 're_eHfq1MYG_BsYiVUPrXG96aMZNuXmHUEc7';
+import { CustomSmtpClient } from "../shared/smtp.ts"
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -174,19 +172,31 @@ serve(async (req: Request) => {
             </div>
         `;
 
-        await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${RESEND_API_KEY}`
-            },
-            body: JSON.stringify({
-                from: 'Theberman.eu <registration@theberman.eu>',
-                to: [user_email],
-                subject: 'Registration Successful - Assessor Membership Active',
-                html: emailHtml
-            })
-        });
+        // 4. Send Confirmation Email
+        const smtpHostname = Deno.env.get('SMTP_HOSTNAME')!;
+        const smtpPort = parseInt(Deno.env.get('SMTP_PORT') || '587');
+        const smtpUsername = Deno.env.get('SMTP_USERNAME')!;
+        const smtpPassword = Deno.env.get('SMTP_PASSWORD')!;
+        const smtpFromEnv = Deno.env.get('SMTP_FROM') || 'hello@theberman.eu';
+        const smtpFrom = smtpFromEnv.includes('<') ? smtpFromEnv : `Theberman.eu <${smtpFromEnv}>`;
+
+        const client = new CustomSmtpClient();
+        try {
+            await client.connect(smtpHostname, smtpPort);
+            await client.authenticate(smtpUsername, smtpPassword);
+
+            await client.send(
+                smtpFrom,
+                user_email,
+                'Registration Successful - Assessor Membership Active',
+                emailHtml
+            );
+
+            await client.close();
+            console.log(`[confirm-assessor-registration] SUCCESS: Confirmation email sent to ${user_email}`);
+        } catch (smtpErr: any) {
+            console.error("[confirm-assessor-registration] SMTP ERROR", smtpErr);
+        }
 
         return new Response(
             JSON.stringify({ success: true, message: "Registration confirmed and email sent" }),

@@ -65,9 +65,9 @@ const SignUp = () => {
             if (error) throw error;
 
             if (authData?.user) {
-                // Handle business registration separately as it's a "leads" flow
+                // Handle business registration
                 if (data.role === 'business') {
-                    navigate('/registration-pending');
+                    navigate('/business-onboarding');
                     return;
                 }
 

@@ -34,9 +34,8 @@ import RegionPage from './pages/RegionPage';
 import Locations from './pages/Locations';
 import News from './pages/News';
 import NewsDetail from './pages/NewsDetail';
-import SolarQuoteForm from './pages/SolarQuoteForm';
 import HireAgent from './pages/HireAgent';
-import AssessorMembership from './pages/AssessorMembership';
+import MembershipPayment from './pages/MembershipPayment';
 import ReferralTracker from './components/ReferralTracker';
 
 
@@ -84,11 +83,10 @@ function App() {
                         <Route path="news/:id" element={<NewsDetail />} />
                         <Route path="hire-agent" element={<HireAgent />} />
                         <Route path="registration-pending" element={<RegistrationPending />} />
-                        <Route path="/get-solar-quote" element={<SolarQuoteForm />} />
                     </Route>
 
                     {/* No Layout wrapper for cleaner UX */}
-                    <Route path="/assessor-membership" element={<AssessorMembership />} />
+                    <Route path="/assessor-membership" element={<MembershipPayment />} />
                     <Route path="/get-quote" element={<QuoteForm />} />
 
                     <Route path="/forgot-password" element={<ForgotPassword />} />
