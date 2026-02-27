@@ -1,9 +1,38 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import QuoteFormModule from '../components/QuoteFormModule';
+import { useAuth } from '../hooks/useAuth';
 
 const QuoteForm = () => {
     const navigate = useNavigate();
+    const { role } = useAuth();
+
+    // Redirect admin and BER assessor users away from the quote form
+    if (role === 'admin' || role === 'contractor') {
+        return (
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <div className="text-center px-6">
+                    <div className="w-20 h-20 rounded-full bg-amber-50 flex items-center justify-center mb-6 mx-auto">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h1 className="text-3xl font-bold text-gray-800 mb-3">Quote Form Not Available</h1>
+                    <p className="text-gray-500 max-w-md mx-auto mb-8">
+                        {role === 'admin'
+                            ? 'As an admin, you cannot submit quote requests. This form is for homeowners and users looking for BER assessments.'
+                            : 'As a BER assessor, you cannot submit quote requests. This form is for homeowners and users looking for BER assessments.'}
+                    </p>
+                    <button
+                        onClick={() => navigate(role === 'admin' ? '/admin' : '/dashboard/ber-assessor')}
+                        className="px-8 py-3 bg-[#007F00] text-white font-bold rounded-xl hover:bg-[#006600] transition-colors"
+                    >
+                        Go to Dashboard
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-white">

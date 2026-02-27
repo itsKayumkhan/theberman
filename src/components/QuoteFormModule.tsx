@@ -119,7 +119,42 @@ interface QuoteFormModuleProps {
 }
 
 const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
-    const { user } = useAuth();
+    const { user, role } = useAuth();
+
+    // Restrict admin and BER assessor users from filling the quote form
+    if (role === 'admin' || role === 'contractor') {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+                <div className="w-20 h-20 rounded-full bg-amber-50 flex items-center justify-center mb-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-3">Quote Form Not Available</h2>
+                <p className="text-gray-500 max-w-md mb-8">
+                    {role === 'admin'
+                        ? 'As an admin, you cannot submit quote requests. This form is for homeowners and users looking for BER assessments.'
+                        : 'As a BER assessor, you cannot submit quote requests. This form is for homeowners and users looking for BER assessments.'}
+                </p>
+                {onClose ? (
+                    <button
+                        onClick={onClose}
+                        className="px-8 py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition-colors"
+                    >
+                        Close
+                    </button>
+                ) : (
+                    <a
+                        href={role === 'admin' ? '/admin' : '/dashboard/ber-assessor'}
+                        className="px-8 py-3 bg-[#007F00] text-white font-bold rounded-xl hover:bg-[#006600] transition-colors"
+                    >
+                        Go to Dashboard
+                    </a>
+                )}
+            </div>
+        );
+    }
+
     const [currentStep, setCurrentStep] = useState(0); // Start at step 0 (Job Type)
     const [sizeUnit, setSizeUnit] = useState<'ft' | 'm'>('m'); // Default to m²
     const [isSubmitting, setIsSubmitting] = useState(false);

@@ -18,18 +18,54 @@ Deno.serve(async (req: Request) => {
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         );
 
+        // Verify the caller is an authenticated admin
+        const authHeader = req.headers.get('Authorization');
+        if (!authHeader) {
+            return new Response(JSON.stringify({ error: 'No authorization header' }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 401,
+            });
+        }
+
+        const token = authHeader.replace('Bearer ', '');
+        const { data: { user }, error: authUserError } = await supabaseAdmin.auth.getUser(token);
+
+        if (authUserError || !user) {
+            return new Response(JSON.stringify({ error: 'Not authenticated' }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 401,
+            });
+        }
+
+        // Check if the user is an admin by querying their profile
+        const { data: profile, error: profileError } = await supabaseAdmin
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+
+        if (profileError || profile?.role !== 'admin') {
+            return new Response(JSON.stringify({ error: 'Unauthorized: Admin access required' }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 403,
+            });
+        }
+
         const body = await req.json();
         const { userId } = body;
 
         if (!userId) {
-            throw new Error('Missing required fields: userId');
+            return new Response(JSON.stringify({ error: 'Missing required fields: userId' }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 400,
+            });
         }
 
-        // 1. Delete user from Auth
-        const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+        // Delete user securely
+        const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
-        if (authError) {
-            throw new Error(`Failed to delete user from Auth: ${authError.message}`);
+        if (deleteError) {
+            throw new Error(`Failed to delete user from Auth: ${deleteError.message}`);
         }
 
         return new Response(JSON.stringify({ success: true, message: 'User deleted successfully' }), {
