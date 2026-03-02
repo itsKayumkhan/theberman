@@ -131,25 +131,44 @@ const NewCatalogue = () => {
             // Post-fetch filtering
             if (selectedCategory) {
                 filteredData = filteredData.filter(item =>
-                    item.categories.some((c: any) => c.catalogue_categories.id === selectedCategory)
+                    (item.categories || []).some((c: any) => c.catalogue_categories?.id === selectedCategory)
                 );
             }
 
-            // Filter by Location ID or County Name
+            // Filter by Location ID or County Name\
             if (selectedLocation) {
                 filteredData = filteredData.filter(item =>
-                    item.locations.some((l: any) => l.catalogue_locations.id === selectedLocation)
+                    (item.locations || []).some((l: any) => l.catalogue_locations?.id === selectedLocation)
                 );
             } else if (selectedCounty) {
-                filteredData = filteredData.filter(item =>
-                    item.locations.some((l: any) => l.catalogue_locations.name.toLowerCase() === selectedCounty.toLowerCase())
-                );
+                const searchStr = selectedCounty.toLowerCase().trim();
+                const coSearchStr = `co. ${searchStr}`;
+
+                filteredData = filteredData.filter(item => {
+                    // Check explicitly mapped relation
+                    const matchesLocation = (item.locations || []).some((l: any) => {
+                        const locName = l.catalogue_locations?.name?.toLowerCase() || '';
+                        return locName === searchStr || locName === coSearchStr || locName.includes(searchStr);
+                    });
+
+                    // Fallback to checking raw address / additional addresses texts
+                    const matchesAddress = item.address && (
+                        item.address.toLowerCase().includes(searchStr) ||
+                        item.address.toLowerCase().includes(coSearchStr)
+                    );
+                    const matchesAdditional = (item.additional_addresses || []).some((addr: string) =>
+                        addr.toLowerCase().includes(searchStr) ||
+                        addr.toLowerCase().includes(coSearchStr)
+                    );
+
+                    return matchesLocation || matchesAddress || matchesAdditional;
+                });
             }
 
             let sortedData = filteredData.map(item => ({
                 ...item,
-                categories: item.categories.map((c: any) => c.catalogue_categories),
-                locations: item.locations.map((l: any) => l.catalogue_locations)
+                categories: (item.categories || []).map((c: any) => c.catalogue_categories).filter(Boolean),
+                locations: (item.locations || []).map((l: any) => l.catalogue_locations).filter(Boolean)
             }));
 
             setListings(sortedData);
@@ -259,7 +278,7 @@ const NewCatalogue = () => {
                                         onChange={(e) => setSelectedCounty(e.target.value)}
                                         className="w-full bg-transparent border-none focus:ring-0 font-black text-sm md:text-base text-gray-800 appearance-none cursor-pointer pr-10 pt-2"
                                     >
-                                        <option value="">All Ireland</option>
+                                        <option value="">All Locations</option>
                                         {IRELAND_COUNTIES.map(county => (
                                             <option key={county} value={county}>{county}</option>
                                         ))}
