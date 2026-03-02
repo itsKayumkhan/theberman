@@ -250,6 +250,7 @@ const Admin = () => {
         }
     }, [selectedUser]);
     const [isUpdatingBanner, setIsUpdatingBanner] = useState(false);
+    const [isUploadingGallery, setIsUploadingGallery] = useState<{ [key: number]: boolean }>({});
     const [itemToDelete, setItemToDelete] = useState<{ id: string, type: 'lead' | 'sponsor' | 'assessment' | 'user' } | null>(null);
     const [itemToSuspend, setItemToSuspend] = useState<{ id: string, name: string, currentStatus: boolean } | null>(null);
     const [showSuspendModal, setShowSuspendModal] = useState(false);
@@ -609,6 +610,7 @@ const Admin = () => {
             toast.error(error.message || 'Failed to upload logo');
         } finally {
             setIsUploadingLogo(false);
+            e.target.value = '';
         }
     };
 
@@ -641,6 +643,7 @@ const Admin = () => {
             toast.error(error.message || 'Failed to upload banner');
         } finally {
             setIsUpdatingBanner(false);
+            e.target.value = '';
         }
     };
 
@@ -648,17 +651,13 @@ const Admin = () => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        if (!file.type.startsWith('image/')) {
-            toast.error('Please upload an image file');
-            return;
-        }
-
-        if (file.size > 2 * 1024 * 1024) {
-            toast.error('Image must be less than 2MB');
+        if (file.type !== 'image/jpeg' && file.type !== 'image/png') {
+            toast.error('Please upload a JPG or PNG image file');
             return;
         }
 
         try {
+            setIsUploadingGallery(prev => ({ ...prev, [index]: true }));
             toast.loading('Uploading gallery image...', { id: 'gallery-upload' });
             const { uploadImageToCloudinary } = await import('../lib/cloudinary');
             const publicUrl = await uploadImageToCloudinary(file);
@@ -672,6 +671,9 @@ const Admin = () => {
         } catch (error: any) {
             console.error('Error uploading gallery image:', error);
             toast.error(error.message || 'Failed to upload gallery image', { id: 'gallery-upload' });
+        } finally {
+            setIsUploadingGallery(prev => ({ ...prev, [index]: false }));
+            e.target.value = '';
         }
     };
 
@@ -1928,37 +1930,54 @@ const Admin = () => {
                                                     <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Alternate Locations</label>
                                                     <button
                                                         type="button"
-                                                        onClick={() => setCatalogueFormData({ ...catalogueFormData, additionalAddresses: [...catalogueFormData.additionalAddresses, ''] })}
+                                                        onClick={() => setCatalogueFormData({ ...catalogueFormData, additionalAddresses: [...catalogueFormData.additionalAddresses, '|||'] })}
                                                         className="text-xs text-[#007F00] hover:text-[#005c00] font-bold flex items-center gap-1"
                                                     >
                                                         <Plus size={14} /> Add Address
                                                     </button>
                                                 </div>
-                                                {catalogueFormData.additionalAddresses.map((addr, idx) => (
-                                                    <div key={idx} className="flex gap-2">
-                                                        <input
-                                                            type="text"
-                                                            value={addr}
-                                                            onChange={(e) => {
-                                                                const newAddrs = [...catalogueFormData.additionalAddresses];
-                                                                newAddrs[idx] = e.target.value;
-                                                                setCatalogueFormData({ ...catalogueFormData, additionalAddresses: newAddrs });
-                                                            }}
-                                                            className="flex-1 border border-gray-200 rounded-2xl px-5 py-4 text-sm focus:ring-4 focus:ring-[#007F00]/10 focus:border-[#007F00] transition-all"
-                                                            placeholder="Additional location address..."
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const newAddrs = catalogueFormData.additionalAddresses.filter((_, i) => i !== idx);
-                                                                setCatalogueFormData({ ...catalogueFormData, additionalAddresses: newAddrs });
-                                                            }}
-                                                            className="px-4 text-red-500 hover:bg-red-50 rounded-2xl transition-colors"
-                                                        >
-                                                            <Trash2 size={20} />
-                                                        </button>
-                                                    </div>
-                                                ))}
+                                                {catalogueFormData.additionalAddresses.map((addr, idx) => {
+                                                    const [addressPart, countryPart] = addr.includes('|||') ? addr.split('|||') : [addr, ''];
+                                                    return (
+                                                        <div key={idx} className="flex gap-4 items-start bg-gray-50 p-4 rounded-2xl relative group">
+                                                            <div className="flex-1 space-y-3">
+                                                                <input
+                                                                    type="text"
+                                                                    value={addressPart}
+                                                                    onChange={(e) => {
+                                                                        const newAddrs = [...catalogueFormData.additionalAddresses];
+                                                                        newAddrs[idx] = `${e.target.value}|||${countryPart || ''}`;
+                                                                        setCatalogueFormData({ ...catalogueFormData, additionalAddresses: newAddrs });
+                                                                    }}
+                                                                    className="w-full border border-gray-200 rounded-2xl px-5 py-4 text-sm focus:ring-4 focus:ring-[#007F00]/10 focus:border-[#007F00] transition-all"
+                                                                    placeholder="Street, City..."
+                                                                />
+                                                                <select
+                                                                    value={countryPart || ''}
+                                                                    onChange={(e) => {
+                                                                        const newAddrs = [...catalogueFormData.additionalAddresses];
+                                                                        newAddrs[idx] = `${addressPart || ''}|||${e.target.value}`;
+                                                                        setCatalogueFormData({ ...catalogueFormData, additionalAddresses: newAddrs });
+                                                                    }}
+                                                                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-[#007F00] transition-all"
+                                                                >
+                                                                    <option value="">Select County (Optional)</option>
+                                                                    {IRISH_COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                                                </select>
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const newAddrs = catalogueFormData.additionalAddresses.filter((_, i) => i !== idx);
+                                                                    setCatalogueFormData({ ...catalogueFormData, additionalAddresses: newAddrs });
+                                                                }}
+                                                                className="p-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors mt-1"
+                                                            >
+                                                                <Trash2 size={20} />
+                                                            </button>
+                                                        </div>
+                                                    )
+                                                })}
                                             </div>
 
                                             <div className="space-y-1.5 mt-4">
@@ -2052,7 +2071,7 @@ const Admin = () => {
                                                     <h3 className="font-black text-gray-900 uppercase tracking-widest text-sm flex items-center gap-2">
                                                         <ImageIcon size={16} /> Manage Gallery Photos
                                                     </h3>
-                                                    <p className="text-[11px] text-gray-500 font-medium mt-1">Add up to 3 high-quality photos with short descriptions (Max 2MB per image)</p>
+                                                    <p className="text-[11px] text-gray-500 font-medium mt-1">Add up to 3 high-quality JPG or PNG photos with short descriptions</p>
                                                 </div>
 
                                                 <div className="space-y-6">
@@ -2061,18 +2080,25 @@ const Admin = () => {
                                                             <div className="flex-grow space-y-4 w-full">
                                                                 <div>
                                                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Upload Photo {index + 1}</label>
-                                                                    <input
-                                                                        type="file"
-                                                                        accept="image/*"
-                                                                        onChange={(e) => handleGalleryUpload(index, e)}
-                                                                        className="block w-full text-sm text-gray-500
+                                                                    <div className="flex items-center gap-3">
+                                                                        <input
+                                                                            type="file"
+                                                                            accept="image/jpeg, image/png"
+                                                                            onChange={(e) => handleGalleryUpload(index, e)}
+                                                                            disabled={isUploadingGallery[index]}
+                                                                            className="block w-full text-sm text-gray-500
                                                                         file:mr-4 file:py-2 file:px-4
                                                                         file:rounded-full file:border-0
                                                                         file:text-sm file:font-semibold
                                                                         file:bg-[#007EA7]/10 file:text-[#007EA7]
                                                                         hover:file:bg-[#007EA7]/20
+                                                                        disabled:opacity-50 disabled:cursor-not-allowed
                                                                         transition-all"
-                                                                    />
+                                                                        />
+                                                                        {isUploadingGallery[index] && (
+                                                                            <Loader2 size={16} className="animate-spin text-[#007EA7] shrink-0" />
+                                                                        )}
+                                                                    </div>
                                                                 </div>
                                                                 <div>
                                                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Short Description</label>
@@ -2198,11 +2224,11 @@ const Admin = () => {
                                     </button>
                                     <button
                                         type="submit"
-                                        disabled={isSavingCatalogue}
+                                        disabled={isSavingCatalogue || isUploadingLogo || isUpdatingBanner || Object.values(isUploadingGallery).some(Boolean)}
                                         className="px-10 py-4 bg-[#007F00] text-white font-bold rounded-2xl hover:bg-green-700 transition-all shadow-lg shadow-green-100 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        {isSavingCatalogue ? <Loader2 size={20} className="animate-spin" /> : <CheckCircle2 size={20} />}
-                                        {isSavingCatalogue ? 'Saving Listing...' : (selectedListingForEdit ? 'Update Listing' : 'Add to Catalogue')}
+                                        {(isSavingCatalogue || isUploadingLogo || isUpdatingBanner || Object.values(isUploadingGallery).some(Boolean)) ? <Loader2 size={20} className="animate-spin" /> : <CheckCircle2 size={20} />}
+                                        {isSavingCatalogue ? 'Saving Listing...' : (isUploadingLogo || isUpdatingBanner || Object.values(isUploadingGallery).some(Boolean)) ? 'Uploading...' : (selectedListingForEdit ? 'Update Listing' : 'Add to Catalogue')}
                                     </button>
                                 </div>
                             </form>

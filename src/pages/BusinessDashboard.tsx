@@ -24,6 +24,14 @@ import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { geocodeAddress } from '../lib/geocoding';
 
+const IRISH_COUNTIES = [
+    'Carlow', 'Cavan', 'Clare', 'Cork', 'Donegal', 'Dublin', 'Galway',
+    'Kerry', 'Kildare', 'Kilkenny', 'Laois', 'Leitrim', 'Limerick',
+    'Longford', 'Louth', 'Mayo', 'Meath', 'Monaghan', 'Offaly',
+    'Roscommon', 'Sligo', 'Tipperary', 'Waterford', 'Westmeath',
+    'Wexford', 'Wicklow'
+];
+
 interface CatalogueListing {
     id: string;
     name: string;
@@ -90,6 +98,7 @@ const BusinessDashboard = () => {
     const [isSavingCategories, setIsSavingCategories] = useState(false);
     const [isSavingProfile, setIsSavingProfile] = useState(false);
     const [isSavingGallery, setIsSavingGallery] = useState(false);
+    const [isUploadingGallery, setIsUploadingGallery] = useState<{ [key: number]: boolean }>({});
     const [isUploadingBanner, setIsUploadingBanner] = useState(false);
 
     useEffect(() => {
@@ -300,6 +309,7 @@ const BusinessDashboard = () => {
         }
 
         try {
+            setIsUploadingGallery(prev => ({ ...prev, [index]: true }));
             setIsSavingGallery(true);
             const { uploadImageToCloudinary } = await import('../lib/cloudinary');
             const publicUrl = await uploadImageToCloudinary(file);
@@ -312,7 +322,10 @@ const BusinessDashboard = () => {
         } catch (error: any) {
             console.error('Error uploading gallery image:', error);
             toast.error(error.message || 'Failed to upload image');
+        } finally {
             setIsSavingGallery(false);
+            setIsUploadingGallery(prev => ({ ...prev, [index]: false }));
+            e.target.value = '';
         }
     };
 
@@ -346,6 +359,7 @@ const BusinessDashboard = () => {
             toast.error(error.message || 'Failed to upload banner');
         } finally {
             setIsUploadingBanner(false);
+            e.target.value = '';
         }
     };
 
@@ -553,41 +567,59 @@ const BusinessDashboard = () => {
                                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Alternate Business Locations</label>
                                             <button
                                                 type="button"
-                                                onClick={() => setListing(prev => ({ ...prev!, additional_addresses: [...(prev?.additional_addresses || []), ''] }))}
+                                                onClick={() => setListing(prev => ({ ...prev!, additional_addresses: [...(prev?.additional_addresses || []), '|||'] }))}
                                                 className="text-xs text-[#007F00] hover:text-[#005c00] font-bold flex items-center gap-1 bg-[#007F00]/5 px-3 py-1.5 rounded-full"
                                             >
                                                 <Plus size={14} /> Add Alternate Address
                                             </button>
                                         </div>
-                                        {(listing.additional_addresses || []).map((addr, idx) => (
-                                            <div key={idx} className="flex gap-2 items-center">
-                                                <input
-                                                    type="text"
-                                                    value={addr}
-                                                    onChange={(e) => {
-                                                        const newAddrs = [...(listing.additional_addresses || [])];
-                                                        newAddrs[idx] = e.target.value;
-                                                        setListing(prev => ({ ...prev!, additional_addresses: newAddrs }));
-                                                        // Debounce save logic explicitly here since it's a deep field update
-                                                        const formEvent = { target: { name: 'additional_addresses', value: newAddrs } } as any;
-                                                        handleProfileChange(formEvent);
-                                                    }}
-                                                    className="flex-1 bg-gray-100 border-none rounded-2xl px-6 py-4 font-bold text-gray-900 focus:ring-2 focus:ring-[#007F00] transition-all"
-                                                    placeholder="Additional branch location..."
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const newAddrs = (listing.additional_addresses || []).filter((_, i) => i !== idx);
-                                                        setListing(prev => ({ ...prev!, additional_addresses: newAddrs }));
-                                                        saveProfileData({ additional_addresses: newAddrs });
-                                                    }}
-                                                    className="p-4 text-red-500 hover:bg-red-50 rounded-2xl transition-colors"
-                                                >
-                                                    <Trash2 size={24} />
-                                                </button>
-                                            </div>
-                                        ))}
+                                        {(listing.additional_addresses || []).map((addr, idx) => {
+                                            const [addressPart, countryPart] = addr.includes('|||') ? addr.split('|||') : [addr, ''];
+                                            return (
+                                                <div key={idx} className="flex gap-4 items-start bg-gray-50 p-4 rounded-2xl relative group">
+                                                    <div className="flex-1 space-y-3">
+                                                        <input
+                                                            type="text"
+                                                            value={addressPart}
+                                                            onChange={(e) => {
+                                                                const newAddrs = [...(listing.additional_addresses || [])];
+                                                                newAddrs[idx] = `${e.target.value}|||${countryPart || ''}`;
+                                                                setListing(prev => ({ ...prev!, additional_addresses: newAddrs }));
+                                                                const formEvent = { target: { name: 'additional_addresses', value: newAddrs } } as any;
+                                                                handleProfileChange(formEvent);
+                                                            }}
+                                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-[#007F00] transition-all"
+                                                            placeholder="Street, City..."
+                                                        />
+                                                        <select
+                                                            value={countryPart || ''}
+                                                            onChange={(e) => {
+                                                                const newAddrs = [...(listing.additional_addresses || [])];
+                                                                newAddrs[idx] = `${addressPart || ''}|||${e.target.value}`;
+                                                                setListing(prev => ({ ...prev!, additional_addresses: newAddrs }));
+                                                                const formEvent = { target: { name: 'additional_addresses', value: newAddrs } } as any;
+                                                                handleProfileChange(formEvent);
+                                                            }}
+                                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-[#007F00] transition-all"
+                                                        >
+                                                            <option value="">Select County (Optional)</option>
+                                                            {IRISH_COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                                        </select>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const newAddrs = (listing.additional_addresses || []).filter((_, i) => i !== idx);
+                                                            setListing(prev => ({ ...prev!, additional_addresses: newAddrs }));
+                                                            saveProfileData({ additional_addresses: newAddrs });
+                                                        }}
+                                                        className="p-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors mt-1"
+                                                    >
+                                                        <Trash2 size={20} />
+                                                    </button>
+                                                </div>
+                                            )
+                                        })}
                                     </div>
 
                                     <div>
@@ -821,18 +853,25 @@ const BusinessDashboard = () => {
                                             <div className="flex-grow space-y-4">
                                                 <div>
                                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Upload Photo {index + 1}</label>
-                                                    <input
-                                                        type="file"
-                                                        accept="image/*"
-                                                        onChange={(e) => handleGalleryUpload(index, e)}
-                                                        className="block w-full text-sm text-gray-500
+                                                    <div className="flex items-center gap-3">
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            onChange={(e) => handleGalleryUpload(index, e)}
+                                                            disabled={isUploadingGallery[index]}
+                                                            className="block w-full text-sm text-gray-500
                                                         file:mr-4 file:py-2 file:px-4
                                                         file:rounded-full file:border-0
                                                         file:text-sm file:font-semibold
                                                         file:bg-[#007F00]/10 file:text-[#007F00]
                                                         hover:file:bg-[#007F00]/20
+                                                        disabled:opacity-50 disabled:cursor-not-allowed
                                                         transition-all"
-                                                    />
+                                                        />
+                                                        {isUploadingGallery[index] && (
+                                                            <Loader2 size={16} className="animate-spin text-[#007F00] shrink-0" />
+                                                        )}
+                                                    </div>
                                                 </div>
                                                 <div>
                                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Short Description</label>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-     MapPin, Mail, Phone, Globe, Loader2,
+    MapPin, Mail, Phone, Globe, Loader2,
     CheckCircle2, Facebook, Instagram, X,
     Check
 } from 'lucide-react';
@@ -85,7 +85,10 @@ const ListingLayout = ({ listing, enquiry, setEnquiry, onEnquirySubmit, isSubmit
 
     const formatAddress = (addressStr?: string) => {
         if (!addressStr) return '';
-        const parts = addressStr.split(',').map(s => s.trim()).filter(Boolean);
+        const cleanAddressStr = addressStr.includes('|||')
+            ? addressStr.replace('|||', ', ')
+            : addressStr;
+        const parts = cleanAddressStr.split(',').map(s => s.trim()).filter(Boolean);
         return [...new Set(parts)].join(', ');
     };
 
@@ -144,7 +147,7 @@ const ListingLayout = ({ listing, enquiry, setEnquiry, onEnquirySubmit, isSubmit
                                             {formatAddress(listing.address) || 'Address not provided'}
                                         </div>
                                         <div className="inline-flex items-center px-2.5 py-1 bg-gray-50 text-gray-500 rounded-md text-xs font-semibold border border-gray-100">
-                                            {listing.locations?.[0]?.name || 'Co. Dublin'}
+                                            {listing.locations?.[0]?.name}
                                         </div>
                                     </div>
                                 </div>
