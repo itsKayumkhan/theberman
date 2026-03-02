@@ -2312,7 +2312,7 @@ const Admin = () => {
                                                                 <Trash2 size={16} />
                                                             </button>
                                                             <a
-                                                                href={`/catalogue?search=${encodeURIComponent(l.name)}`}
+                                                                href={`/catalogue/${l.slug}`}
                                                                 target="_blank"
                                                                 rel="noreferrer"
                                                                 className="p-2 text-gray-400 hover:text-[#007F00] hover:bg-green-50 rounded-lg transition-all"
