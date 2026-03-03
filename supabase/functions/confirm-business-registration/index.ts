@@ -139,7 +139,7 @@ serve(async (req: Request) => {
                 <h1 style="color: #007F00; text-align: center;">Welcome to The Berman!</h1>
                 <p>Hello ${user_full_name},</p>
                 <p>Your business registration is now complete and your listing is active in our Home Energy Catalogue.</p>
-                
+
                 <div style="background-color: #f9fafb; padding: 15px; border-radius: 0.5rem; margin: 20px 0;">
                     <h2 style="font-size: 1.1rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px;">Listing Details</h2>
                     <p><strong>Company:</strong> ${companyName}</p>
@@ -147,7 +147,7 @@ serve(async (req: Request) => {
                 </div>
 
                 <p>You can now log in to manage your profile and view leads in your dashboard.</p>
-                
+
                 <div style="text-align: center; margin-top: 30px;">
                     <a href="https://theberman.eu/login" style="background-color: #007F00; color: white; padding: 12px 24px; text-decoration: none; border-radius: 0.5rem; font-weight: bold;">Go to Dashboard</a>
                 </div>
@@ -172,7 +172,7 @@ serve(async (req: Request) => {
             await client.authenticate(smtpUsername, smtpPassword);
 
             // Fetch admin email from settings or use fallback
-            const { data: settings } = await supabase.from('app_settings').select('support_email').single();
+            const { data: settings } = await supabase.from('app_settings').select('support_email').maybeSingle();
             const adminEmail = settings?.support_email || 'hello@theberman.eu';
 
             // Email 1: To User
@@ -188,7 +188,7 @@ serve(async (req: Request) => {
                 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 1rem;">
                     <h1 style="color: #4F46E5; text-align: center;">New Business Registration</h1>
                     <p>A new business has successfully registered and paid on The Berman.</p>
-                    
+
                     <div style="background-color: #f3f4f6; padding: 15px; border-radius: 0.5rem; margin: 20px 0;">
                         <h2 style="font-size: 1.1rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px;">Business Details</h2>
                         <p><strong>Company:</strong> ${companyName}</p>

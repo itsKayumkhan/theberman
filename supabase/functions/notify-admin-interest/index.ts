@@ -42,14 +42,14 @@ serve(async (req: Request) => {
             await client.authenticate(smtpUsername, smtpPassword);
 
             // Fetch admin email from settings or use fallback
-            const { data: settings } = await supabase.from('app_settings').select('support_email').single();
+            const { data: settings } = await supabase.from('app_settings').select('support_email').maybeSingle();
             const adminEmail = settings?.support_email || 'hello@theberman.eu';
 
             const adminEmailHtml = `
                 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 1rem;">
                     <h1 style="color: #F59E0B; text-align: center;">New Interest: ${type === 'business' ? 'Business Registration' : 'Assessor Registration'}</h1>
                     <p>A new ${type} has started the registration process but has not completed payment yet.</p>
-                    
+
                     <div style="background-color: #fffbeb; padding: 15px; border-radius: 0.5rem; margin: 20px 0; border: 1px solid #fef3c7;">
                         <h2 style="font-size: 1.1rem; border-bottom: 1px solid #fef3c7; padding-bottom: 10px;">Details Received</h2>
                         <p><strong>Name:</strong> ${user_full_name}</p>

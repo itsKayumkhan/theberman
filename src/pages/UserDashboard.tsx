@@ -169,7 +169,7 @@ const UserDashboard = () => {
                 .from('assessments')
                 .select('*, profiles(full_name, email)')
                 .eq('id', id)
-                .single();
+                .maybeSingle();
 
             if (fetchError) throw fetchError;
 

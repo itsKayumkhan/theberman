@@ -57,7 +57,7 @@ const BusinessOnboarding = () => {
                     .from('profiles')
                     .select('full_name, email')
                     .eq('id', userIdParam)
-                    .single();
+                    .maybeSingle();
 
                 if (targetProfile) {
                     setFormData(prev => ({
@@ -162,7 +162,7 @@ const BusinessOnboarding = () => {
             }
 
             toast.success('Information saved! Please complete your registration payment.');
-            navigate('/assessor-membership', { replace: true });
+            navigate('/business-membership', { replace: true });
         } catch (error: any) {
             console.error('Onboarding data saving error:', error);
             toast.error('Failed to save registration data');
