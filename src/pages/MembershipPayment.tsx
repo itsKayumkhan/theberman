@@ -23,7 +23,7 @@ const MembershipPayment = () => {
                 const { data: settings, error } = await supabase
                     .from('app_settings')
                     .select('*')
-                    .single();
+                    .maybeSingle();
 
                 if (error) throw error;
 
@@ -93,7 +93,7 @@ const MembershipPayment = () => {
                 if (error) throw error;
 
                 await refreshProfile();
-                toast.success('Assessor registration finalized!');
+                toast.success('Registration complete! Your profile is pending admin approval and will be live shortly.', { duration: 6000 });
                 sessionStorage.removeItem('pending_assessor_registration');
                 setTimeout(() => navigate('/dashboard/ber-assessor'), 2000);
 

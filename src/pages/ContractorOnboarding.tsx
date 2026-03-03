@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import toast from 'react-hot-toast';
 import { Check, Plus, X } from 'lucide-react';
-
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import { TOWNS_BY_COUNTY } from '../data/irishTowns';
 import { geocodeAddress } from '../lib/geocoding';
 
@@ -10,6 +11,7 @@ const COUNTIES = Object.keys(TOWNS_BY_COUNTY).sort();
 
 const ContractorOnboarding = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
 
     // Form State
@@ -23,10 +25,10 @@ const ContractorOnboarding = () => {
         vatRegistered: false,
         assessorTypes: ['Domestic Assessor'] as string[],
         serviceAreas: [] as string[],
-        wantsCatalogueListing: true, // Default to true as per simplified requirement
+        isCompany: false,
         companyName: '',
-        website: '',
-        socialFacebook: '',
+        bio: '',
+        socialTwitter: '',
         socialInstagram: '',
         socialLinkedin: '',
         features: [] as string[]
@@ -66,7 +68,7 @@ const ContractorOnboarding = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!formData.phone || !formData.homeCounty || !formData.seaiNumber) {
+        if (!formData.phone || !formData.homeCounty || !formData.homeTown || !formData.seaiNumber || !formData.seaiYear) {
             toast.error('Please fill in all required fields');
             return;
         }
@@ -96,21 +98,19 @@ const ContractorOnboarding = () => {
                 longitude,
                 user_id: user?.id,
                 user_email: user?.email,
-                user_full_name: user?.user_metadata?.full_name
+                user_full_name: user?.user_metadata?.full_name || 'Assessor'
             };
 
             sessionStorage.setItem('pending_assessor_registration', JSON.stringify(registrationData));
 
             // 0. Update Profile with pending status and role
-            const { supabase } = await import('../lib/supabase');
             const { error: profileUpdateError } = await supabase
                 .from('profiles')
                 .update({
                     role: 'contractor',
                     registration_status: 'pending',
                     phone: formData.phone,
-                    home_county: formData.homeCounty,
-                    home_town: formData.homeTown
+                    home_county: formData.homeCounty
                 })
                 .eq('id', user?.id);
 
@@ -128,7 +128,7 @@ const ContractorOnboarding = () => {
                 console.error('Failed to send interest notification:', err);
             }
 
-            window.location.href = '/assessor-membership';
+            navigate('/dashboard/ber-assessor', { replace: true });
 
         } catch (error: any) {
             console.error('Onboarding Processing Error:', error);

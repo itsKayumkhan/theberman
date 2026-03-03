@@ -499,22 +499,24 @@ const BusinessDashboard = () => {
                             <AlertCircle size={40} className={`text-red-500 ${profile?.registration_status === 'pending' ? 'animate-bounce' : 'animate-pulse'}`} />
                         </div>
                         <h2 className="text-2xl font-black text-gray-900 mb-2">
-                            {profile?.registration_status === 'pending' ? 'Payment Required' : 'Subscription Expired'}
+                            {profile?.registration_status === 'pending' ? 'Account Pending Approval' : 'Subscription Expired'}
                         </h2>
                         <p className="text-gray-500 mb-8 font-medium">
                             {profile?.registration_status === 'pending'
-                                ? 'To access your dashboard and activate your listing, you must complete your payment.'
+                                ? 'Your profile is currently waiting to be approved by an administrator. You will be notified once it is confirmed.'
                                 : 'Your subscription has ended and your account is currently disabled. Please renew your subscription to reactivate your listing and access the portal.'}
                         </p>
-                        <Link
-                            to={profile?.registration_status === 'pending' ? '/business-membership' : "/pricing"}
-                            className="block w-full bg-red-600 text-white py-4 rounded-2xl font-black uppercase tracking-wider text-sm hover:bg-red-700 transition-all mb-4 shadow-lg shadow-red-500/20"
-                        >
-                            {profile?.registration_status === 'pending' ? 'Complete Payment' : 'Renew Subscription'}
-                        </Link>
+                        {!(profile?.registration_status === 'pending') && (
+                            <Link
+                                to="/pricing"
+                                className="block w-full bg-red-600 text-white py-4 rounded-2xl font-black uppercase tracking-wider text-sm hover:bg-red-700 transition-all mb-4 shadow-lg shadow-red-500/20"
+                            >
+                                Renew Subscription
+                            </Link>
+                        )}
                         <button
                             onClick={handleSignOut}
-                            className="w-full text-gray-400 font-bold uppercase tracking-widest text-[10px] hover:text-gray-600 transition-colors"
+                            className={`w-full font-bold uppercase tracking-widest text-[10px] transition-colors ${profile?.registration_status === 'pending' ? 'bg-gray-100 text-gray-700 py-4 rounded-xl hover:bg-gray-200 text-sm' : 'text-gray-400 hover:text-gray-600'}`}
                         >
                             Sign Out
                         </button>
