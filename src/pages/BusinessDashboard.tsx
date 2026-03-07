@@ -84,14 +84,7 @@ const BusinessDashboard = () => {
     const [listing, setListing] = useState<CatalogueListing | null>(null);
     const [loading, setLoading] = useState(true);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [listingImages, setListingImages] = useState<{ url: string, description: string }[]>([
-        { url: '', description: '' },
-        { url: '', description: '' },
-        { url: '', description: '' },
-        { url: '', description: '' },
-        { url: '', description: '' },
-        { url: '', description: '' }
-    ]);
+    const [listingImages, setListingImages] = useState<{ url: string, description: string }[]>(Array(10).fill(null).map(() => ({ url: '', description: '' })));
 
     // Categories state
     const [allCategories, setAllCategories] = useState<Category[]>([]);
@@ -134,11 +127,11 @@ const BusinessDashboard = () => {
                     .eq('listing_id', listingData.id);
 
                 // Set images state
-                const imgs = Array(6)
+                const imgs = Array(10)
                     .fill(null)
                     .map(() => ({ url: '', description: '' }));
                 (listingData.images || []).forEach((img: { display_order: number, url: string, description: string | null }) => {
-                    if (img.display_order < 6) {
+                    if (img.display_order < 10) {
                         imgs[img.display_order] = { url: img.url, description: img.description || '' };
                     }
                 });
@@ -824,9 +817,9 @@ const BusinessDashboard = () => {
                                 <div>
                                     <div className="mb-10">
                                         <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight mb-1">Hero Slider Portfolio</h4>
-                                        <p className="text-xs text-gray-500 font-medium">Add up to 6 photos that showcase your best work in the profile slider.</p>
+                                        <p className="text-xs text-gray-500 font-medium">Add up to 10 photos that showcase your best work in the profile slider.</p>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                                         {listingImages.map((img, idx) => (
                                             <div key={idx} className="group bg-gray-50 rounded-[2rem] border border-gray-100 overflow-hidden hover:border-[#007EA7]/30 transition-all hover:bg-white hover:shadow-2xl hover:shadow-[#007EA7]/10 flex flex-col h-full">
                                                 <div className="relative aspect-video bg-white overflow-hidden border-b border-gray-100">

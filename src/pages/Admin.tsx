@@ -1,13 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { LogOut, RefreshCw, BarChart2, Building2, BookOpen, ClipboardList, HardHat, Home, Inbox, DollarSign, Newspaper, Settings as SettingsIcon, Users, Layers, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LogOut, RefreshCw, BarChart2, Building2, BookOpen, ClipboardList, HardHat, Home, Inbox, DollarSign, Newspaper, Settings as SettingsIcon, Users, Layers, Menu, X, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { geocodeAddress, COUNTY_COORDINATES } from '../lib/geocoding';
 
 // Types
-import type { Lead, Assessment, Profile, Payment, Sponsor, AppSettings, NewsArticle, CatalogueFormData, AdminView } from '../types/admin';
+import type { Lead, Assessment, Profile, Payment, Sponsor, AppSettings, NewsArticle, CatalogueFormData, AdminView, DeletedItem } from '../types/admin';
 
 // Views
 import { StatsView } from '../components/admin/views/StatsView';
@@ -20,6 +20,7 @@ import { AddToCatalogueView } from '../components/admin/views/AddToCatalogueView
 import { PaymentsView } from '../components/admin/views/PaymentsView';
 import { NewsView } from '../components/admin/views/NewsView';
 import { SettingsView } from '../components/admin/views/SettingsView';
+import { RecentlyDeletedView } from '../components/admin/views/RecentlyDeletedView';
 
 // Modals
 import { LeadDetailsModal } from '../components/admin/modals/LeadDetailsModal';
@@ -46,6 +47,7 @@ const Admin = () => {
     const [newsArticles, setNewsArticles] = useState<NewsArticle[]>([]);
     const [listings, setListings] = useState<any[]>([]);
     const [catalogueCategories, setCatalogueCategories] = useState<{ id: string; name: string }[]>([]);
+    const [deletedItems, setDeletedItems] = useState<DeletedItem[]>([]);
 
     const [view, setView] = useState<AdminView>('stats');
     const [loading, setLoading] = useState(true);
@@ -111,7 +113,8 @@ const Admin = () => {
         website: '', logoUrl: '', featured: false, selectedCategories: [],
         additionalAddresses: [], companyNumber: '', registrationNo: '', vatNumber: '',
         bannerUrl: '', socialFacebook: '', socialInstagram: '', socialLinkedin: '', socialTwitter: '',
-        galleryImages: [{ url: '', description: '' }, { url: '', description: '' }, { url: '', description: '' }],
+        socialWhatsapp: '', socialYoutube: '', socialSnapchat: '', socialTiktok: '',
+        galleryImages: Array(10).fill(null).map(() => ({ url: '', description: '' })),
     });
 
     // Promo settings
@@ -252,6 +255,8 @@ const Admin = () => {
                     await Promise.all([fetchLeads(), fetchAssessments(), fetchUsers(), fetchPayments()]);
                 } else if (view === 'news') {
                     await fetchNewsArticles();
+                } else if (view === 'recently-deleted') {
+                    await fetchDeletedItems();
                 }
             } finally {
                 setIsUpdating(false);
@@ -279,7 +284,7 @@ const Admin = () => {
         try {
             const { data, error } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
             if (error) throw error;
-            setLeads(data || []);
+            setLeads((data || []).filter((r: any) => !r.deleted_at));
         } catch (error) {
             console.error('Error fetching leads:', error);
         } finally {
@@ -316,7 +321,7 @@ const Admin = () => {
                     toast.error('Registration status column missing. Please run the SQL migration.');
                 } else throw error;
             }
-            const users = data || [];
+            const users = (data || []).filter((r: any) => !r.deleted_at);
             setUsersList(users);
             checkAndDisableExpiredSubscriptions(users);
         } catch (error: any) {
@@ -355,7 +360,7 @@ const Admin = () => {
                 .select('*, profiles:user_id (full_name, email, phone), referred_by:referred_by_listing_id (name, company_name)')
                 .order('created_at', { ascending: false });
             if (error) throw error;
-            setAssessments(data || []);
+            setAssessments((data || []).filter((r: any) => !r.deleted_at));
         } catch (error) {
             console.error('Error fetching assessments:', error);
             toast.error('Failed to load assessments');
@@ -419,6 +424,44 @@ const Admin = () => {
         }
     };
 
+    const fetchDeletedItems = async () => {
+        try {
+            const [leadsRes, assessmentsRes, profilesRes] = await Promise.all([
+                supabase.from('leads').select('id, name, email, deleted_at, message').not('deleted_at', 'is', null).order('deleted_at', { ascending: false }).then(r => r.error?.code === '42703' ? { data: [], error: null } : r),
+                supabase.from('assessments').select('id, property_address, deleted_at, status, profiles:user_id(email)').not('deleted_at', 'is', null).order('deleted_at', { ascending: false }).then(r => r.error?.code === '42703' ? { data: [], error: null } : r),
+                supabase.from('profiles').select('id, full_name, email, deleted_at, role').not('deleted_at', 'is', null).order('deleted_at', { ascending: false }).then(r => r.error?.code === '42703' ? { data: [], error: null } : r),
+            ]);
+
+            const items: DeletedItem[] = [
+                ...(leadsRes.data || []).map((l: any) => ({
+                    id: l.id, type: 'lead' as const,
+                    deleted_at: l.deleted_at,
+                    label: l.name || 'Unnamed Lead',
+                    email: l.email,
+                    details: l.message ? l.message.slice(0, 60) + (l.message.length > 60 ? '...' : '') : undefined,
+                })),
+                ...(assessmentsRes.data || []).map((a: any) => ({
+                    id: a.id, type: 'assessment' as const,
+                    deleted_at: a.deleted_at,
+                    label: a.property_address || 'Unknown Address',
+                    email: a.profiles?.email,
+                    details: a.status,
+                })),
+                ...(profilesRes.data || []).map((p: any) => ({
+                    id: p.id, type: 'user' as const,
+                    deleted_at: p.deleted_at,
+                    label: p.full_name || 'Unknown User',
+                    email: p.email,
+                    details: p.role,
+                })),
+            ].sort((a, b) => new Date(b.deleted_at).getTime() - new Date(a.deleted_at).getTime());
+
+            setDeletedItems(items);
+        } catch (error) {
+            console.error('Error fetching deleted items:', error);
+        }
+    };
+
     const fetchPromoSettings = async () => {
         try {
             const { data } = await supabase.from('promo_settings').select('*').eq('id', 1).maybeSingle();
@@ -462,31 +505,35 @@ const Admin = () => {
         if (!itemToDelete) return;
         setIsDeleting(true);
         try {
-            if (itemToDelete.type === 'user') {
-                const { data: edgeData, error: edgeError } = await supabase.functions.invoke('delete-user', {
-                    body: { userId: itemToDelete.id }
-                });
-                if (edgeError || edgeData?.error) throw new Error((edgeData?.error || edgeError?.message) || 'Failed to delete user');
-                setUsersList(users_list.filter(u => u.id !== itemToDelete.id));
-                toast.success('User deleted successfully');
+            if (itemToDelete.type === 'sponsor') {
+                // Sponsors are permanently deleted immediately (no soft delete needed)
+                const { error } = await supabase.from('sponsors').delete().eq('id', itemToDelete.id);
+                if (error) throw error;
+                setSponsors(sponsors.filter(s => s.id !== itemToDelete.id));
+                toast.success('Sponsor deleted successfully');
             } else {
-                const tableMap = { lead: 'leads', sponsor: 'sponsors', assessment: 'assessments' } as const;
+                // Soft delete: set deleted_at, move to "Recently Deleted"
+                const tableMap = { lead: 'leads', assessment: 'assessments', user: 'profiles' } as const;
                 const table = tableMap[itemToDelete.type as keyof typeof tableMap];
-                const { error } = await supabase.from(table).delete().eq('id', itemToDelete.id);
+                const deletedAt = new Date().toISOString();
+                const { error } = await supabase.from(table).update({ deleted_at: deletedAt }).eq('id', itemToDelete.id);
+                if (error?.code === '42703') {
+                    // Column not yet migrated — run the SQL migration in Supabase dashboard first
+                    throw new Error('Please run the soft-delete SQL migration in your Supabase dashboard first (supabase/migrations/20260307_add_soft_delete.sql)');
+                }
                 if (error) throw error;
 
                 if (itemToDelete.type === 'lead') {
                     setLeads(leads.filter(l => l.id !== itemToDelete.id));
                     if (selectedLead?.id === itemToDelete.id) setSelectedLead(null);
-                    toast.success('Lead deleted successfully');
-                } else if (itemToDelete.type === 'sponsor') {
-                    setSponsors(sponsors.filter(s => s.id !== itemToDelete.id));
-                    toast.success('Sponsor deleted successfully');
                 } else if (itemToDelete.type === 'assessment') {
                     setAssessments(assessments.filter(a => a.id !== itemToDelete.id));
                     if (selectedAssessment?.id === itemToDelete.id) setSelectedAssessment(null);
-                    toast.success('Assessment deleted successfully');
+                } else if (itemToDelete.type === 'user') {
+                    setUsersList(users_list.filter(u => u.id !== itemToDelete.id));
+                    if (selectedUser?.id === itemToDelete.id) setSelectedUser(null);
                 }
+                toast.success('Moved to Recently Deleted. You can restore or permanently delete from there.');
             }
             setShowDeleteModal(false);
         } catch (error: any) {
@@ -494,6 +541,34 @@ const Admin = () => {
         } finally {
             setIsDeleting(false);
             setItemToDelete(null);
+        }
+    };
+
+    const handleRestoreItem = async (id: string, type: 'lead' | 'assessment' | 'user') => {
+        try {
+            const tableMap = { lead: 'leads', assessment: 'assessments', user: 'profiles' } as const;
+            const { error } = await supabase.from(tableMap[type]).update({ deleted_at: null }).eq('id', id);
+            if (error) throw error;
+            setDeletedItems(prev => prev.filter(i => !(i.id === id && i.type === type)));
+            toast.success('Item restored successfully');
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to restore item');
+        }
+    };
+
+    const handlePermanentDelete = async (id: string, type: 'lead' | 'assessment' | 'user') => {
+        if (!confirm('This will permanently delete the item from the database. This cannot be undone. Continue?')) return;
+        setIsDeleting(true);
+        try {
+            const tableMap = { lead: 'leads', assessment: 'assessments', user: 'profiles' } as const;
+            const { error } = await supabase.from(tableMap[type]).delete().eq('id', id);
+            if (error) throw error;
+            setDeletedItems(prev => prev.filter(i => !(i.id === id && i.type === type)));
+            toast.success('Permanently deleted from database');
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to permanently delete');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -978,14 +1053,18 @@ const Admin = () => {
                 socialInstagram: existingListing.social_media?.instagram || '',
                 socialLinkedin: existingListing.social_media?.linkedin || '',
                 socialTwitter: existingListing.social_media?.twitter || '',
-                galleryImages: [{ url: '', description: '' }, { url: '', description: '' }, { url: '', description: '' }],
+                socialWhatsapp: existingListing.social_media?.whatsapp || '',
+                socialYoutube: existingListing.social_media?.youtube || '',
+                socialSnapchat: existingListing.social_media?.snapchat || '',
+                socialTiktok: existingListing.social_media?.tiktok || '',
+                galleryImages: Array(10).fill(null).map(() => ({ url: '', description: '' })),
             });
             (async () => {
                 const { data: catData } = await supabase.from('catalogue_listing_categories').select('category_id').eq('listing_id', existingListing.id);
                 const { data: imgData } = await supabase.from('catalogue_listing_images').select('*').eq('listing_id', existingListing.id);
                 setCatalogueFormData(prev => {
-                    const newImages = [{ url: '', description: '' }, { url: '', description: '' }, { url: '', description: '' }];
-                    if (imgData) imgData.forEach((img: any) => { if (img.display_order < 3) newImages[img.display_order] = { url: img.url, description: img.description || '' }; });
+                    const newImages = Array(10).fill(null).map(() => ({ url: '', description: '' }));
+                    if (imgData) imgData.forEach((img: any) => { if (img.display_order < 10) newImages[img.display_order] = { url: img.url, description: img.description || '' }; });
                     return { ...prev, selectedCategories: catData ? catData.map(c => c.category_id) : [], galleryImages: newImages };
                 });
             })();
@@ -1001,7 +1080,8 @@ const Admin = () => {
                 logoUrl: '', featured: false, selectedCategories: [], additionalAddresses: [],
                 companyNumber: '', registrationNo: '', vatNumber: '', bannerUrl: '',
                 socialFacebook: '', socialInstagram: '', socialLinkedin: '', socialTwitter: '',
-                galleryImages: [{ url: '', description: '' }, { url: '', description: '' }, { url: '', description: '' }],
+                socialWhatsapp: '', socialYoutube: '', socialSnapchat: '', socialTiktok: '',
+                galleryImages: Array(10).fill(null).map(() => ({ url: '', description: '' })),
             });
         }
         setView('add-to-catalogue');
@@ -1159,6 +1239,10 @@ const Admin = () => {
                     instagram: catalogueFormData.socialInstagram || undefined,
                     linkedin: catalogueFormData.socialLinkedin || undefined,
                     twitter: catalogueFormData.socialTwitter || undefined,
+                    whatsapp: catalogueFormData.socialWhatsapp || undefined,
+                    youtube: catalogueFormData.socialYoutube || undefined,
+                    snapchat: catalogueFormData.socialSnapchat || undefined,
+                    tiktok: catalogueFormData.socialTiktok || undefined,
                 },
                 additional_addresses: catalogueFormData.additionalAddresses.filter(a => a.trim() !== ''),
             };
@@ -1216,6 +1300,7 @@ const Admin = () => {
             stats: 'System Overview', leads: 'Leads & Inquiries', assessments: 'BER Assessments',
             businesses: 'Business Directory', catalogue: 'Business Catalogue', assessors: 'BER Assessors',
             homeowners: 'Homeowners', payments: 'Financials', news: 'News & Updates', settings: 'Settings',
+            'recently-deleted': 'Recently Deleted',
         };
         return titles[view] || 'Admin';
     };
@@ -1227,6 +1312,7 @@ const Admin = () => {
             catalogue: 'Manage and edit business catalogue listings.', assessors: 'Manage BER Assessors and their jobs.',
             homeowners: 'Manage homeowners.', payments: 'View and export payment records.',
             settings: 'Configure global platform settings.',
+            'recently-deleted': 'Restore items or permanently delete them from the database.',
         };
         return subs[view] || '';
     };
@@ -1236,16 +1322,17 @@ const Admin = () => {
     const pendingBusinesses = users_list.filter(u => u.role === 'business' && u.registration_status === 'pending').length;
 
     const NAV_ITEMS: { id: string; label: string; icon: React.ElementType; badge: number }[] = [
-        { id: 'stats',       label: 'Overview',      icon: BarChart2,     badge: 0 },
-        { id: 'leads',       label: 'Leads',         icon: Inbox,         badge: 0 },
-        { id: 'assessments', label: 'Assessments',   icon: ClipboardList, badge: 0 },
-        { id: 'assessors',   label: 'BER Assessors', icon: HardHat,       badge: pendingAssessors },
-        { id: 'businesses',  label: 'Businesses',    icon: Building2,     badge: pendingBusinesses },
-        { id: 'catalogue',   label: 'Catalogue',     icon: BookOpen,      badge: 0 },
-        { id: 'homeowners',  label: 'Homeowners',    icon: Home,          badge: 0 },
-        { id: 'payments',    label: 'Payments',      icon: DollarSign,    badge: 0 },
-        { id: 'news',        label: 'News',          icon: Newspaper,     badge: 0 },
-        { id: 'settings',    label: 'Settings',      icon: SettingsIcon,  badge: 0 },
+        { id: 'stats',            label: 'Overview',         icon: BarChart2,     badge: 0 },
+        { id: 'leads',            label: 'Leads',            icon: Inbox,         badge: 0 },
+        { id: 'assessments',      label: 'Assessments',      icon: ClipboardList, badge: 0 },
+        { id: 'assessors',        label: 'BER Assessors',    icon: HardHat,       badge: pendingAssessors },
+        { id: 'businesses',       label: 'Businesses',       icon: Building2,     badge: pendingBusinesses },
+        { id: 'catalogue',        label: 'Catalogue',        icon: BookOpen,      badge: 0 },
+        { id: 'homeowners',       label: 'Homeowners',       icon: Home,          badge: 0 },
+        { id: 'payments',         label: 'Payments',         icon: DollarSign,    badge: 0 },
+        { id: 'news',             label: 'News',             icon: Newspaper,     badge: 0 },
+        { id: 'recently-deleted', label: 'Recently Deleted', icon: Trash2,        badge: deletedItems.length },
+        { id: 'settings',         label: 'Settings',         icon: SettingsIcon,  badge: 0 },
     ];
 
     const navClick = (id: string) => { setView(id as AdminView); setLocationFilter(''); setSearchTerm(''); setSidebarOpen(false); };
@@ -1412,6 +1499,7 @@ const Admin = () => {
                         setSelectedUser={setSelectedUser}
                         setItemToSuspend={setItemToSuspend} setShowSuspendModal={setShowSuspendModal}
                         setView={setView}
+                        handleDeleteClick={handleDeleteClick}
                     />
                 ) : view === 'leads' ? (
                     <LeadsView
@@ -1439,6 +1527,7 @@ const Admin = () => {
                         setSelectedUser={setSelectedUser}
                         setItemToSuspend={setItemToSuspend} setShowSuspendModal={setShowSuspendModal}
                         setNewUserRole={setNewUserRole} setShowAddUserModal={setShowAddUserModal}
+                        handleDeleteClick={handleDeleteClick}
                     />
                 ) : view === 'businesses' ? (
                     <BusinessesView
@@ -1497,6 +1586,14 @@ const Admin = () => {
                         isUpdatingBanner={isUpdatingBanner}
                         fetchAppSettings={fetchAppSettings}
                         savePromoSettings={savePromoSettings}
+                    />
+                ) : view === 'recently-deleted' ? (
+                    <RecentlyDeletedView
+                        deletedItems={deletedItems}
+                        loading={loading}
+                        isDeleting={isDeleting}
+                        onRestore={handleRestoreItem}
+                        onPermanentDelete={handlePermanentDelete}
                     />
                 ) : null}
                 </main>

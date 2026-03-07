@@ -149,6 +149,10 @@ export interface CatalogueFormData {
     socialInstagram: string;
     socialLinkedin: string;
     socialTwitter: string;
+    socialWhatsapp: string;
+    socialYoutube: string;
+    socialSnapchat: string;
+    socialTiktok: string;
     galleryImages: { url: string; description: string }[];
 }
 
@@ -163,4 +167,14 @@ export type AdminView =
     | 'settings'
     | 'news'
     | 'add-to-catalogue'
-    | 'catalogue';
+    | 'catalogue'
+    | 'recently-deleted';
+
+export interface DeletedItem {
+    id: string;
+    type: 'lead' | 'assessment' | 'user';
+    deleted_at: string;
+    label: string;
+    email?: string;
+    details?: string;
+}

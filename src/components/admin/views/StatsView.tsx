@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Home, ClipboardList, Building2, DollarSign, Briefcase, TrendingUp, ArrowRight, Hourglass, CheckCircle2, AlertTriangle, Edit2, Plus, Eye, MapPin, Users } from 'lucide-react';
+import { Home, ClipboardList, Building2, DollarSign, Briefcase, TrendingUp, ArrowRight, Hourglass, CheckCircle2, AlertTriangle, Edit2, Plus, Eye, MapPin, Users, Trash2 } from 'lucide-react';
 import { Search } from 'lucide-react';
 import type { Profile, Assessment, Payment, AdminView } from '../../../types/admin';
 import { StatusCell, PaymentStatusBadge } from '../StatusBadges';
@@ -36,6 +36,7 @@ interface Props {
     setItemToSuspend: (item: { id: string; name: string; currentStatus: boolean } | null) => void;
     setShowSuspendModal: (v: boolean) => void;
     setView: (v: AdminView) => void;
+    handleDeleteClick: (id: string, type: 'lead' | 'sponsor' | 'assessment' | 'user') => void;
 }
 
 type UserType = 'all' | 'homeowners' | 'assessors' | 'businesses';
@@ -58,7 +59,7 @@ export const StatsView = ({
     stats, users_list, listings, assessments, payments,
     searchTerm, setSearchTerm, locationFilter, setLocationFilter,
     uniqueUserLocations, uniqueAssessorLocations, uniqueBusinessLocations,
-    handleOpenCatalogueView, setSelectedUser, setItemToSuspend, setShowSuspendModal, setView,
+    handleOpenCatalogueView, setSelectedUser, setItemToSuspend, setShowSuspendModal, setView, handleDeleteClick,
 }: Props) => {
     const [userType, setUserType] = useState<UserType>('all');
 
@@ -284,6 +285,11 @@ export const StatsView = ({
                                                 className={`p-1.5 rounded-lg transition-all ${u.is_active !== false ? 'text-gray-300 hover:text-amber-500 hover:bg-amber-50' : 'text-green-400 hover:bg-green-50'}`}
                                                 title={u.is_active !== false ? 'Suspend' : 'Activate'}
                                             ><AlertTriangle size={14} /></button>
+                                            <button
+                                                onClick={() => handleDeleteClick(u.id, 'user')}
+                                                title="Delete user"
+                                                className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                            ><Trash2 size={14} /></button>
                                         </div>
                                     </td>
                                 </tr>

@@ -77,7 +77,7 @@ export const AssessmentsView = ({ filteredAssessments, users_list, setSelectedAs
                                 ><Eye size={14} /></button>
                                 <button
                                     onClick={() => handleDeleteClick(a.id, 'assessment')}
-                                    className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                    className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                                     title="Delete"
                                 ><Trash2 size={14} /></button>
                             </div>
