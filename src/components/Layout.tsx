@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
-import { Menu, X, Mail, Facebook, Instagram, Linkedin, ChevronRight, Globe } from 'lucide-react';
+import { Menu, X, Mail, Facebook, Instagram, Linkedin, ChevronRight, Globe, ChevronDown } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import QuoteModal from './QuoteModal';
@@ -29,6 +29,9 @@ const Layout = () => {
     const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
     const [hasBusinessListing, setHasBusinessListing] = useState(false);
 
+    const [isDesktopLocationsOpen, setIsDesktopLocationsOpen] = useState(false);
+    const desktopLocationsRef = useRef<HTMLDivElement>(null);
+
     // Dynamic Positioning Refs and State
     const locationsRef = useRef<HTMLButtonElement>(null);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -39,16 +42,19 @@ const Layout = () => {
         setIsLocationsOpen(false);
     };
 
-    // Close dropdown when clicking outside
+    // Close dropdowns when clicking outside
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (isMenuOpen && menuRef.current && !menuRef.current.contains(e.target as Node)) {
                 closeMenu();
             }
+            if (isDesktopLocationsOpen && desktopLocationsRef.current && !desktopLocationsRef.current.contains(e.target as Node)) {
+                setIsDesktopLocationsOpen(false);
+            }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [isMenuOpen]);
+    }, [isMenuOpen, isDesktopLocationsOpen]);
 
     const handleLogout = async () => {
         await signOut();
@@ -90,70 +96,138 @@ const Layout = () => {
 
 
 
+    const PROVINCES: Record<string, string[]> = {
+        Leinster: ['Carlow', 'Dublin', 'Kildare', 'Kilkenny', 'Laois', 'Longford', 'Louth', 'Meath', 'Offaly', 'Westmeath', 'Wexford', 'Wicklow'],
+        Munster: ['Clare', 'Cork', 'Kerry', 'Limerick', 'Tipperary', 'Waterford'],
+        Connacht: ['Galway', 'Leitrim', 'Mayo', 'Roscommon', 'Sligo'],
+        Ulster: ['Cavan', 'Donegal', 'Monaghan', 'Antrim', 'Armagh', 'Down', 'Fermanagh', 'Londonderry', 'Tyrone'],
+    };
+
     return (
         <div className="flex flex-col min-h-screen font-sans">
             <header className="fixed w-full top-0 z-[9999] bg-[#0c121d] backdrop-blur-md border-b border-white/5 shadow-lg transition-all duration-300">
                 <div className="absolute top-full left-0 right-0 h-px bg-white/5 pointer-events-none"></div>
-                <div className="container mx-auto px-6 h-20 flex justify-between items-center">
+                <div className="container mx-auto px-4 lg:px-6 h-16 lg:h-20 flex items-center justify-between gap-4">
 
-                    {/* Logo Section */}
-                    <div className="flex items-center gap-8">
-                        <Link to="/" onClick={closeMenu}>
-                            <div className="relative">
-                                <img src="/logo.svg" alt="The Berman Logo" className="h-18 w-auto relative z-10" />
-                            </div>
-                        </Link>
-                    </div>
+                    {/* Logo */}
+                    <Link to="/" onClick={closeMenu} className="flex-shrink-0">
+                        <img src="/logo.svg" alt="The Berman Logo" className="h-10 lg:h-14 w-auto" />
+                    </Link>
 
-                    {/* Menu Button - Visible on all screens */}
-                    <div ref={menuRef} className="flex items-center gap-4 relative">
+                    {/* ── Desktop Nav ─────────────────────────────────────── */}
+                    <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
+                        <Link to="/" className="px-3 py-2 text-xs font-bold text-white/70 hover:text-white uppercase tracking-wide transition-colors whitespace-nowrap">Home</Link>
+                        <Link to="/about" className="px-3 py-2 text-xs font-bold text-white/70 hover:text-white uppercase tracking-wide transition-colors whitespace-nowrap">About</Link>
+                        <Link to="/hire-agent" className="px-3 py-2 text-xs font-bold text-white/70 hover:text-white uppercase tracking-wide transition-colors whitespace-nowrap">Energy Advisor</Link>
+                        <Link to="/contact" className="px-3 py-2 text-xs font-bold text-white/70 hover:text-white uppercase tracking-wide transition-colors whitespace-nowrap">Book BER</Link>
+                        <Link to="/news" className="px-3 py-2 text-xs font-bold text-white/70 hover:text-white uppercase tracking-wide transition-colors whitespace-nowrap">News</Link>
 
-                        {/* Catalogue Hub Link - Desktop */}
+                        {/* Locations dropdown */}
+                        <div ref={desktopLocationsRef} className="relative">
+                            <button
+                                onClick={() => setIsDesktopLocationsOpen(!isDesktopLocationsOpen)}
+                                className="flex items-center gap-1 px-3 py-2 text-xs font-bold text-white/70 hover:text-white uppercase tracking-wide transition-colors whitespace-nowrap"
+                            >
+                                Location <ChevronDown size={12} className={`transition-transform ${isDesktopLocationsOpen ? 'rotate-180' : ''}`} />
+                            </button>
+                            {isDesktopLocationsOpen && (
+                                <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                                    {Object.keys(PROVINCES).map((province) => (
+                                        <div key={province} className="group relative">
+                                            <button
+                                                onClick={() => setExpandedProvince(expandedProvince === province ? null : province)}
+                                                className="w-full px-4 py-2.5 text-left text-xs font-bold text-gray-700 hover:bg-gray-50 uppercase tracking-wide flex justify-between items-center"
+                                            >
+                                                {province}
+                                                <ChevronRight size={12} className={`transition-transform ${expandedProvince === province ? 'rotate-90' : ''}`} />
+                                            </button>
+                                            {expandedProvince === province && (
+                                                <div className="bg-gray-50 border-t border-gray-100 max-h-48 overflow-y-auto">
+                                                    {locations.filter(loc => PROVINCES[province]?.includes(loc.name)).map(location => (
+                                                        <Link
+                                                            key={location.id}
+                                                            to={`/region?county=${location.slug}`}
+                                                            onClick={() => { setIsDesktopLocationsOpen(false); setExpandedProvince(null); }}
+                                                            className="block pl-7 pr-4 py-2 text-xs text-gray-500 hover:text-[#007EA7] hover:bg-white transition-colors"
+                                                        >
+                                                            {location.name}
+                                                        </Link>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <Link to="/contact" className="px-3 py-2 text-xs font-bold text-white/70 hover:text-white uppercase tracking-wide transition-colors whitespace-nowrap">Contact</Link>
+                    </nav>
+
+                    {/* ── Desktop Right Actions ──────────────────────────── */}
+                    <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
                         <Link
                             to="/catalogue"
-                            className="hidden md:flex items-center gap-3 px-6 py-2 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-all group"
+                            className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-all group"
                         >
                             <div className="w-2 h-2 rounded-full bg-[#9ACD32] group-hover:animate-pulse"></div>
-                            <span className="text-sm font-black text-white uppercase tracking-wider">
-                                Home Energy <span className="text-[#9ACD32]">Upgrade Catalogue</span>
+                            <span className="text-xs font-black text-white uppercase tracking-wider">
+                                Home Energy <span className="text-[#9ACD32]">Catalogue</span>
+                            </span>
+                        </Link>
+                        {!user ? (
+                            <Link
+                                to="/login"
+                                className="px-4 py-2 text-xs font-black text-[#9ACD32] border border-[#9ACD32]/40 rounded-full hover:bg-[#9ACD32]/10 uppercase tracking-wide transition-all"
+                            >
+                                Login
+                            </Link>
+                        ) : (
+                            <Link
+                                to={getDashboardLink()}
+                                className="px-4 py-2 text-xs font-black text-[#9ACD32] border border-[#9ACD32]/40 rounded-full hover:bg-[#9ACD32]/10 uppercase tracking-wide transition-all"
+                            >
+                                Dashboard
+                            </Link>
+                        )}
+                    </div>
+
+                    {/* ── Mobile: Catalogue pill + Hamburger ─────────────── */}
+                    <div ref={menuRef} className="flex lg:hidden items-center gap-2 relative">
+                        <Link
+                            to="/catalogue"
+                            className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-all group"
+                        >
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#9ACD32]"></div>
+                            <span className="text-[10px] font-black text-white uppercase tracking-wider hidden sm:block">
+                                Energy <span className="text-[#9ACD32]">Catalogue</span>
                             </span>
                         </Link>
                         <button
                             className="bg-gray-200 p-2 rounded-md hover:bg-gray-300 transition-colors"
                             onClick={toggleMenu}
                         >
-                            {isMenuOpen ? (
-                                <X size={28} className="text-green-600" />
-                            ) : (
-                                <Menu size={28} className="text-green-600" />
-                            )}
+                            {isMenuOpen ? <X size={22} className="text-green-600" /> : <Menu size={22} className="text-green-600" />}
                         </button>
 
-                        {/* Mobile Navigation Dropdown */}
+                        {/* Mobile Dropdown */}
                         {isMenuOpen && (
-                            <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-white rounded-lg shadow-xl border border-gray-100 z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right overflow-hidden max-h-[80vh] overflow-y-auto">
+                            <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-xl border border-gray-100 z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right overflow-hidden max-h-[80vh] overflow-y-auto">
                                 <div className="py-2">
                                     {NAV_LINKS.map((link) => (
                                         link.label === 'Location' ? (
                                             <div key={link.label}>
-                                                {/* Locations Button */}
                                                 <button
                                                     ref={locationsRef}
-                                                    onClick={() => {
-                                                        setIsLocationsOpen(!isLocationsOpen);
-                                                        if (!isLocationsOpen) setExpandedProvince(null);
-                                                    }}
+                                                    onClick={() => { setIsLocationsOpen(!isLocationsOpen); if (!isLocationsOpen) setExpandedProvince(null); }}
                                                     className={`w-full px-5 py-3 text-left text-sm font-semibold uppercase tracking-wide border-b border-gray-100 flex justify-between items-center transition-colors ${isLocationsOpen ? 'bg-gray-50 text-[#007F00]' : 'text-gray-700 hover:bg-gray-50'}`}
                                                 >
                                                     Location
                                                     <ChevronRight size={16} className={`transition-transform duration-200 ${isLocationsOpen ? 'rotate-90' : ''}`} />
                                                 </button>
-
-                                                {/* Locations Submenu (Accordion Style) */}
                                                 {isLocationsOpen && (
                                                     <div className="bg-gray-50 border-b border-gray-100">
-                                                        {/* Provinces */}
-                                                        {['Leinster', 'Munster', 'Connacht', 'Ulster'].map((province) => (
+                                                        {Object.keys(PROVINCES).map((province) => (
                                                             <div key={province}>
                                                                 <button
                                                                     onClick={() => setExpandedProvince(expandedProvince === province ? null : province)}
@@ -162,35 +236,22 @@ const Layout = () => {
                                                                     {province}
                                                                     <ChevronRight size={14} className={`transition-transform duration-200 ${expandedProvince === province ? 'rotate-90' : ''}`} />
                                                                 </button>
-
-                                                                {/* Counties for this Province */}
                                                                 {expandedProvince === province && (
                                                                     <div className="bg-white border-t border-gray-100">
-                                                                        {locations
-                                                                            .filter(loc => {
-                                                                                const PROVINCES: Record<string, string[]> = {
-                                                                                    Leinster: ['Carlow', 'Dublin', 'Kildare', 'Kilkenny', 'Laois', 'Longford', 'Louth', 'Meath', 'Offaly', 'Westmeath', 'Wexford', 'Wicklow'],
-                                                                                    Munster: ['Clare', 'Cork', 'Kerry', 'Limerick', 'Tipperary', 'Waterford'],
-                                                                                    Connacht: ['Galway', 'Leitrim', 'Mayo', 'Roscommon', 'Sligo'],
-                                                                                    Ulster: ['Cavan', 'Donegal', 'Monaghan', 'Antrim', 'Armagh', 'Down', 'Fermanagh', 'Londonderry', 'Tyrone']
-                                                                                };
-                                                                                return PROVINCES[province]?.includes(loc.name);
-                                                                            })
-                                                                            .map(location => (
-                                                                                <Link
-                                                                                    key={location.id}
-                                                                                    to={`/region?county=${location.slug}`}
-                                                                                    onClick={closeMenu}
-                                                                                    className="block pl-12 pr-5 py-2 text-xs text-gray-500 hover:text-[#007EA7] hover:bg-gray-50 transition-colors"
-                                                                                >
-                                                                                    {location.name}
-                                                                                </Link>
-                                                                            ))}
+                                                                        {locations.filter(loc => PROVINCES[province]?.includes(loc.name)).map(location => (
+                                                                            <Link
+                                                                                key={location.id}
+                                                                                to={`/region?county=${location.slug}`}
+                                                                                onClick={closeMenu}
+                                                                                className="block pl-12 pr-5 py-2 text-xs text-gray-500 hover:text-[#007EA7] hover:bg-gray-50 transition-colors"
+                                                                            >
+                                                                                {location.name}
+                                                                            </Link>
+                                                                        ))}
                                                                     </div>
                                                                 )}
                                                             </div>
                                                         ))}
-
                                                     </div>
                                                 )}
                                             </div>
@@ -214,9 +275,7 @@ const Layout = () => {
                                                 document.getElementById('newsletter')?.scrollIntoView({ behavior: 'smooth' });
                                             } else {
                                                 navigate('/#newsletter');
-                                                setTimeout(() => {
-                                                    document.getElementById('newsletter')?.scrollIntoView({ behavior: 'smooth' });
-                                                }, 100);
+                                                setTimeout(() => { document.getElementById('newsletter')?.scrollIntoView({ behavior: 'smooth' }); }, 100);
                                             }
                                         }}
                                         className="w-full px-5 py-3 text-left text-sm font-semibold text-gray-700 hover:bg-gray-50 uppercase tracking-wide border-b border-gray-100"
@@ -224,31 +283,13 @@ const Layout = () => {
                                         Subscribe to News
                                     </button>
 
-                                    {/* Auth Section */}
+                                    {/* Auth */}
                                     <div className="border-t border-gray-200 mt-2 pt-2">
                                         {!user ? (
                                             <>
-                                                <Link
-                                                    to="/login"
-                                                    onClick={closeMenu}
-                                                    className="block px-5 py-3 text-sm font-bold text-[#5CB85C] hover:bg-gray-50 uppercase tracking-wide"
-                                                >
-                                                    Login
-                                                </Link>
-                                                <Link
-                                                    to="/signup?role=contractor"
-                                                    onClick={closeMenu}
-                                                    className="block px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 uppercase tracking-wide"
-                                                >
-                                                    ASSESSOR REGISTRATION
-                                                </Link>
-                                                <Link
-                                                    to="/signup?role=business"
-                                                    onClick={closeMenu}
-                                                    className="block px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 uppercase tracking-wide"
-                                                >
-                                                    BUSINESS CATALOGUE REGISTRATION
-                                                </Link>
+                                                <Link to="/login" onClick={closeMenu} className="block px-5 py-3 text-sm font-bold text-[#5CB85C] hover:bg-gray-50 uppercase tracking-wide">Login</Link>
+                                                <Link to="/signup?role=contractor" onClick={closeMenu} className="block px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 uppercase tracking-wide">Assessor Registration</Link>
+                                                <Link to="/signup?role=business" onClick={closeMenu} className="block px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 uppercase tracking-wide">Business Catalogue Registration</Link>
                                             </>
                                         ) : (
                                             <>
@@ -257,27 +298,16 @@ const Layout = () => {
                                                     <p className="text-sm font-bold text-gray-900 truncate">{user.email}</p>
                                                 </div>
                                                 {role && (role !== 'business' || profile?.registration_status === 'active' || profile?.registration_status === 'pending') && (
-                                                    <Link
-                                                        to={getDashboardLink()}
-                                                        onClick={closeMenu}
-                                                        className="block px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 uppercase tracking-wide border-b border-gray-100/50"
-                                                    >
+                                                    <Link to={getDashboardLink()} onClick={closeMenu} className="block px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 uppercase tracking-wide border-b border-gray-100/50">
                                                         {role === 'business' ? 'Business Portal' : role === 'contractor' ? 'Assessor Dashboard' : 'Dashboard'}
                                                     </Link>
                                                 )}
                                                 {role === 'contractor' && hasBusinessListing && (
-                                                    <Link
-                                                        to="/dashboard/business"
-                                                        onClick={closeMenu}
-                                                        className="block px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 uppercase tracking-wide border-b border-gray-100/50"
-                                                    >
+                                                    <Link to="/dashboard/business" onClick={closeMenu} className="block px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 uppercase tracking-wide border-b border-gray-100/50">
                                                         Business Portal
                                                     </Link>
                                                 )}
-                                                <button
-                                                    onClick={handleLogout}
-                                                    className="w-full px-5 py-3 text-left text-sm font-medium text-red-600 hover:bg-red-50 uppercase tracking-wide"
-                                                >
+                                                <button onClick={handleLogout} className="w-full px-5 py-3 text-left text-sm font-medium text-red-600 hover:bg-red-50 uppercase tracking-wide">
                                                     Sign Out
                                                 </button>
                                             </>
