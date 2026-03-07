@@ -101,14 +101,6 @@ const ListingLayout = ({ listing, enquiry, setEnquiry, onEnquirySubmit, isSubmit
             ? listing.categories.map(c => c.name)
             : dummyFeatures;
 
-    const formatAddress = (addressStr?: string) => {
-        if (!addressStr) return '';
-        const cleanAddressStr = addressStr.includes('|||')
-            ? addressStr.replace('|||', ', ')
-            : addressStr;
-        const parts = cleanAddressStr.split(',').map(s => s.trim()).filter(Boolean);
-        return [...new Set(parts)].join(', ');
-    };
 
     const galleryImages = listing.images?.sort((a, b) => a.display_order - b.display_order) || [];
     const heroImages = galleryImages.length > 0 ? galleryImages.map(i => i.url) : listing.logo_url ? [listing.logo_url] : [DEFAULT_HERO_IMAGE];
@@ -123,7 +115,6 @@ const ListingLayout = ({ listing, enquiry, setEnquiry, onEnquirySubmit, isSubmit
                 const mobileMax = heroImages.length - 1;
                 const desktopMax = Math.max(0, heroImages.length - DESKTOP_VISIBLE);
                 const canPrev = heroSlide > 0;
-                const canNext = heroSlide < Math.max(mobileMax, desktopMax);
                 return (
                     <>
                         {/* Mobile banner — full-width square, 1 image at a time */}

@@ -1059,6 +1059,7 @@ const Admin = () => {
                 socialSnapchat: existingListing.social_media?.snapchat || '',
                 socialTiktok: existingListing.social_media?.tiktok || '',
                 galleryImages: Array(10).fill(null).map(() => ({ url: '', description: '' })),
+                features: existingListing.features || [],
             });
             (async () => {
                 const { data: catData } = await supabase.from('catalogue_listing_categories').select('category_id').eq('listing_id', existingListing.id);
