@@ -213,7 +213,8 @@ const Admin = () => {
                 subscription_end_date: selectedUser.subscription_end_date,
                 manual_override_reason: selectedUser.manual_override_reason || '',
                 stripe_payment_id: selectedUser.stripe_payment_id || '',
-                role: selectedUser.role
+                role: selectedUser.role,
+                assessor_type: selectedUser.assessor_type || ''
             });
         } else {
             setEditForm({});
@@ -650,7 +651,8 @@ const Admin = () => {
                 subscription_end_date: editForm.subscription_end_date,
                 manual_override_reason: editForm.manual_override_reason,
                 stripe_payment_id: finalStripeId,
-                role: editForm.role
+                role: editForm.role,
+                assessor_type: editForm.assessor_type || null
             }).eq('id', selectedUser.id);
             if (error) throw error;
 
@@ -660,7 +662,8 @@ const Admin = () => {
                 subscription_end_date: editForm.subscription_end_date,
                 manual_override_reason: editForm.manual_override_reason,
                 stripe_payment_id: finalStripeId,
-                role: editForm.role as any
+                role: editForm.role as any,
+                assessor_type: editForm.assessor_type || null
             };
             setUsersList(users_list.map(u => u.id === selectedUser.id ? { ...u, ...updates } : u));
             setSelectedUser({ ...selectedUser, ...updates });

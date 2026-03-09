@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Search, TrendingUp, Briefcase, Home, Eye, AlertTriangle, Mail, Edit2, Plus, CheckCircle2, X, Trash2 } from 'lucide-react';
 import { Filter as FilterIcon } from 'lucide-react';
 import type { Profile, Assessment, AdminView } from '../../../types/admin';
@@ -35,6 +36,7 @@ export const UsersView = ({
     setNewUserRole, setShowAddUserModal, handleDeleteClick,
 }: Props) => {
     const isAssessors = view === 'assessors';
+    const [typeFilter, setTypeFilter] = useState('');
 
     const filtered = users_list.filter(u => {
         const matchRole = isAssessors ? u.role === 'contractor' : (u.role === 'user' || u.role === 'homeowner');
@@ -42,7 +44,8 @@ export const UsersView = ({
         const matchSearch = !q || u.full_name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q) ||
             u.seai_number?.toLowerCase().includes(q) || u.home_county?.toLowerCase().includes(q);
         const matchLoc = !locationFilter || (isAssessors ? u.home_county === locationFilter : u.county === locationFilter || u.home_county === locationFilter);
-        return matchRole && matchSearch && matchLoc;
+        const matchType = !typeFilter || !isAssessors || (u.assessor_type?.toLowerCase() === typeFilter.toLowerCase());
+        return matchRole && matchSearch && matchLoc && matchType;
     });
 
     return (
@@ -67,10 +70,32 @@ export const UsersView = ({
                             value={locationFilter}
                             onChange={e => setLocationFilter(e.target.value)}
                         >
-                            <option value="">All Counties</option>
-                            {uniqueUserLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                            <option value="">All Counties ({users_list.filter(u => isAssessors ? u.role === 'contractor' : (u.role === 'user' || u.role === 'homeowner')).length})</option>
+                            {uniqueUserLocations.map(loc => {
+                                const count = users_list.filter(u => {
+                                    const matchRole = isAssessors ? u.role === 'contractor' : (u.role === 'user' || u.role === 'homeowner');
+                                    const matchLoc = isAssessors ? u.home_county === loc : u.county === loc || u.home_county === loc;
+                                    return matchRole && matchLoc;
+                                }).length;
+                                return <option key={loc} value={loc}>{loc} ({count})</option>;
+                            })}
                         </select>
                     </div>
+                    {isAssessors && (
+                        <div className="relative w-full sm:w-40">
+                            <FilterIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={13} />
+                            <select
+                                className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00] outline-none transition-all bg-gray-50 appearance-none text-gray-600"
+                                value={typeFilter}
+                                onChange={e => setTypeFilter(e.target.value)}
+                            >
+                                <option value="">All Types</option>
+                                <option value="domestic">Domestic ({users_list.filter(u => u.role === 'contractor' && u.assessor_type?.toLowerCase() === 'domestic').length})</option>
+                                <option value="commercial">Commercial ({users_list.filter(u => u.role === 'contractor' && u.assessor_type?.toLowerCase() === 'commercial').length})</option>
+                                <option value="both">Both ({users_list.filter(u => u.role === 'contractor' && u.assessor_type?.toLowerCase() === 'both').length})</option>
+                            </select>
+                        </div>
+                    )}
                 </div>
                 <div className="flex items-center gap-3">
                     {isAssessors && (
@@ -124,8 +149,19 @@ export const UsersView = ({
                                     <td className="px-5 py-3">
                                         <div className="font-semibold text-gray-800 text-[13px] leading-tight">{u.full_name || u.email}</div>
                                         {!isAssessors && u.full_name && <div className="text-[11px] text-gray-400 mt-0.5">{u.email}</div>}
-                                        {isAssessors && u.home_county && (
+                                                    {isAssessors && u.home_county && (
                                             <div className="text-[10px] text-gray-400 mt-0.5">Co. {u.home_county}</div>
+                                        )}
+                                        {isAssessors && u.assessor_type && (
+                                            <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                                                u.assessor_type.toLowerCase() === 'commercial'
+                                                    ? 'bg-blue-50 text-blue-600'
+                                                    : u.assessor_type.toLowerCase() === 'both'
+                                                    ? 'bg-purple-50 text-purple-600'
+                                                    : 'bg-green-50 text-green-700'
+                                            }`}>
+                                                {u.assessor_type}
+                                            </span>
                                         )}
                                     </td>
 

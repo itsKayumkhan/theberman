@@ -90,6 +90,12 @@ export const StatsView = ({
 
     const switchType = (t: UserType) => { setUserType(t); setLocationFilter(''); setSearchTerm(''); };
 
+    const typeGroup = userType === 'assessors' ? users_list.filter(u => u.role === 'contractor')
+        : userType === 'businesses' ? users_list.filter(u => u.role === 'business')
+        : userType === 'homeowners' ? users_list.filter(u => u.role === 'user' || u.role === 'homeowner')
+        : users_list.filter(u => u.role !== 'admin');
+    const countForLoc = (loc: string) => typeGroup.filter(u => u.county === loc || u.home_county === loc).length;
+
     return (
         <div className="space-y-5">
 
@@ -193,8 +199,8 @@ export const StatsView = ({
                                 value={locationFilter}
                                 onChange={e => setLocationFilter(e.target.value)}
                             >
-                                <option value="">All Counties</option>
-                                {activeLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                                <option value="">All Counties ({typeGroup.length})</option>
+                                {activeLocations.map(loc => <option key={loc} value={loc}>{loc} ({countForLoc(loc)})</option>)}
                             </select>
                         </div>
                     </div>
