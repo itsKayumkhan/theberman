@@ -297,6 +297,23 @@ export const UserDetailsModal = ({
                             <option value="business">Business</option>
                         </select>
                     </div>
+
+                    {/* Assessor Type (contractors only) */}
+                    {(editForm.role === 'contractor' || user.role === 'contractor') && (
+                        <div>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Assessor Type</p>
+                            <select
+                                value={editForm.assessor_type || ''}
+                                onChange={e => setEditForm({ ...editForm, assessor_type: e.target.value || undefined })}
+                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00] bg-white outline-none font-medium text-gray-700"
+                            >
+                                <option value="">— Not Set —</option>
+                                <option value="Domestic">Domestic</option>
+                                <option value="Commercial">Commercial</option>
+                                <option value="Both">Both</option>
+                            </select>
+                        </div>
+                    )}
                 </div>
 
                 {/* Footer */}

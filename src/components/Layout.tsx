@@ -108,15 +108,19 @@ const Layout = () => {
                         <img src="/logo.svg" alt="The Berman Logo" className="h-18 w-auto relative z-10" />
                     </Link>
 
-                    {/* Catalogue-only inline nav (desktop) */}
+                    {/* Catalogue-only inline nav (desktop only) */}
                     {isCatalogueNav && (
                         <nav className="hidden md:flex items-center gap-1">
-                            <Link to="/" className="px-3 py-2 text-xs font-bold text-white/70 hover:text-white uppercase tracking-wide transition-colors whitespace-nowrap">Home</Link>
-                            <Link to="/catalogue" className="px-3 py-2 text-xs font-bold text-white/70 hover:text-white uppercase tracking-wide transition-colors whitespace-nowrap">catalogue</Link>
-                            {/* Locations hover dropdown with province submenus */}
+                            <Link to="/" className="px-2 md:px-3 py-1.5 md:py-2 text-[10px] md:text-xs font-bold text-white/70 hover:text-white uppercase tracking-wide transition-colors whitespace-nowrap">Home</Link>
+                            <Link to="/catalogue" className="px-2 md:px-3 py-1.5 md:py-2 text-[10px] md:text-xs font-bold text-white/70 hover:text-white uppercase tracking-wide transition-colors whitespace-nowrap">Directory</Link>
+
+                            {/* Mobile: simple Locations link */}
+                            <Link to="/locations" className="flex md:hidden px-2 py-1.5 text-[10px] font-bold text-white/70 hover:text-white uppercase tracking-wide transition-colors whitespace-nowrap">Locations</Link>
+
+                            {/* Desktop: Locations hover dropdown */}
                             <div
                                 ref={locationsHoverRef}
-                                className="relative"
+                                className="relative hidden md:block"
                                 onMouseEnter={() => setIsLocationsHover(true)}
                                 onMouseLeave={() => { setIsLocationsHover(false); setHoveredProvince(null); }}
                             >
@@ -155,7 +159,8 @@ const Layout = () => {
                                     </div>
                                 )}
                             </div>
-                            <Link to="/news" className="px-3 py-2 text-xs font-bold text-white/70 hover:text-white uppercase tracking-wide transition-colors whitespace-nowrap">News</Link>
+
+                            <Link to="/news" className="px-2 md:px-3 py-1.5 md:py-2 text-[10px] md:text-xs font-bold text-white/70 hover:text-white uppercase tracking-wide transition-colors whitespace-nowrap">News</Link>
                         </nav>
                     )}
 
@@ -175,8 +180,8 @@ const Layout = () => {
                             </Link>
                         )}
 
-                        {/* Mobile catalogue pill */}
-                        <Link
+                        {/* Mobile catalogue pill — hidden on catalogue pages (sub-nav handles it) */}
+                        {!isCatalogueNav && <Link
                             to="/catalogue"
                             className="flex md:hidden items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-all group"
                         >
@@ -184,7 +189,7 @@ const Layout = () => {
                             <span className="text-[10px] font-black text-white uppercase tracking-wider">
                                 Energy <span className="text-[#9ACD32]">Catalogue</span>
                             </span>
-                        </Link>
+                        </Link>}
 
                         {/* Hamburger */}
                         <button
@@ -300,6 +305,21 @@ const Layout = () => {
                         )}
                     </div>
                 </div>
+
+                {/* Mobile catalogue sub-nav bar */}
+                {isCatalogueNav && (
+                    <nav className="md:hidden border-t border-white/10 flex items-center justify-center gap-0 py-2">
+                        <Link to="/" className="px-3 py-1 text-[9px] font-bold text-white/60 hover:text-white uppercase tracking-widest transition-colors whitespace-nowrap">Home</Link>
+                        <span className="text-white/20 text-[8px]">|</span>
+                        <Link to="/catalogue" className="px-3 py-1 text-[9px] font-bold text-white/60 hover:text-white uppercase tracking-widest transition-colors whitespace-nowrap">Directory</Link>
+                        <span className="text-white/20 text-[8px]">|</span>
+                        <Link to="/locations" className="px-3 py-1 text-[9px] font-bold text-white/60 hover:text-white uppercase tracking-widest transition-colors whitespace-nowrap">Locations</Link>
+                        <span className="text-white/20 text-[8px]">|</span>
+                        <Link to="/news" className="px-3 py-1 text-[9px] font-bold text-white/60 hover:text-white uppercase tracking-widest transition-colors whitespace-nowrap">News</Link>
+                        <span className="text-white/20 text-[8px]">|</span>
+                        <Link to="/catalogue" className="px-3 py-1 text-[9px] font-black text-[#9ACD32] uppercase tracking-widest transition-colors whitespace-nowrap">Catalogue</Link>
+                    </nav>
+                )}
 
                 <QuoteModal isOpen={isQuoteModalOpen} onClose={() => setIsQuoteModalOpen(false)} />
             </header>

@@ -195,7 +195,7 @@ const NewCatalogue = () => {
     };
 
     return (
-        <div className="font-sans text-gray-900 bg-white min-h-screen pt-24 pb-12">
+        <div className="font-sans text-gray-900 bg-white min-h-screen pt-28 md:pt-24 pb-12">
             <SEOHead
                 title="Business Catalogue"
                 description="Browse The Berman's catalogue of verified home energy businesses. Find insulation, heat pumps, solar, and more."
@@ -223,9 +223,7 @@ const NewCatalogue = () => {
                         The Berman Home Energy <br />
                         <span className="text-[#9ACD32]">Businesses Catalogue.</span>
                     </h1>
-                    <p className="text-lg md:text-xl text-gray-200 max-w-2xl mx-auto leading-relaxed mb-10">
-                        When businesses sign up they can click which parts they do and they will appear here on the catalogue for that type of service.
-                    </p>
+                   
 
                     <div className="max-w-4xl mx-auto">
                         <div className="bg-white/95 backdrop-blur-md border border-white/20 p-2 rounded-3xl md:rounded-full shadow-2xl flex flex-col md:flex-row items-center gap-2">
@@ -293,7 +291,7 @@ const NewCatalogue = () => {
                 const spotlight = getDailySpotlight(listings);
                 if (!spotlight || loading) return null;
                 return (
-                    <div className="container mx-auto px-0 md:px-6 max-w-7xl -mt-8 relative z-20 mb-6">
+                    <div className="container mx-auto px-0 md:px-6 max-w-7xl md:-mt-8 relative md:z-20 mb-6">
                         <Link
                             to={`/catalogue/${spotlight.slug}`}
                             className="group block relative overflow-hidden md:rounded-2xl shadow-2xl border border-white/10"

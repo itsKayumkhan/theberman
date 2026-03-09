@@ -79,11 +79,12 @@ const ListingLayout = ({ listing, enquiry, setEnquiry, onEnquirySubmit, isSubmit
 
     const [heroSlide, setHeroSlide] = useState(0);
     const galleryScrollRef = useRef<HTMLDivElement>(null);
+    const touchStartX = useRef<number | null>(null);
     const displayName = listing.company_name || listing.name;
 
     const scrollGallery = (dir: 'left' | 'right') => {
         if (galleryScrollRef.current) {
-            galleryScrollRef.current.scrollBy({ left: dir === 'left' ? -320 : 320, behavior: 'smooth' });
+            galleryScrollRef.current.scrollBy({ left: dir === 'left' ? -220 : 220, behavior: 'smooth' });
         }
     };
 
@@ -118,7 +119,17 @@ const ListingLayout = ({ listing, enquiry, setEnquiry, onEnquirySubmit, isSubmit
                 return (
                     <>
                         {/* Mobile banner — full-width square, 1 image at a time */}
-                        <div className="relative block md:hidden w-full aspect-square bg-gray-900 overflow-hidden">
+                        <div
+                            className="relative block md:hidden w-full aspect-square bg-gray-900 overflow-hidden"
+                            onTouchStart={e => { touchStartX.current = e.touches[0].clientX; }}
+                            onTouchEnd={e => {
+                                if (touchStartX.current === null) return;
+                                const diff = touchStartX.current - e.changedTouches[0].clientX;
+                                if (diff > 50 && heroSlide < mobileMax) setHeroSlide(s => s + 1);
+                                else if (diff < -50 && heroSlide > 0) setHeroSlide(s => s - 1);
+                                touchStartX.current = null;
+                            }}
+                        >
                             <img
                                 src={heroImages[Math.min(heroSlide, mobileMax)]}
                                 alt={`${displayName} ${heroSlide + 1}`}
@@ -378,12 +389,12 @@ const ListingLayout = ({ listing, enquiry, setEnquiry, onEnquirySubmit, isSubmit
                                         <button onClick={() => scrollGallery('right')} className="hidden md:flex absolute -right-5 top-1/2 -translate-y-1/2 z-10 bg-white border border-gray-200 shadow-md text-gray-600 hover:text-[#007EA7] hover:border-[#007EA7] rounded-full p-2 transition-all">
                                             <ChevronRight size={18} />
                                         </button>
-                                    <div ref={galleryScrollRef} className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                                    <div ref={galleryScrollRef} className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                                         {listing.images.sort((a, b) => a.display_order - b.display_order).map((img) => (
                                             <div
                                                 key={img.id}
                                                 onClick={() => setSelectedImage(img.url)}
-                                                className="group relative rounded-2xl overflow-hidden shadow-sm flex-shrink-0 w-72 h-56 bg-gray-50 border border-gray-100 cursor-zoom-in transition-all hover:shadow-xl snap-start"
+                                                className="group relative rounded-xl overflow-hidden shadow-sm flex-shrink-0 w-52 h-44 md:w-60 md:h-48 bg-gray-50 border border-gray-100 cursor-zoom-in transition-all hover:shadow-xl snap-start"
                                             >
                                                 <img
                                                     src={img.url}
