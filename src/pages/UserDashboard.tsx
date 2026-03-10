@@ -184,21 +184,21 @@ const UserDashboard = () => {
 
             if (updateError) throw updateError;
 
-            // 3. Trigger notification
-            try {
-                await supabase.functions.invoke('send-job-live-email', {
-                    body: {
-                        email: assessment.profiles?.email || assessment.contact_email,
-                        customerName: assessment.profiles?.full_name || assessment.contact_name,
-                        county: assessment.county,
-                        town: assessment.town,
-                        assessmentId: id,
-                        jobType: assessment.job_type
-                    }
-                });
-            } catch (emailErr) {
-                console.error('Failed to send job live email:', emailErr);
-            }
+            // EMAIL TEMPORARILY DISABLED
+            // try {
+            //     await supabase.functions.invoke('send-job-live-email', {
+            //         body: {
+            //             email: assessment.profiles?.email || assessment.contact_email,
+            //             customerName: assessment.profiles?.full_name || assessment.contact_name,
+            //             county: assessment.county,
+            //             town: assessment.town,
+            //             assessmentId: id,
+            //             jobType: assessment.job_type
+            //         }
+            //     });
+            // } catch (emailErr) {
+            //     console.error('Failed to send job live email:', emailErr);
+            // }
 
             toast.success('Assessment is now live and assessors have been notified!');
             fetchAssessments();
