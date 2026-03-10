@@ -396,22 +396,23 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
             const newAssessmentId = data.id;
             setAssessmentId(newAssessmentId);
 
-            try {
-                await supabase.functions.invoke('send-job-live-email', {
-                    body: {
-                        email: formData.email,
-                        customerName: formData.fullName,
-                        county: formData.county,
-                        town: formData.town,
-                        assessmentId: newAssessmentId,
-                        jobType: formData.jobType
-                    }
-                });
-                setEmailError(null);
-            } catch (emailErr) {
-                console.error('Failed to send job live email:', emailErr);
-                setEmailError('Email notification failed but job is live');
-            }
+            // EMAIL TEMPORARILY DISABLED
+            // try {
+            //     await supabase.functions.invoke('send-job-live-email', {
+            //         body: {
+            //             email: formData.email,
+            //             customerName: formData.fullName,
+            //             county: formData.county,
+            //             town: formData.town,
+            //             assessmentId: newAssessmentId,
+            //             jobType: formData.jobType
+            //         }
+            //     });
+            //     setEmailError(null);
+            // } catch (emailErr) {
+            //     console.error('Failed to send job live email:', emailErr);
+            //     setEmailError('Email notification failed but job is live');
+            // }
 
             toast.success('Quotes requested successfully!');
             setCurrentStep(14);
