@@ -308,9 +308,9 @@ export const UserDetailsModal = ({
                                 className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00] bg-white outline-none font-medium text-gray-700"
                             >
                                 <option value="">— Not Set —</option>
-                                <option value="Domestic">Domestic</option>
-                                <option value="Commercial">Commercial</option>
-                                <option value="Both">Both</option>
+                                <option value="Domestic Assessor">Domestic Assessor</option>
+                                <option value="Commercial Assessor">Commercial Assessor</option>
+                                <option value="Both">Both (Domestic &amp; Commercial)</option>
                             </select>
                         </div>
                     )}

@@ -57,7 +57,6 @@ Deno.serve(async (req: Request) => {
             phone: phone,
             county: county,
             town: town,
-            is_admin_created: true,
             registration_status: 'pending'
         };
 
