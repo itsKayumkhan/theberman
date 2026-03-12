@@ -34,7 +34,8 @@ Deno.serve(async (req: Request) => {
                 full_name: fullName,
                 role: role,
                 phone: phone,
-                is_admin_created: true
+                is_admin_created: true,
+                requires_password_change: true
             }
         });
 
@@ -57,7 +58,7 @@ Deno.serve(async (req: Request) => {
             phone: phone,
             county: county,
             town: town,
-            registration_status: 'pending'
+            registration_status: 'pending',
         };
 
         if (role === 'contractor') {

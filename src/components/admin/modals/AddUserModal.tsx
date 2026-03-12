@@ -12,7 +12,6 @@ const IRISH_COUNTIES = [
 interface NewUserFormData {
     fullName: string;
     email: string;
-    password: string;
     phone: string;
     county: string;
     town: string;
@@ -83,17 +82,7 @@ export const AddUserModal = ({ newUserRole, newUserFormData, setNewUserFormData,
                                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00]"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Password *</label>
-                                <input
-                                    type="password"
-                                    required
-                                    placeholder="••••••••"
-                                    value={newUserFormData.password}
-                                    onChange={(e) => setNewUserFormData({ ...newUserFormData, password: e.target.value })}
-                                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00]"
-                                />
-                            </div>
+
                             <div>
                                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Phone</label>
                                 <input

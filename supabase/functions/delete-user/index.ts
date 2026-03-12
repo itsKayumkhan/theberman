@@ -18,6 +18,27 @@ Deno.serve(async (req: Request) => {
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         );
 
+        // Verify the caller is an authenticated admin
+        const authHeader = req.headers.get('Authorization');
+        if (authHeader) {
+            const token = authHeader.replace('Bearer ', '');
+            const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
+            if (userError || !user) {
+                return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+                    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                    status: 401,
+                });
+            }
+            // Check caller is admin
+            const { data: profile } = await supabaseAdmin.from('profiles').select('role').eq('id', user.id).single();
+            if (!profile || profile.role !== 'admin') {
+                return new Response(JSON.stringify({ error: 'Forbidden: Admin only' }), {
+                    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                    status: 403,
+                });
+            }
+        }
+
         const body = await req.json();
         const { userId } = body;
 
@@ -25,7 +46,7 @@ Deno.serve(async (req: Request) => {
             throw new Error('Missing required fields: userId');
         }
 
-        // 1. Delete user from Auth
+        // Delete user from Auth (profile cascades via FK)
         const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
         if (authError) {
@@ -38,7 +59,7 @@ Deno.serve(async (req: Request) => {
         });
     } catch (error) {
         console.error('Error:', error);
-        return new Response(JSON.stringify({ error: error.message }), {
+        return new Response(JSON.stringify({ success: false, error: error.message }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 400,
         });

@@ -136,7 +136,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const updateUserPassword = async (password: string) => {
-        return await supabase.auth.updateUser({ password });
+        const result = await supabase.auth.updateUser({ 
+            password,
+            data: { requires_password_change: false } 
+        });
+        // Immediately sync the updated user into React state.
+        // Without this, ProtectedRoute still sees the OLD user with requires_password_change: true
+        // when navigate() is called (since onAuthStateChange fires async and too late).
+        if (result.data?.user) {
+            setUser(result.data.user);
+            setSession(prev => prev ? { ...prev, user: result.data.user! } : prev);
+        }
+        return result;
     };
 
     const signOut = async () => {
