@@ -1,4 +1,5 @@
 
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -7,7 +8,6 @@ import { supabase } from '../lib/supabase';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useState, useEffect } from 'react';
 
 const loginSchema = z.object({
     email: z.string().email('Invalid email address'),
@@ -21,13 +21,27 @@ const Login = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [activeTab, setActiveTab] = useState<'homeowner' | 'assessor' | 'business'>('homeowner');
+    // Prevents useEffect from redirecting mid-submission while role check is running
+    const signingIn = React.useRef(false);
 
     // Default redirect to /admin if no previous path
     const from = location.state?.from?.pathname;
 
     // Redirect if already authenticated
     useEffect(() => {
+        // Skip auto-redirect while onSubmit is running — let it handle role check first
+        if (signingIn.current) return;
+
         if (!loading && user && role && profile) {
+            // If user needs to change their password, go directly to update-password.
+            // This prevents the race condition where useEffect navigates to a
+            // dashboard route, ProtectedRoute catches requires_password_change and
+            // redirects to /update-password — all BEFORE onSubmit's role-check runs.
+            if (user.user_metadata?.requires_password_change) {
+                navigate('/update-password', { replace: true });
+                return;
+            }
+
             // Handle Blocked / Expired users (Exclude admins)
             if (role === 'contractor' || role === 'business') {
                 if (profile.registration_status === 'pending') {
@@ -62,6 +76,7 @@ const Login = () => {
     });
 
     const onSubmit = async (data: LoginFormData) => {
+        signingIn.current = true;
         try {
             const email = data.email.trim();
             const { data: authData, error } = await signIn(email, data.password);
@@ -90,7 +105,7 @@ const Login = () => {
                 const subStatus = profile?.subscription_status;
                 const isActive = profile?.is_active;
 
-                // Role validation based on active tab
+                // Role validation based on active tab — MUST happen first
                 if (activeTab === 'homeowner') {
                     if (userRole === 'contractor') {
                         await signOut();
@@ -116,7 +131,13 @@ const Login = () => {
                     }
                 }
 
-                // 1. Handle Blocked / Expired users first (Redirect them to payment/pricing)
+                // First-time password change — only redirect AFTER role is confirmed correct
+                if (authData.user.user_metadata?.requires_password_change) {
+                    navigate('/update-password', { replace: true });
+                    return;
+                }
+
+                // Handle Blocked / Expired users (Redirect them to payment/pricing)
                 if (userRole === 'contractor' || userRole === 'business') {
                     if (regStatus === 'pending') {
                         // Redirect to onboarding to complete registration
@@ -148,6 +169,8 @@ const Login = () => {
         } catch (err: any) {
             console.error('Login error:', err);
             toast.error(err.message || 'Failed to login');
+        } finally {
+            signingIn.current = false;
         }
     };
 

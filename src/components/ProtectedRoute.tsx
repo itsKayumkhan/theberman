@@ -29,6 +29,10 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
         return <Navigate to="/dashboard/user" replace />;
     }
 
+    if (user?.user_metadata?.requires_password_change && location.pathname !== '/update-password') {
+        return <Navigate to="/update-password" replace />;
+    }
+
     // Stage 1 Gating: Redirect pending businesses to membership payment if they haven't paid
     if (role === 'business' && profile?.registration_status === 'pending' &&
         location.pathname !== '/business-onboarding' &&

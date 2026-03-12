@@ -1,8 +1,10 @@
 
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
 import { useNavigate, Link } from 'react-router-dom';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -18,8 +20,41 @@ const updatePasswordSchema = z.object({
 type UpdatePasswordFormData = z.infer<typeof updatePasswordSchema>;
 
 const UpdatePassword = () => {
-    const { updateUserPassword } = useAuth();
+    const { updateUserPassword, user } = useAuth();
     const navigate = useNavigate();
+    const [redirecting, setRedirecting] = useState(false);
+
+    // Only redirect when requires_password_change is explicitly set to FALSE.
+    // - true  → show the form (admin-created user, must change)
+    // - false → password was successfully changed via this form → redirect to next step
+    // - undefined → normal forgot-password flow user (flag never set) → show form
+    useEffect(() => {
+        if (!user) return;
+        const needsChange = user.user_metadata?.requires_password_change;
+        if (needsChange === false) {
+            // Password was just changed — redirect to onboarding or dashboard
+            setRedirecting(true);
+            supabase
+                .from('profiles')
+                .select('role, registration_status')
+                .eq('id', user.id)
+                .maybeSingle()
+                .then(({ data: profile }) => {
+                    const role = profile?.role;
+                    const regStatus = profile?.registration_status;
+                    if (regStatus === 'pending') {
+                        if (role === 'contractor') navigate('/assessor-onboarding', { replace: true });
+                        else if (role === 'business') navigate('/business-onboarding', { replace: true });
+                        else navigate('/dashboard/user', { replace: true });
+                    } else {
+                        if (role === 'admin') navigate('/admin', { replace: true });
+                        else if (role === 'contractor') navigate('/dashboard/ber-assessor', { replace: true });
+                        else if (role === 'business') navigate('/dashboard/business', { replace: true });
+                        else navigate('/dashboard/user', { replace: true });
+                    }
+                });
+        }
+    }, [user, navigate]);
 
     const {
         register,
@@ -29,12 +64,54 @@ const UpdatePassword = () => {
         resolver: zodResolver(updatePasswordSchema),
     });
 
+    // Show nothing while auto-redirecting to avoid flash of update form
+    if (redirecting) {
+        return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#007F00]" /></div>;
+    }
+
     const onSubmit = async (data: UpdatePasswordFormData) => {
         try {
-            const { error } = await updateUserPassword(data.password);
+            // updateUserPassword returns the updated user — use it directly
+            // so we don't rely on the stale useAuth user that may reset after auth change
+            const { data: updateData, error } = await updateUserPassword(data.password);
             if (error) throw error;
-            toast.success('Password updated successfully! Please log in with your new password.');
-            navigate('/login');
+
+            // Get user ID from response or fall back to current session
+            const userId = updateData?.user?.id ?? user?.id;
+            if (!userId) {
+                navigate('/login', { replace: true });
+                return;
+            }
+
+            // Fetch profile to determine next step
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role, registration_status')
+                .eq('id', userId)
+                .maybeSingle();
+
+            const role = profile?.role;
+            const regStatus = profile?.registration_status;
+
+            toast.success('Password updated! Completing your profile next.');
+
+            // If onboarding not done yet → go to onboarding page (pre-filled)
+            if (regStatus === 'pending') {
+                if (role === 'contractor') {
+                    navigate('/assessor-onboarding', { replace: true });
+                } else if (role === 'business') {
+                    navigate('/business-onboarding', { replace: true });
+                } else {
+                    // user/homeowner with pending — shouldn't normally happen
+                    navigate('/dashboard/user', { replace: true });
+                }
+            } else {
+                // Already onboarded — go to their dashboard
+                if (role === 'admin') navigate('/admin', { replace: true });
+                else if (role === 'contractor') navigate('/dashboard/ber-assessor', { replace: true });
+                else if (role === 'business') navigate('/dashboard/business', { replace: true });
+                else navigate('/dashboard/user', { replace: true });
+            }
         } catch (err: any) {
             toast.error(err.message || 'Failed to update password');
         }

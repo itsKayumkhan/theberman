@@ -100,7 +100,7 @@ const Admin = () => {
     // New user form
     const [newUserRole, setNewUserRole] = useState<'contractor' | 'business'>('contractor');
     const [newUserFormData, setNewUserFormData] = useState({
-        fullName: '', email: '', password: '', phone: '', county: '', town: '',
+        fullName: '', email: '', phone: '', county: '', town: '',
         seaiNumber: '', assessorType: 'Domestic Assessor', companyName: '',
         businessAddress: '', website: '', description: '', companyNumber: '', vatNumber: '',
     });
@@ -562,9 +562,18 @@ const Admin = () => {
         if (!confirm('This will permanently delete the item from the database. This cannot be undone. Continue?')) return;
         setIsDeleting(true);
         try {
-            const tableMap = { lead: 'leads', assessment: 'assessments', user: 'profiles' } as const;
-            const { error } = await supabase.from(tableMap[type]).delete().eq('id', id);
-            if (error) throw error;
+            if (type === 'user') {
+                // Delete from Supabase Auth first (also cascades to profile via DB trigger/FK)
+                const { data: fnData, error: fnError } = await supabase.functions.invoke('delete-user', {
+                    body: { userId: id }
+                });
+                if (fnError) throw new Error(fnError.message || 'Failed to delete auth user');
+                if (!fnData?.success) throw new Error(fnData?.error || 'Failed to delete auth user');
+            } else {
+                const tableMap = { lead: 'leads', assessment: 'assessments' } as const;
+                const { error } = await supabase.from(tableMap[type as 'lead' | 'assessment']).delete().eq('id', id);
+                if (error) throw error;
+            }
             setDeletedItems(prev => prev.filter(i => !(i.id === id && i.type === type)));
             toast.success('Permanently deleted from database');
         } catch (error: any) {
@@ -592,10 +601,19 @@ const Admin = () => {
         if (!confirm(`This will permanently delete ${items.length} items from the database. This cannot be undone. Continue?`)) return;
         setIsDeleting(true);
         try {
-            const tableMap = { lead: 'leads', assessment: 'assessments', user: 'profiles' } as const;
             for (const item of items) {
-                const { error } = await supabase.from(tableMap[item.type]).delete().eq('id', item.id);
-                if (error) throw error;
+                if (item.type === 'user') {
+                    // Delete from Supabase Auth (cascades to profile)
+                    const { data: fnData, error: fnError } = await supabase.functions.invoke('delete-user', {
+                        body: { userId: item.id }
+                    });
+                    if (fnError) throw new Error(fnError.message || 'Failed to delete auth user');
+                    if (!fnData?.success) throw new Error(fnData?.error || 'Failed to delete auth user');
+                } else {
+                    const tableMap = { lead: 'leads', assessment: 'assessments' } as const;
+                    const { error } = await supabase.from(tableMap[item.type as 'lead' | 'assessment']).delete().eq('id', item.id);
+                    if (error) throw error;
+                }
             }
             setDeletedItems(prev => prev.filter(i => !items.some(item => item.id === i.id && item.type === i.type)));
             toast.success(`${items.length} items permanently deleted`);
@@ -614,7 +632,7 @@ const Admin = () => {
                 body: {
                     fullName: newUserFormData.fullName,
                     email: newUserFormData.email,
-                    password: newUserFormData.password,
+                    password: 'Welcome@TheBerman123',
                     phone: newUserFormData.phone || null,
                     county: newUserFormData.county || null,
                     town: newUserFormData.town || null,
@@ -636,7 +654,7 @@ const Admin = () => {
                     body: {
                         fullName: newUserFormData.fullName,
                         email: newUserFormData.email,
-                        password: newUserFormData.password,
+                        password: 'Welcome@TheBerman123',
                         town: newUserFormData.town || '',
                         onboardingUrl: fnData.magicLink,
                         role: newUserRole,
@@ -658,7 +676,7 @@ const Admin = () => {
             }
             setShowAddUserModal(false);
             setNewUserFormData({
-                fullName: '', email: '', password: '', phone: '', county: '', town: '',
+                fullName: '', email: '', phone: '', county: '', town: '',
                 seaiNumber: '', assessorType: 'Domestic Assessor', companyName: '',
                 businessAddress: '', website: '', description: '', companyNumber: '', vatNumber: '',
             });

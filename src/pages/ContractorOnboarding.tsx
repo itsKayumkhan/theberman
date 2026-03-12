@@ -41,15 +41,41 @@ const ContractorOnboarding = () => {
 
     useEffect(() => {
         if (!user) return;
+
+        // Try to load from sessionStorage first (partially saved form state)
         const pendingData = sessionStorage.getItem(`pending_assessor_registration_${user.id}`);
         if (pendingData) {
             try {
                 const parsed = JSON.parse(pendingData);
                 setFormData(parsed);
+                return; // sessionStorage takes priority
             } catch (e) {
                 console.error('Error parsing pending assessor data:', e);
             }
         }
+
+        // Otherwise, pre-fill from existing profile (data admin already entered)
+        supabase
+            .from('profiles')
+            .select('phone, county, town, seai_number, assessor_type, company_name, website_url')
+            .eq('id', user.id)
+            .maybeSingle()
+            .then(({ data: profile }) => {
+                if (!profile) return;
+                setFormData(prev => ({
+                    ...prev,
+                    phone: profile.phone || prev.phone,
+                    homeCounty: profile.county || prev.homeCounty,
+                    homeTown: profile.town || prev.homeTown,
+                    seaiNumber: profile.seai_number || prev.seaiNumber,
+                    // assessor_type stored as "Domestic Assessor & Commercial Assessor" or single
+                    assessorTypes: profile.assessor_type
+                        ? profile.assessor_type.split(' & ').filter(Boolean)
+                        : prev.assessorTypes,
+                    companyName: profile.company_name || prev.companyName,
+                    website: profile.website_url || prev.website,
+                }));
+            });
     }, [user]);
 
 
