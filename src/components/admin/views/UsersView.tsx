@@ -41,44 +41,66 @@ export const UsersView = ({
         if (!filter) return true;
         if (!assessorType) return false;
         const type = assessorType.toLowerCase();
-        
-        const isDomestic = type.includes('domestic');
-        const isCommercial = type.includes('commercial');
-        const isBoth = type.includes('both') || type.includes('&') || (isDomestic && isCommercial);
 
-        if (filter === 'both') return isBoth;
-        if (filter === 'domestic') return isDomestic && !isBoth;
-        if (filter === 'commercial') return isCommercial && !isBoth;
+        const inBoth = type.includes('both') || type.includes('&');
+        const matchDomestic = type.includes('domestic') || inBoth;
+        const matchCommercial = type.includes('commercial') || inBoth;
+        const matchBoth = inBoth || (type.includes('domestic') && type.includes('commercial'));
+
+        if (filter === 'both') return matchBoth;
+        if (filter === 'domestic') return matchDomestic;
+        if (filter === 'commercial') return matchCommercial;
         return true;
     };
 
+    // Base group: role + type filter applied
     const activeGroup = users_list.filter(u => {
         const matchRole = isAssessors ? u.role === 'contractor' : (u.role === 'user' || u.role === 'homeowner');
         const matchType = !isAssessors || isTypeMatch(u.assessor_type, typeFilter);
         return matchRole && matchType;
     });
 
+    // Build unique location list from the base group
     const activeLocations = Array.from(new Set(
-        activeGroup.flatMap(u => isAssessors ? [u.home_county, u.county, ...(u.preferred_counties || [])] : [u.home_county, u.county])
+        activeGroup.flatMap(u =>
+            isAssessors
+                ? [u.home_county, u.county, ...(u.preferred_counties || [])]
+                : [u.home_county, u.county]
+        )
     )).filter(Boolean).sort() as string[];
 
-    const countForLoc = (loc: string) => activeGroup.filter(u => {
-        const matchLoc = isAssessors ? 
-            (u.home_county === loc || u.county === loc || u.preferred_counties?.includes(loc)) : 
-            (u.county === loc || u.home_county === loc);
-        return matchLoc;
-    }).length;
+    // Count assessors per location (uses activeGroup so typeFilter is respected)
+    const countForLoc = (loc: string) =>
+        activeGroup.filter(u => {
+            if (isAssessors) {
+                return (
+                    u.home_county === loc ||
+                    u.county === loc ||
+                    (u.preferred_counties && u.preferred_counties.includes(loc))
+                );
+            }
+            return u.county === loc || u.home_county === loc;
+        }).length;
 
-    const filtered = users_list.filter(u => {
-        const matchRole = isAssessors ? u.role === 'contractor' : (u.role === 'user' || u.role === 'homeowner');
+    // Final filtered list: role + search + location + type
+    const filtered = activeGroup.filter(u => {
         const q = searchTerm.toLowerCase();
-        const matchSearch = !q || u.full_name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q) ||
-            u.seai_number?.toLowerCase().includes(q) || u.home_county?.toLowerCase().includes(q);
-        const matchLoc = !locationFilter || (isAssessors ? 
-            (u.home_county === locationFilter || u.county === locationFilter || u.preferred_counties?.includes(locationFilter)) : 
-            (u.county === locationFilter || u.home_county === locationFilter));
-        const matchType = !isAssessors || isTypeMatch(u.assessor_type, typeFilter);
-        return matchRole && matchSearch && matchLoc && matchType;
+        const matchSearch =
+            !q ||
+            u.full_name?.toLowerCase().includes(q) ||
+            u.email?.toLowerCase().includes(q) ||
+            u.seai_number?.toLowerCase().includes(q) ||
+            u.home_county?.toLowerCase().includes(q);
+        const matchLoc =
+            !locationFilter ||
+            (isAssessors
+                ? (
+                    u.home_county === locationFilter ||
+                    u.county === locationFilter ||
+                    (u.preferred_counties && u.preferred_counties.includes(locationFilter))
+                )
+                : (u.county === locationFilter || u.home_county === locationFilter));
+        return matchSearch && matchLoc;
     });
 
     return (
@@ -141,150 +163,149 @@ export const UsersView = ({
             {/* Table */}
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
-                <table className="w-full text-sm min-w-[640px]">
-                    <thead>
-                        <tr className="border-b border-gray-100 bg-gray-50/80">
-                            <th className="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Status</th>
-                            <th className="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">{isAssessors ? 'Assessor' : 'User'}</th>
-                            <th className="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Joined</th>
-                            <th className="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Activity</th>
-                            {isAssessors && <th className="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Payment</th>}
-                            {isAssessors && <th className="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Approval</th>}
-                            <th className="px-5 py-3 text-right text-[10px] font-bold text-gray-400 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                        {filtered.length === 0 ? (
-                            <tr><td colSpan={isAssessors ? 7 : 5} className="px-5 py-12 text-center text-gray-300 text-sm italic">
-                                No {isAssessors ? 'assessors' : 'users'} found{locationFilter ? ` in ${locationFilter}` : ''}.
-                            </td></tr>
-                        ) : filtered.map(u => {
-                            const listing = listings.find(l => l.user_id === u.id || l.owner_id === u.id);
-                            const isPending = u.registration_status === 'pending';
-                            const jobCount = isAssessors
-                                ? assessments.filter(a => a.contractor_id === u.id).length
-                                : assessments.filter(a => a.user_id === u.id).length;
+                    <table className="w-full text-sm min-w-[640px]">
+                        <thead>
+                            <tr className="border-b border-gray-100 bg-gray-50/80">
+                                <th className="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                                <th className="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">{isAssessors ? 'Assessor' : 'User'}</th>
+                                <th className="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Joined</th>
+                                <th className="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Activity</th>
+                                {isAssessors && <th className="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Payment</th>}
+                                {isAssessors && <th className="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Approval</th>}
+                                <th className="px-5 py-3 text-right text-[10px] font-bold text-gray-400 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                            {filtered.length === 0 ? (
+                                <tr><td colSpan={isAssessors ? 7 : 5} className="px-5 py-12 text-center text-gray-300 text-sm italic">
+                                    No {isAssessors ? 'assessors' : 'users'} found{locationFilter ? ` in ${locationFilter}` : ''}.
+                                </td></tr>
+                            ) : filtered.map(u => {
+                                const listing = listings.find(l => l.user_id === u.id || l.owner_id === u.id);
+                                const isPending = u.registration_status === 'pending';
+                                const jobCount = isAssessors
+                                    ? assessments.filter(a => a.contractor_id === u.id).length
+                                    : assessments.filter(a => a.user_id === u.id).length;
 
-                            return (
-                                <tr key={u.id} className={`hover:bg-gray-50/60 transition-colors ${isPending ? 'bg-amber-50/20' : ''}`}>
+                                return (
+                                    <tr key={u.id} className={`hover:bg-gray-50/60 transition-colors ${isPending ? 'bg-amber-50/20' : ''}`}>
 
-                                    {/* Status */}
-                                    <td className="px-5 py-3">
-                                        <StatusCell profile={u} />
-                                    </td>
+                                        {/* Status */}
+                                        <td className="px-5 py-3">
+                                            <StatusCell profile={u} />
+                                        </td>
 
-                                    {/* Details */}
-                                    <td className="px-5 py-3">
-                                        <div className="font-semibold text-gray-800 text-[13px] leading-tight">{u.full_name || u.email}</div>
-                                        {!isAssessors && u.full_name && <div className="text-[11px] text-gray-400 mt-0.5">{u.email}</div>}
-                                        {isAssessors && u.home_county && (
-                                            <div className="text-[10px] text-gray-400 mt-0.5" title={u.preferred_counties?.join(', ')}>
-                                                Co. {u.home_county}
-                                                {u.preferred_counties && u.preferred_counties.length > 0 && ` (+${u.preferred_counties.filter(c => c !== u.home_county).length})`}
-                                            </div>
-                                        )}
-                                        {isAssessors && u.assessor_type && (
-                                            <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
-                                                u.assessor_type.toLowerCase() === 'commercial'
+                                        {/* Details */}
+                                        <td className="px-5 py-3">
+                                            <div className="font-semibold text-gray-800 text-[13px] leading-tight">{u.full_name || u.email}</div>
+                                            {!isAssessors && u.full_name && <div className="text-[11px] text-gray-400 mt-0.5">{u.email}</div>}
+                                            {isAssessors && u.home_county && (
+                                                <div className="text-[10px] text-gray-400 mt-0.5" title={u.preferred_counties?.join(', ')}>
+                                                    Co. {u.home_county}
+                                                    {u.preferred_counties && u.preferred_counties.length > 0 && ` (+${u.preferred_counties.filter(c => c !== u.home_county).length})`}
+                                                </div>
+                                            )}
+                                            {isAssessors && u.assessor_type && (
+                                                <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${u.assessor_type.toLowerCase() === 'commercial'
                                                     ? 'bg-blue-50 text-blue-600'
                                                     : u.assessor_type.toLowerCase() === 'both'
-                                                    ? 'bg-purple-50 text-purple-600'
-                                                    : 'bg-green-50 text-green-700'
-                                            }`}>
-                                                {u.assessor_type}
-                                            </span>
-                                        )}
-                                    </td>
+                                                        ? 'bg-purple-50 text-purple-600'
+                                                        : 'bg-green-50 text-green-700'
+                                                    }`}>
+                                                    {u.assessor_type}
+                                                </span>
+                                            )}
+                                        </td>
 
-                                    {/* Joined */}
-                                    <td className="px-5 py-3 text-[12px] text-gray-400 whitespace-nowrap">
-                                        {new Date(u.created_at).toLocaleDateString('en-GB')}
-                                    </td>
+                                        {/* Joined */}
+                                        <td className="px-5 py-3 text-[12px] text-gray-400 whitespace-nowrap">
+                                            {new Date(u.created_at).toLocaleDateString('en-GB')}
+                                        </td>
 
-                                    {/* Activity */}
-                                    <td className="px-5 py-3">
-                                        <div className={`inline-flex items-center gap-1.5 text-[12px] font-semibold ${jobCount > 0 ? 'text-blue-600' : 'text-gray-300'}`}>
-                                            {isAssessors ? <Briefcase size={13} /> : <Home size={13} />}
-                                            {jobCount} {isAssessors ? 'job' : 'request'}{jobCount !== 1 ? 's' : ''}
-                                        </div>
-                                    </td>
-
-                                    {/* Payment (assessors only) */}
-                                    {isAssessors && (
+                                        {/* Activity */}
                                         <td className="px-5 py-3">
-                                            <div className="flex flex-col gap-0.5">
-                                                <PaymentStatusBadge profile={u} />
-                                                {u.subscription_end_date && (
-                                                    <span className="text-[10px] text-gray-400">
-                                                        {new Date(u.subscription_end_date) < new Date()
-                                                            ? <span className="text-red-400">Expired</span>
-                                                            : `Until ${new Date(u.subscription_end_date).toLocaleDateString('en-GB')}`}
-                                                    </span>
-                                                )}
+                                            <div className={`inline-flex items-center gap-1.5 text-[12px] font-semibold ${jobCount > 0 ? 'text-blue-600' : 'text-gray-300'}`}>
+                                                {isAssessors ? <Briefcase size={13} /> : <Home size={13} />}
+                                                {jobCount} {isAssessors ? 'job' : 'request'}{jobCount !== 1 ? 's' : ''}
                                             </div>
                                         </td>
-                                    )}
 
-                                    {/* Approval (assessors only) */}
-                                    {isAssessors && (
-                                        <td className="px-5 py-3">
-                                            {isPending ? (
-                                                <div className="flex items-center gap-1.5">
-                                                    <button
-                                                        onClick={() => updateRegistrationStatus(u.id, 'active')}
-                                                        disabled={isUpdating}
-                                                        className="flex items-center gap-1 text-[11px] font-semibold text-green-700 bg-green-50 border border-green-200 hover:bg-green-100 px-2.5 py-1 rounded-lg transition-all disabled:opacity-50"
-                                                    ><CheckCircle2 size={11} /> Approve</button>
-                                                    <button
-                                                        onClick={() => updateRegistrationStatus(u.id, 'rejected')}
-                                                        disabled={isUpdating}
-                                                        className="flex items-center gap-1 text-[11px] font-semibold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 px-2.5 py-1 rounded-lg transition-all disabled:opacity-50"
-                                                    ><X size={11} /> Reject</button>
-                                                </div>
-                                            ) : u.registration_status === 'active' ? (
-                                                <div className="flex flex-col gap-1">
-                                                    <span className="text-[11px] text-green-600 font-semibold flex items-center gap-1"><CheckCircle2 size={11} /> Active</span>
-                                                    {listing ? (
-                                                        <button onClick={() => handleOpenCatalogueView(u, listing)} className="text-[10px] text-blue-500 hover:text-blue-700 flex items-center gap-1">
-                                                            <Edit2 size={10} /> Edit Listing
-                                                        </button>
-                                                    ) : (
-                                                        <button onClick={() => handleOpenCatalogueView(u)} className="text-[10px] text-green-600 hover:text-green-700 flex items-center gap-1">
-                                                            <Plus size={10} /> Add to Catalogue
-                                                        </button>
+                                        {/* Payment (assessors only) */}
+                                        {isAssessors && (
+                                            <td className="px-5 py-3">
+                                                <div className="flex flex-col gap-0.5">
+                                                    <PaymentStatusBadge profile={u} />
+                                                    {u.subscription_end_date && (
+                                                        <span className="text-[10px] text-gray-400">
+                                                            {new Date(u.subscription_end_date) < new Date()
+                                                                ? <span className="text-red-400">Expired</span>
+                                                                : `Until ${new Date(u.subscription_end_date).toLocaleDateString('en-GB')}`}
+                                                        </span>
                                                     )}
                                                 </div>
-                                            ) : (
-                                                <span className="text-[11px] text-red-500 font-semibold">Rejected</span>
-                                            )}
-                                        </td>
-                                    )}
+                                            </td>
+                                        )}
 
-                                    {/* Actions */}
-                                    <td className="px-5 py-3">
-                                        <div className="flex items-center justify-end gap-1">
-                                            {/* Reminder only for assessors without active subscription */}
-                                            {u.role === 'contractor' && u.subscription_status !== 'active' && (
-                                                <button onClick={() => handleSendRenewalReminder(u)} title="Send subscription reminder" className="p-1.5 text-amber-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"><Mail size={14} /></button>
-                                            )}
-                                            <button onClick={() => setSelectedUser(u)} title="View details" className="p-1.5 text-gray-300 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"><Eye size={14} /></button>
-                                            <button
-                                                onClick={() => { setItemToSuspend({ id: u.id, name: u.full_name, currentStatus: u.is_active !== false }); setShowSuspendModal(true); }}
-                                                title={u.is_active !== false ? 'Suspend' : 'Activate'}
-                                                className={`p-1.5 rounded-lg transition-all ${u.is_active !== false ? 'text-gray-300 hover:text-amber-500 hover:bg-amber-50' : 'text-green-400 hover:bg-green-50'}`}
-                                            ><AlertTriangle size={14} /></button>
-                                            <button
-                                                onClick={() => handleDeleteClick(u.id, 'user')}
-                                                title="Delete user"
-                                                className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                                            ><Trash2 size={14} /></button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
+                                        {/* Approval (assessors only) */}
+                                        {isAssessors && (
+                                            <td className="px-5 py-3">
+                                                {isPending ? (
+                                                    <div className="flex items-center gap-1.5">
+                                                        <button
+                                                            onClick={() => updateRegistrationStatus(u.id, 'active')}
+                                                            disabled={isUpdating}
+                                                            className="flex items-center gap-1 text-[11px] font-semibold text-green-700 bg-green-50 border border-green-200 hover:bg-green-100 px-2.5 py-1 rounded-lg transition-all disabled:opacity-50"
+                                                        ><CheckCircle2 size={11} /> Approve</button>
+                                                        <button
+                                                            onClick={() => updateRegistrationStatus(u.id, 'rejected')}
+                                                            disabled={isUpdating}
+                                                            className="flex items-center gap-1 text-[11px] font-semibold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 px-2.5 py-1 rounded-lg transition-all disabled:opacity-50"
+                                                        ><X size={11} /> Reject</button>
+                                                    </div>
+                                                ) : u.registration_status === 'active' ? (
+                                                    <div className="flex flex-col gap-1">
+                                                        <span className="text-[11px] text-green-600 font-semibold flex items-center gap-1"><CheckCircle2 size={11} /> Active</span>
+                                                        {listing ? (
+                                                            <button onClick={() => handleOpenCatalogueView(u, listing)} className="text-[10px] text-blue-500 hover:text-blue-700 flex items-center gap-1">
+                                                                <Edit2 size={10} /> Edit Listing
+                                                            </button>
+                                                        ) : (
+                                                            <button onClick={() => handleOpenCatalogueView(u)} className="text-[10px] text-green-600 hover:text-green-700 flex items-center gap-1">
+                                                                <Plus size={10} /> Add to Catalogue
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-[11px] text-red-500 font-semibold">Rejected</span>
+                                                )}
+                                            </td>
+                                        )}
+
+                                        {/* Actions */}
+                                        <td className="px-5 py-3">
+                                            <div className="flex items-center justify-end gap-1">
+                                                {/* Reminder only for assessors without active subscription */}
+                                                {u.role === 'contractor' && u.subscription_status !== 'active' && (
+                                                    <button onClick={() => handleSendRenewalReminder(u)} title="Send subscription reminder" className="p-1.5 text-amber-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"><Mail size={14} /></button>
+                                                )}
+                                                <button onClick={() => setSelectedUser(u)} title="View details" className="p-1.5 text-gray-300 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"><Eye size={14} /></button>
+                                                <button
+                                                    onClick={() => { setItemToSuspend({ id: u.id, name: u.full_name, currentStatus: u.is_active !== false }); setShowSuspendModal(true); }}
+                                                    title={u.is_active !== false ? 'Suspend' : 'Activate'}
+                                                    className={`p-1.5 rounded-lg transition-all ${u.is_active !== false ? 'text-gray-300 hover:text-amber-500 hover:bg-amber-50' : 'text-green-400 hover:bg-green-50'}`}
+                                                ><AlertTriangle size={14} /></button>
+                                                <button
+                                                    onClick={() => handleDeleteClick(u.id, 'user')}
+                                                    title="Delete user"
+                                                    className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                ><Trash2 size={14} /></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

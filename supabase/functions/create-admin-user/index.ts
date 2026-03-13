@@ -48,8 +48,6 @@ Deno.serve(async (req: Request) => {
         const userId = authData.user.id;
 
         // 2. Insert/Update Profile
-        // The trigger handle_new_user might have already inserted a row.
-        // We will try to update it, or upsert.
         let profileData: any = {
             id: userId,
             full_name: fullName,
@@ -75,7 +73,7 @@ Deno.serve(async (req: Request) => {
                 website: website,
                 company_number: companyNumber,
                 vat_number: vatNumber,
-                company_name: companyName, // or some default logic
+                company_name: companyName,
             };
         }
 
@@ -86,14 +84,37 @@ Deno.serve(async (req: Request) => {
 
         if (profileError) {
             console.error('[create-admin-user] Profile update error:', profileError);
-            // We don't throw, since Auth creation succeeded, but we should log it.
+        }
+
+        // 3. Generate a password-recovery magic link that redirects to /update-password
+        const websiteUrl = Deno.env.get('PUBLIC_WEBSITE_URL')?.replace(/\/$/, '') || 'https://theberman.eu';
+        const redirectTo = `${websiteUrl}/update-password`;
+
+        let magicLink: string | null = null;
+        try {
+            const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+                type: 'recovery',
+                email: email,
+                options: {
+                    redirectTo: redirectTo,
+                    expiresIn: 604800, // 1 week (7 days) in seconds
+                }
+            });
+            if (linkError) {
+                console.error('[create-admin-user] generateLink error:', linkError.message);
+            } else {
+                magicLink = linkData?.properties?.action_link ?? null;
+            }
+        } catch (linkErr: any) {
+            console.error('[create-admin-user] generateLink threw:', linkErr.message);
         }
 
         return new Response(
             JSON.stringify({
                 success: true,
                 message: "User created successfully",
-                user: authData.user
+                user: authData.user,
+                magicLink: magicLink,
             }),
             { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
         )

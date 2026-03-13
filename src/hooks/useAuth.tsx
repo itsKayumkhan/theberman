@@ -82,10 +82,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             // Only update state if it changed to prevent unnecessary re-renders
             // But always fetch profile on sign in
-            if (event === 'SIGNED_IN') {
+            if (event === 'SIGNED_IN' || event === 'PASSWORD_RECOVERY') {
+                // PASSWORD_RECOVERY fires when user clicks the admin-sent magic link.
+                // We set the session so UpdatePassword page can call updateUser().
                 setSession(session);
                 setUser(session?.user ?? null);
-                fetchProfile(session?.user?.id || '');
+                if (session?.user?.id) {
+                    fetchProfile(session.user.id);
+                }
             } else if (event === 'SIGNED_OUT') {
                 setSession(null);
                 setUser(null);
@@ -136,9 +140,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const updateUserPassword = async (password: string) => {
-        const result = await supabase.auth.updateUser({ 
+        const result = await supabase.auth.updateUser({
             password,
-            data: { requires_password_change: false } 
+            data: { requires_password_change: false }
         });
         // Immediately sync the updated user into React state.
         // Without this, ProtectedRoute still sees the OLD user with requires_password_change: true

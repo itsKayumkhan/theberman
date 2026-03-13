@@ -127,37 +127,61 @@ const Admin = () => {
     const navigate = useNavigate();
 
     // ─── Derived state ───────────────────────────────────────────────────────────
-    // Only show counties where that specific role actually has users
+
+    // All unique counties for business users (both county & home_county)
     const uniqueBusinessLocations = Array.from(
-        new Set(users_list.filter(u => u.role === 'business').map(u => u.county || u.home_county).filter(Boolean))
+        new Set(
+            users_list
+                .filter(u => u.role === 'business')
+                .flatMap(u => [u.county, u.home_county])
+                .filter(Boolean)
+        )
     ).sort() as string[];
 
-    const filteredLeads = leads.filter(l =>
-        l.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        l.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        l.town?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (l.status || 'new').toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredLeads = leads.filter(l => {
+        const q = searchTerm.toLowerCase();
+        return (
+            l.name?.toLowerCase().includes(q) ||
+            l.email?.toLowerCase().includes(q) ||
+            l.town?.toLowerCase().includes(q) ||
+            (l.status || 'new').toLowerCase().includes(q)
+        );
+    });
 
-    const filteredAssessments = assessments.filter(a =>
-        a.property_address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        a.town?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        a.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (a.profiles?.full_name || '').toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const filteredBusinessLeads = users_list.filter(u => u.role === 'business').filter(u => {
-        const query = searchTerm.toLowerCase();
+    // Assessments: search + location filter
+    const filteredAssessments = assessments.filter(a => {
+        const q = searchTerm.toLowerCase();
         const matchSearch =
-            u.full_name?.toLowerCase().includes(query) ||
-            u.email?.toLowerCase().includes(query) ||
-            u.company_name?.toLowerCase().includes(query) ||
-            u.business_address?.toLowerCase().includes(query) ||
-            u.county?.toLowerCase().includes(query) ||
-            u.town?.toLowerCase().includes(query);
-        const matchLocation = !locationFilter || u.county === locationFilter || (u as any).home_county === locationFilter;
+            a.property_address?.toLowerCase().includes(q) ||
+            a.town?.toLowerCase().includes(q) ||
+            a.county?.toLowerCase().includes(q) ||
+            a.status?.toLowerCase().includes(q) ||
+            (a.profiles?.full_name || '').toLowerCase().includes(q);
+        const matchLocation =
+            !locationFilter ||
+            a.county === locationFilter ||
+            a.town?.toLowerCase() === locationFilter.toLowerCase();
         return matchSearch && matchLocation;
     });
+
+    // Businesses: search + location filter (checks both county and home_county)
+    const filteredBusinessLeads = users_list
+        .filter(u => u.role === 'business')
+        .filter(u => {
+            const query = searchTerm.toLowerCase();
+            const matchSearch =
+                u.full_name?.toLowerCase().includes(query) ||
+                u.email?.toLowerCase().includes(query) ||
+                u.company_name?.toLowerCase().includes(query) ||
+                u.business_address?.toLowerCase().includes(query) ||
+                u.county?.toLowerCase().includes(query) ||
+                u.town?.toLowerCase().includes(query);
+            const matchLocation =
+                !locationFilter ||
+                u.county === locationFilter ||
+                u.home_county === locationFilter;
+            return matchSearch && matchLocation;
+        });
 
     const stats = {
         totalUsers: users_list.length,
@@ -577,7 +601,7 @@ const Admin = () => {
         }
     };
 
-    const handleBulkRestore = async (items: {id: string, type: 'lead' | 'assessment' | 'user'}[]) => {
+    const handleBulkRestore = async (items: { id: string, type: 'lead' | 'assessment' | 'user' }[]) => {
         try {
             const tableMap = { lead: 'leads', assessment: 'assessments', user: 'profiles' } as const;
             for (const item of items) {
@@ -587,11 +611,11 @@ const Admin = () => {
             setDeletedItems(prev => prev.filter(i => !items.some(item => item.id === i.id && item.type === i.type)));
             toast.success(`${items.length} items restored successfully`);
         } catch (error: any) {
-             toast.error(error.message || 'Failed to restore some items');
+            toast.error(error.message || 'Failed to restore some items');
         }
     };
 
-    const handleBulkPermanentDelete = async (items: {id: string, type: 'lead' | 'assessment' | 'user'}[]) => {
+    const handleBulkPermanentDelete = async (items: { id: string, type: 'lead' | 'assessment' | 'user' }[]) => {
         if (!confirm(`This will permanently delete ${items.length} items from the database. This cannot be undone. Continue?`)) return;
         setIsDeleting(true);
         try {
@@ -783,14 +807,27 @@ const Admin = () => {
 
     const handleSendRenewalReminder = async (u: any) => {
         setSendingEmailId(u.id);
+        const toastId = toast.loading('Sending renewal reminder...');
         try {
             const expiryDate = u.subscription_end_date ? new Date(u.subscription_end_date).toLocaleDateString('en-GB') : 'Soon';
-            const subject = encodeURIComponent(`Your Subscription Expiry - The Berman`);
-            const body = encodeURIComponent(`Hi ${u.full_name || 'there'},\n\nYour subscription with The Berman has expired/is about to expire on ${expiryDate}.\n\nTo continue your membership and keep your listing active, please login and renew your subscription.\n\nBest regards,\nThe Berman Team`);
-            window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${u.email}&su=${subject}&body=${body}`, '_blank');
-            toast.success('Opening Gmail with renewal reminder...');
+
+            const { data, error } = await supabase.functions.invoke('send-renewal-email', {
+                body: {
+                    fullName: u.full_name,
+                    email: u.email,
+                    expiryDate: expiryDate,
+                    role: u.role
+                }
+            });
+
+            if (error) throw error;
+            if (!data?.success) throw new Error(data?.error || 'Failed to send email');
+
+            toast.success('Renewal reminder sent successfully!', { id: toastId });
+            await logAudit('send_renewal_reminder', 'user', u.id, { email: u.email });
         } catch (error: any) {
-            toast.error('Failed to send renewal reminder');
+            console.error('Email error:', error);
+            toast.error(error.message || 'Failed to send renewal reminder', { id: toastId });
         } finally {
             setSendingEmailId(null);
         }
@@ -870,7 +907,14 @@ const Admin = () => {
         setSendingEmailId(u.id);
         try {
             const { error } = await supabase.functions.invoke('send-onboarding-link', {
-                body: { fullName: u.full_name, email: u.email, town: u.company_name || u.town || 'Your Business Profile', userId: u.id, role: 'business' }
+                body: {
+                    fullName: u.full_name,
+                    email: u.email,
+                    password: 'Welcome@TheBerman123',
+                    town: u.company_name || u.town || 'Your Business Profile',
+                    userId: u.id,
+                    role: 'business'
+                }
             });
             if (error) throw error;
             toast.success('Onboarding email sent successfully!');
@@ -1368,17 +1412,17 @@ const Admin = () => {
     const pendingBusinesses = users_list.filter(u => u.role === 'business' && u.registration_status === 'pending' && !listings.some(l => l.user_id === u.id || l.owner_id === u.id)).length;
 
     const NAV_ITEMS: { id: string; label: string; icon: React.ElementType; badge: number }[] = [
-        { id: 'stats',            label: 'Overview',         icon: BarChart2,     badge: 0 },
-        { id: 'leads',            label: 'Leads',            icon: Inbox,         badge: 0 },
-        { id: 'assessments',      label: 'Assessments',      icon: ClipboardList, badge: 0 },
-        { id: 'assessors',        label: 'BER Assessors',    icon: HardHat,       badge: pendingAssessors },
-        { id: 'businesses',       label: 'Businesses',       icon: Building2,     badge: pendingBusinesses },
-        { id: 'catalogue',        label: 'Catalogue',        icon: BookOpen,      badge: 0 },
-        { id: 'homeowners',       label: 'Homeowners',       icon: Home,          badge: 0 },
-        { id: 'payments',         label: 'Payments',         icon: DollarSign,    badge: 0 },
-        { id: 'news',             label: 'News',             icon: Newspaper,     badge: 0 },
-        { id: 'recently-deleted', label: 'Recently Deleted', icon: Trash2,        badge: deletedItems.length },
-        { id: 'settings',         label: 'Settings',         icon: SettingsIcon,  badge: 0 },
+        { id: 'stats', label: 'Overview', icon: BarChart2, badge: 0 },
+        { id: 'leads', label: 'Leads', icon: Inbox, badge: 0 },
+        { id: 'assessments', label: 'Assessments', icon: ClipboardList, badge: 0 },
+        { id: 'assessors', label: 'BER Assessors', icon: HardHat, badge: pendingAssessors },
+        { id: 'businesses', label: 'Businesses', icon: Building2, badge: pendingBusinesses },
+        { id: 'catalogue', label: 'Catalogue', icon: BookOpen, badge: 0 },
+        { id: 'homeowners', label: 'Homeowners', icon: Home, badge: 0 },
+        { id: 'payments', label: 'Payments', icon: DollarSign, badge: 0 },
+        { id: 'news', label: 'News', icon: Newspaper, badge: 0 },
+        { id: 'recently-deleted', label: 'Recently Deleted', icon: Trash2, badge: deletedItems.length },
+        { id: 'settings', label: 'Settings', icon: SettingsIcon, badge: 0 },
     ];
 
     const navClick = (id: string) => { setView(id as AdminView); setLocationFilter(''); setSearchTerm(''); setSidebarOpen(false); };
@@ -1436,9 +1480,8 @@ const Admin = () => {
                                 key={id}
                                 onClick={() => navClick(id)}
                                 title={label}
-                                className={`w-full flex items-center justify-between px-4 py-2.5 text-[12px] font-semibold transition-all duration-150 relative group ${
-                                    isActive ? 'bg-[#007F00] text-white' : 'text-white/60 hover:text-white hover:bg-white/5'
-                                }`}
+                                className={`w-full flex items-center justify-between px-4 py-2.5 text-[12px] font-semibold transition-all duration-150 relative group ${isActive ? 'bg-[#007F00] text-white' : 'text-white/60 hover:text-white hover:bg-white/5'
+                                    }`}
                             >
                                 <div className="flex items-center gap-3 min-w-0">
                                     <Icon size={16} className={`flex-shrink-0 ${isActive ? 'text-white' : 'text-white/70 group-hover:text-white'}`} />
@@ -1527,119 +1570,123 @@ const Admin = () => {
                 {/* Content */}
                 <main className="flex-1 p-3 md:p-5 min-w-0 overflow-x-hidden">
 
-                {loading ? (
-                    <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl shadow-sm border border-gray-100">
-                        <RefreshCw className="animate-spin text-[#007F00] mb-4" size={32} />
-                        <p className="text-gray-500 font-medium">Loading {view}...</p>
-                    </div>
-                ) : view === 'stats' ? (
-                    <StatsView
-                        stats={stats} users_list={users_list} listings={listings}
-                        assessments={assessments} payments={payments}
-                        searchTerm={searchTerm} setSearchTerm={setSearchTerm}
-                        locationFilter={locationFilter} setLocationFilter={setLocationFilter}
-                        handleOpenCatalogueView={handleOpenCatalogueView}
-                        setSelectedUser={setSelectedUser}
-                        setItemToSuspend={setItemToSuspend} setShowSuspendModal={setShowSuspendModal}
-                        setView={setView}
-                        handleDeleteClick={handleDeleteClick}
-                    />
-                ) : view === 'leads' ? (
-                    <LeadsView
-                        leads={leads} filteredLeads={filteredLeads}
-                        searchTerm={searchTerm} setSearchTerm={setSearchTerm}
-                        setSelectedLead={setSelectedLead} handleDeleteClick={handleDeleteClick}
-                    />
-                ) : view === 'assessments' ? (
-                    <AssessmentsView
-                        filteredAssessments={filteredAssessments} users_list={users_list}
-                        setSelectedAssessment={setSelectedAssessment}
-                        setShowAssessmentDetailModal={setShowAssessmentDetailModal}
-                        handleDeleteClick={handleDeleteClick}
-                    />
-                ) : view === 'homeowners' || view === 'assessors' ? (
-                    <UsersView
-                        view={view} users_list={users_list} assessments={assessments} listings={listings}
-                        searchTerm={searchTerm} setSearchTerm={setSearchTerm}
-                        locationFilter={locationFilter} setLocationFilter={setLocationFilter}
-                        isUpdating={isUpdating}
-                        handleSendRenewalReminder={handleSendRenewalReminder}
-                        handleOpenCatalogueView={handleOpenCatalogueView}
-                        updateRegistrationStatus={updateRegistrationStatus}
-                        setSelectedUser={setSelectedUser}
-                        setItemToSuspend={setItemToSuspend} setShowSuspendModal={setShowSuspendModal}
-                        setNewUserRole={setNewUserRole} setShowAddUserModal={setShowAddUserModal}
-                        handleDeleteClick={handleDeleteClick}
-                    />
-                ) : view === 'businesses' ? (
-                    <BusinessesView
-                        filteredBusinessLeads={filteredBusinessLeads} users_list={users_list} listings={listings}
-                        searchTerm={searchTerm} setSearchTerm={setSearchTerm}
-                        locationFilter={locationFilter} setLocationFilter={setLocationFilter}
-                        uniqueUserLocations={uniqueBusinessLocations}
-                        isUpdating={isUpdating} sendingEmailId={sendingEmailId}
-                        handleManualRenewal={handleManualRenewal}
-                        handleSendRenewalReminder={handleSendRenewalReminder}
-                        handleCancelSubscription={handleCancelSubscription}
-                        handleSendOnboardingEmail={handleSendOnboardingEmail}
-                        handleOpenCatalogueView={handleOpenCatalogueView}
-                        setSelectedUser={setSelectedUser} setEditForm={setEditForm}
-                        setItemToSuspend={setItemToSuspend} setShowSuspendModal={setShowSuspendModal}
-                        updateRegistrationStatus={updateRegistrationStatus}
-                        setNewUserRole={setNewUserRole} setShowAddUserModal={setShowAddUserModal}
-                    />
-                ) : view === 'catalogue' ? (
-                    <CatalogueView
-                        listings={listings} users_list={users_list}
-                        searchTerm={searchTerm} setSearchTerm={setSearchTerm}
-                        handleOpenCatalogueView={handleOpenCatalogueView}
-                        toggleCatalogueStatus={toggleCatalogueStatus}
-                        toggleCatalogueFeatured={toggleCatalogueFeatured}
-                        handleDeleteListing={handleDeleteListing}
-                    />
-                ) : view === 'add-to-catalogue' ? (
-                    <AddToCatalogueView
-                        catalogueFormData={catalogueFormData} setCatalogueFormData={setCatalogueFormData}
-                        catalogueCategories={catalogueCategories}
-                        selectedBusinessForCatalogue={selectedBusinessForCatalogue}
-                        selectedListingForEdit={selectedListingForEdit}
-                        isSavingCatalogue={isSavingCatalogue} isUploadingLogo={isUploadingLogo}
-                        isUpdatingBanner={isUpdatingBanner} isUploadingGallery={isUploadingGallery}
-                        handleSaveCatalogueEntry={handleSaveCatalogueEntry}
-                        handleLogoUpload={handleLogoUpload}
-                        handleGalleryUpload={handleGalleryUpload}
-                        toggleCatalogueCategory={toggleCatalogueCategory}
-                        setView={setView}
-                    />
-                ) : view === 'payments' ? (
-                    <PaymentsView payments={payments} handleExportPayments={handleExportPayments} />
-                ) : view === 'news' ? (
-                    <NewsView
-                        newsArticles={newsArticles} loading={loading}
-                        fetchNewsArticles={fetchNewsArticles}
-                        handleDeleteNewsArticle={handleDeleteNewsArticle}
-                    />
-                ) : view === 'settings' ? (
-                    <SettingsView
-                        appSettings={appSettings}
-                        promoSettings={promoSettings} setPromoSettings={setPromoSettings}
-                        isSavingSettings={isSavingSettings} setIsSavingSettings={setIsSavingSettings}
-                        isSavingRegistrationFees={isSavingRegistrationFees} setIsSavingRegistrationFees={setIsSavingRegistrationFees}
-                        isUpdatingBanner={isUpdatingBanner}
-                        fetchAppSettings={fetchAppSettings}
-                        savePromoSettings={savePromoSettings}
-                    />
-                ) : view === 'recently-deleted' ? (
-                    <RecentlyDeletedView
-                        deletedItems={deletedItems}
-                        loading={loading}
-                        isDeleting={isDeleting}
-                        onRestore={handleRestoreItem}
-                        onPermanentDelete={handlePermanentDelete}
-                        onBulkRestore={handleBulkRestore}
-                        onBulkPermanentDelete={handleBulkPermanentDelete}
-                    />
-                ) : null}
+                    {loading ? (
+                        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl shadow-sm border border-gray-100">
+                            <RefreshCw className="animate-spin text-[#007F00] mb-4" size={32} />
+                            <p className="text-gray-500 font-medium">Loading {view}...</p>
+                        </div>
+                    ) : view === 'stats' ? (
+                        <StatsView
+                            stats={stats} users_list={users_list} listings={listings}
+                            assessments={assessments} payments={payments}
+                            searchTerm={searchTerm} setSearchTerm={setSearchTerm}
+                            locationFilter={locationFilter} setLocationFilter={setLocationFilter}
+                            handleOpenCatalogueView={handleOpenCatalogueView}
+                            setSelectedUser={setSelectedUser}
+                            setItemToSuspend={setItemToSuspend} setShowSuspendModal={setShowSuspendModal}
+                            setView={setView}
+                            handleDeleteClick={handleDeleteClick}
+                        />
+                    ) : view === 'leads' ? (
+                        <LeadsView
+                            leads={leads} filteredLeads={filteredLeads}
+                            searchTerm={searchTerm} setSearchTerm={setSearchTerm}
+                            setSelectedLead={setSelectedLead} handleDeleteClick={handleDeleteClick}
+                        />
+                    ) : view === 'assessments' ? (
+                        <AssessmentsView
+                            filteredAssessments={filteredAssessments} users_list={users_list}
+                            searchTerm={searchTerm} setSearchTerm={setSearchTerm}
+                            locationFilter={locationFilter} setLocationFilter={setLocationFilter}
+                            setSelectedAssessment={setSelectedAssessment}
+                            setShowAssessmentDetailModal={setShowAssessmentDetailModal}
+                            handleDeleteClick={handleDeleteClick}
+                        />
+                    ) : view === 'homeowners' || view === 'assessors' ? (
+                        <UsersView
+                            view={view} users_list={users_list} assessments={assessments} listings={listings}
+                            searchTerm={searchTerm} setSearchTerm={setSearchTerm}
+                            locationFilter={locationFilter} setLocationFilter={setLocationFilter}
+                            isUpdating={isUpdating}
+                            handleSendRenewalReminder={handleSendRenewalReminder}
+                            handleOpenCatalogueView={handleOpenCatalogueView}
+                            updateRegistrationStatus={updateRegistrationStatus}
+                            setSelectedUser={setSelectedUser}
+                            setItemToSuspend={setItemToSuspend} setShowSuspendModal={setShowSuspendModal}
+                            setNewUserRole={setNewUserRole} setShowAddUserModal={setShowAddUserModal}
+                            handleDeleteClick={handleDeleteClick}
+                        />
+                    ) : view === 'businesses' ? (
+                        <BusinessesView
+                            filteredBusinessLeads={filteredBusinessLeads} users_list={users_list} listings={listings}
+                            searchTerm={searchTerm} setSearchTerm={setSearchTerm}
+                            locationFilter={locationFilter} setLocationFilter={setLocationFilter}
+                            uniqueUserLocations={uniqueBusinessLocations}
+                            isUpdating={isUpdating} sendingEmailId={sendingEmailId}
+                            handleManualRenewal={handleManualRenewal}
+                            handleSendRenewalReminder={handleSendRenewalReminder}
+                            handleCancelSubscription={handleCancelSubscription}
+                            handleSendOnboardingEmail={handleSendOnboardingEmail}
+                            handleOpenCatalogueView={handleOpenCatalogueView}
+                            setSelectedUser={setSelectedUser} setEditForm={setEditForm}
+                            setItemToSuspend={setItemToSuspend} setShowSuspendModal={setShowSuspendModal}
+                            updateRegistrationStatus={updateRegistrationStatus}
+                            setNewUserRole={setNewUserRole} setShowAddUserModal={setShowAddUserModal}
+                        />
+                    ) : view === 'catalogue' ? (
+                        <CatalogueView
+                            listings={listings} users_list={users_list}
+                            searchTerm={searchTerm} setSearchTerm={setSearchTerm}
+                            handleOpenCatalogueView={handleOpenCatalogueView}
+                            toggleCatalogueStatus={toggleCatalogueStatus}
+                            toggleCatalogueFeatured={toggleCatalogueFeatured}
+                            handleDeleteListing={handleDeleteListing}
+                        />
+                    ) : view === 'add-to-catalogue' ? (
+                        <AddToCatalogueView
+                            catalogueFormData={catalogueFormData} setCatalogueFormData={setCatalogueFormData}
+                            catalogueCategories={catalogueCategories}
+                            selectedBusinessForCatalogue={selectedBusinessForCatalogue}
+                            selectedListingForEdit={selectedListingForEdit}
+                            isSavingCatalogue={isSavingCatalogue} isUploadingLogo={isUploadingLogo}
+                            isUpdatingBanner={isUpdatingBanner} isUploadingGallery={isUploadingGallery}
+                            handleSaveCatalogueEntry={handleSaveCatalogueEntry}
+                            handleLogoUpload={handleLogoUpload}
+                            handleGalleryUpload={handleGalleryUpload}
+                            toggleCatalogueCategory={toggleCatalogueCategory}
+                            setView={setView}
+                        />
+                    ) : view === 'payments' ? (
+                        <PaymentsView payments={payments} handleExportPayments={handleExportPayments} />
+                    ) : view === 'news' ? (
+                        <NewsView
+                            newsArticles={newsArticles} loading={loading}
+                            fetchNewsArticles={fetchNewsArticles}
+                            handleDeleteNewsArticle={handleDeleteNewsArticle}
+                        />
+                    ) : view === 'settings' ? (
+                        <SettingsView
+                            appSettings={appSettings}
+                            promoSettings={promoSettings} setPromoSettings={setPromoSettings}
+                            isSavingSettings={isSavingSettings} setIsSavingSettings={setIsSavingSettings}
+                            isSavingRegistrationFees={isSavingRegistrationFees} setIsSavingRegistrationFees={setIsSavingRegistrationFees}
+                            isUpdatingBanner={isUpdatingBanner}
+                            fetchAppSettings={fetchAppSettings}
+                            savePromoSettings={savePromoSettings}
+                        />
+                    ) : view === 'recently-deleted' ? (
+                        <RecentlyDeletedView
+                            deletedItems={deletedItems}
+                            loading={loading}
+                            isDeleting={isDeleting}
+                            searchTerm={searchTerm}
+                            setSearchTerm={setSearchTerm}
+                            onRestore={handleRestoreItem}
+                            onPermanentDelete={handlePermanentDelete}
+                            onBulkRestore={handleBulkRestore}
+                            onBulkPermanentDelete={handleBulkPermanentDelete}
+                        />
+                    ) : null}
                 </main>
             </div>
 

@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { Trash2, RotateCcw, AlertTriangle, Loader2, User, ClipboardList, Inbox, CheckSquare, Square } from 'lucide-react';
+import { Trash2, RotateCcw, AlertTriangle, Loader2, User, ClipboardList, Inbox, CheckSquare, Square, Search, Filter as FilterIcon } from 'lucide-react';
 
 interface DeletedRow {
     id: string;
@@ -9,11 +8,13 @@ interface DeletedRow {
     email?: string;
     details?: string;
 }
-
+import { useState } from 'react';
 interface Props {
     deletedItems: DeletedRow[];
     loading: boolean;
     isDeleting: boolean;
+    searchTerm: string;
+    setSearchTerm: (v: string) => void;
     onRestore: (id: string, type: DeletedRow['type']) => void;
     onPermanentDelete: (id: string, type: DeletedRow['type']) => void;
     onBulkRestore: (items: { id: string, type: DeletedRow['type'] }[]) => void;
@@ -38,14 +39,31 @@ const TYPE_COLORS: Record<DeletedRow['type'], string> = {
     user: 'bg-amber-50 text-amber-600',
 };
 
-export const RecentlyDeletedView = ({ deletedItems, loading, isDeleting, onRestore, onPermanentDelete, onBulkRestore, onBulkPermanentDelete }: Props) => {
+export const RecentlyDeletedView = ({
+    deletedItems, loading, isDeleting,
+    searchTerm, setSearchTerm,
+    onRestore, onPermanentDelete, onBulkRestore, onBulkPermanentDelete
+}: Props) => {
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [typeFilter, setTypeFilter] = useState<string>('');
+
+    const filteredItems = deletedItems.filter(item => {
+        const q = searchTerm.toLowerCase();
+        const matchesSearch = !q ||
+            item.label?.toLowerCase().includes(q) ||
+            item.email?.toLowerCase().includes(q) ||
+            item.details?.toLowerCase().includes(q);
+
+        const matchesType = !typeFilter || item.type === typeFilter;
+
+        return matchesSearch && matchesType;
+    });
 
     const toggleSelectAll = () => {
-        if (selectedIds.size === deletedItems.length) {
+        if (selectedIds.size === filteredItems.length && filteredItems.length > 0) {
             setSelectedIds(new Set());
         } else {
-            setSelectedIds(new Set(deletedItems.map(item => `${item.type}-${item.id}`)));
+            setSelectedIds(new Set(filteredItems.map(item => `${item.type}-${item.id}`)));
         }
     };
 
@@ -60,7 +78,7 @@ export const RecentlyDeletedView = ({ deletedItems, loading, isDeleting, onResto
     };
 
     const handleBulkRestore = () => {
-        const itemsToRestore = deletedItems
+        const itemsToRestore = filteredItems
             .filter(item => selectedIds.has(`${item.type}-${item.id}`))
             .map(item => ({ id: item.id, type: item.type }));
         onBulkRestore(itemsToRestore);
@@ -68,7 +86,7 @@ export const RecentlyDeletedView = ({ deletedItems, loading, isDeleting, onResto
     };
 
     const handleBulkDelete = () => {
-        const itemsToDelete = deletedItems
+        const itemsToDelete = filteredItems
             .filter(item => selectedIds.has(`${item.type}-${item.id}`))
             .map(item => ({ id: item.id, type: item.type }));
         onBulkPermanentDelete(itemsToDelete);
@@ -98,14 +116,46 @@ export const RecentlyDeletedView = ({ deletedItems, loading, isDeleting, onResto
                 </div>
             </div>
 
+            {/* Toolbar */}
+            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between bg-white px-4 py-3 rounded-xl border border-gray-100 shadow-sm">
+                <div className="flex flex-col sm:flex-row gap-2 flex-1 max-w-xl">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={15} />
+                        <input
+                            type="text"
+                            placeholder="Search by name, email or details..."
+                            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00] outline-none transition-all bg-gray-50"
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <div className="relative w-full sm:w-44">
+                        <FilterIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={13} />
+                        <select
+                            className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00] outline-none transition-all bg-gray-50 appearance-none text-gray-600"
+                            value={typeFilter}
+                            onChange={e => setTypeFilter(e.target.value)}
+                        >
+                            <option value="">All Types</option>
+                            <option value="user">Users</option>
+                            <option value="lead">Leads</option>
+                            <option value="assessment">Assessments</option>
+                        </select>
+                    </div>
+                </div>
+                <div className="flex items-center gap-3">
+                    <span className="text-xs text-gray-400">{filteredItems.length} result{filteredItems.length !== 1 ? 's' : ''}</span>
+                </div>
+            </div>
+
             {/* Table */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="px-5 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h2 className="text-sm font-bold text-gray-900">Recently Deleted</h2>
-                        <p className="text-xs text-gray-400 mt-0.5">{deletedItems.length} item{deletedItems.length !== 1 ? 's' : ''} waiting for permanent deletion</p>
+                        <h2 className="text-sm font-bold text-gray-900">Recently Deleted Items</h2>
+                        <p className="text-xs text-gray-400 mt-0.5">{deletedItems.length} items total in bin</p>
                     </div>
-                    
+
                     {selectedIds.size > 0 && (
                         <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
                             <span className="text-xs font-bold text-gray-600 mr-2">{selectedIds.size} selected</span>
@@ -129,13 +179,13 @@ export const RecentlyDeletedView = ({ deletedItems, loading, isDeleting, onResto
                     )}
                 </div>
 
-                {deletedItems.length === 0 ? (
+                {filteredItems.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-16 text-center">
                         <div className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center mb-3">
                             <Trash2 size={24} className="text-gray-300" />
                         </div>
-                        <p className="text-sm font-semibold text-gray-500">No deleted items</p>
-                        <p className="text-xs text-gray-400 mt-1">Items you delete will appear here before permanent removal.</p>
+                        <p className="text-sm font-semibold text-gray-500">No items found</p>
+                        <p className="text-xs text-gray-400 mt-1">Try adjusting your filters or checking back later.</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
@@ -144,7 +194,7 @@ export const RecentlyDeletedView = ({ deletedItems, loading, isDeleting, onResto
                                 <tr className="bg-gray-50 border-b border-gray-100">
                                     <th className="px-5 py-3 w-10">
                                         <button onClick={toggleSelectAll} className="text-gray-400 hover:text-gray-600 transition-colors flex items-center justify-center">
-                                            {selectedIds.size === deletedItems.length && deletedItems.length > 0 ? (
+                                            {selectedIds.size === filteredItems.length && filteredItems.length > 0 ? (
                                                 <CheckSquare size={16} className="text-[#007F00]" />
                                             ) : (
                                                 <Square size={16} />
@@ -160,7 +210,7 @@ export const RecentlyDeletedView = ({ deletedItems, loading, isDeleting, onResto
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
-                                {deletedItems.map((item) => {
+                                {filteredItems.map((item) => {
                                     const Icon = TYPE_ICONS[item.type];
                                     const typeId = `${item.type}-${item.id}`;
                                     const isSelected = selectedIds.has(typeId);

@@ -67,13 +67,14 @@ export const StatsView = ({
         if (!assessorType) return false;
         const type = assessorType.toLowerCase();
 
-        const isDomestic = type.includes('domestic');
-        const isCommercial = type.includes('commercial');
-        const isBoth = type.includes('both') || type.includes('&') || (isDomestic && isCommercial);
+        const inBoth = type.includes('both') || type.includes('&');
+        const matchDomestic = type.includes('domestic') || inBoth;
+        const matchCommercial = type.includes('commercial') || inBoth;
+        const matchBoth = inBoth || (type.includes('domestic') && type.includes('commercial'));
 
-        if (filter === 'both') return isBoth;
-        if (filter === 'domestic') return isDomestic && !isBoth;
-        if (filter === 'commercial') return isCommercial && !isBoth;
+        if (filter === 'both') return matchBoth;
+        if (filter === 'domestic') return matchDomestic;
+        if (filter === 'commercial') return matchCommercial;
         return true;
     };
 
@@ -86,7 +87,11 @@ export const StatsView = ({
         typeGroup.flatMap(u => userType === 'assessors' ? [u.home_county, u.county, ...(u.preferred_counties || [])] : [u.home_county, u.county])
     )).filter(Boolean).sort() as string[];
 
-    const countForLoc = (loc: string) => typeGroup.filter(u => u.county === loc || u.home_county === loc || u.preferred_counties?.includes(loc)).length;
+    const countForLoc = (loc: string) => typeGroup.filter(u =>
+        u.county === loc ||
+        u.home_county === loc ||
+        (u.preferred_counties && u.preferred_counties.includes(loc))
+    ).length;
 
     const filtered = users_list.filter(u => {
         const matchRole =

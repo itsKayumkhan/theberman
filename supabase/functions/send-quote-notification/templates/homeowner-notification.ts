@@ -6,47 +6,48 @@ export const generateHomeownerQuoteEmail = (customerName: string, websiteUrl: st
 <html>
 <head>
     <meta charset="utf-8">
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4; }
-        .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border: 1px solid #eee; }
-        .header { background-color: #58a25c; color: white; padding: 40px 20px; text-align: center; }
-        .header h1 { margin: 0; font-size: 32px; font-weight: bold; }
-        .content { padding: 40px 30px; }
-        .greeting { font-size: 18px; font-weight: bold; margin-bottom: 20px; color: #333; }
-        .message { font-size: 16px; color: #555; margin-bottom: 25px; }
-        .button-container { text-align: center; margin: 40px 0; }
-        .button { background-color: #58a25c; color: white !important; padding: 16px 45px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 18px; display: inline-block; }
-        .footer { padding: 30px; border-top: 1px solid #eee; font-size: 14px; color: #888; background-color: #ffffff; }
-        .guarantee { font-size: 13px; color: #666; margin-top: 30px; line-height: 1.4; border-top: 1px solid #eee; padding-top: 20px; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>New BER Quote</h1>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f7f4;">
+    <div style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <div style="background-color: #007F00; color: white; padding: 40px 20px; text-align: center;">
+            <img src="${websiteUrl}/logo.svg" alt="The Berman" style="height: 35px; margin-bottom: 15px; filter: brightness(0) invert(1);">
+            <h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">New BER Quote Received</h1>
         </div>
-        <div class="content">
-            <div class="greeting">Hi ${customerName},</div>
-            <div class="message">
-                Good news! You've received a new quote from your local BER Assessor.
+
+        <div style="padding: 40px 30px;">
+            <p style="font-size: 18px; font-weight: 600; margin-bottom: 20px; color: #1a1a1a;">Hi ${customerName},</p>
+
+            <p style="font-size: 16px; color: #444; margin-bottom: 25px;">
+                Great news! A local BER Assessor has submitted a professional quote for your property assessment.
+            </p>
+
+            <div style="background-color: #f9fff9; border: 1px solid #d4edda; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                <p style="margin: 0; font-size: 15px; color: #155724; line-height: 1.5;">
+                    <strong>Transparent Pricing:</strong> This quote includes all applicable SEAI fees. The price you see is the final price you pay—no hidden extras.
+                </p>
             </div>
-            <div class="message">
-                Quotes include all applicable SEAI fees. This is the total price you will pay - no surprises!
+
+            <div style="text-align: center; margin: 40px 0;">
+                <a href="${dashboardUrl}" style="background-color: #007F00; color: #ffffff !important; padding: 18px 40px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 18px; display: inline-block; box-shadow: 0 4px 12px rgba(0,127,0,0.2);">
+                    Review Quote Details
+                </a>
             </div>
-            <div class="button-container">
-                <a href="${dashboardUrl}" class="button">View Quote</a>
-            </div>
-            <div class="message">
-                You can instantly confirm your booking online by accepting a quote and paying a small booking deposit.
-            </div>
-            <div class="guarantee">
-                We also offer a <strong>100% NO-RISK MONEY-BACK GUARANTEE!</strong> If for any reason you wish to cancel before the assessor visits your home, we will refund your deposit in full, no questions asked.
+
+            <p style="font-size: 15px; color: #555; margin-bottom: 25px;">
+                You can instantly confirm your booking by accepting the quote online. A small deposit secures your spot in the assessor's schedule.
+            </p>
+
+            <div style="font-size: 13px; color: #666; line-height: 1.5; border-top: 1px solid #eee; padding-top: 25px; font-style: italic;">
+                <strong>Peace of Mind Guarantee:</strong> We offer a 100% money-back guarantee. If you need to cancel for any reason before the site visit, your deposit will be refunded in full.
             </div>
         </div>
-        <div class="footer">
+
+        <div style="padding: 30px; background-color: #fafafa; border-top: 1px solid #eee;">
             ${promoHtml}
-            <div style="margin-top: 20px; text-align: center; font-size: 12px; color: #aaa;">
-                &copy; ${new Date().getFullYear()} TheBerman. All rights reserved.
+            <div style="margin-top: 25px; text-align: center; font-size: 12px; color: #999;">
+                &copy; ${new Date().getFullYear()} The Berman. All rights reserved.<br>
+                Connecting homeowners with certified energy assessors across Ireland.
             </div>
         </div>
     </div>
