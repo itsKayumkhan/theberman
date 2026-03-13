@@ -84,7 +84,9 @@ export const StatsView = React.memo(({
                 : users_list.filter(u => u.role !== 'admin');
 
     const activeLocations = Array.from(new Set(
-        typeGroup.flatMap(u => userType === 'assessors' ? [u.home_county, u.county, ...(u.preferred_counties || [])] : [u.home_county, u.county])
+        typeGroup.flatMap(u => (u.role === 'contractor' || u.role === 'business')
+            ? [u.home_county, u.county, ...(u.preferred_counties || [])]
+            : [u.home_county, u.county])
     )).filter(Boolean).sort() as string[];
 
     const countForLoc = (loc: string) => typeGroup.filter(u =>
@@ -217,7 +219,7 @@ export const StatsView = React.memo(({
                                 value={locationFilter}
                                 onChange={e => setLocationFilter(e.target.value)}
                             >
-                                <option value="">All Counties ({typeGroup.length})</option>
+                                <option value="">All Preference locations ({typeGroup.length})</option>
                                 {activeLocations.map(loc => <option key={loc} value={loc}>{loc} ({countForLoc(loc)})</option>)}
                             </select>
                         </div>

@@ -129,7 +129,7 @@ const Admin = () => {
         new Set(
             users_list
                 .filter(u => u.role === 'business')
-                .flatMap(u => [u.county, u.home_county])
+                .flatMap(u => [u.county, u.home_county, ...(u.preferred_counties || [])])
                 .filter(Boolean)
         )
     ).sort() as string[], [users_list]);
@@ -160,7 +160,7 @@ const Admin = () => {
         return matchSearch && matchLocation;
     }), [assessments, searchTerm, locationFilter]);
 
-    // Businesses: search + location filter (checks both county and home_county)
+    // Businesses: search + location filter (checks county, home_county, and preferred_counties)
     const filteredBusinessLeads = useMemo(() => users_list
         .filter(u => u.role === 'business')
         .filter(u => {
@@ -175,7 +175,8 @@ const Admin = () => {
             const matchLocation =
                 !locationFilter ||
                 u.county === locationFilter ||
-                u.home_county === locationFilter;
+                u.home_county === locationFilter ||
+                u.preferred_counties?.includes(locationFilter);
             return matchSearch && matchLocation;
         }), [users_list, searchTerm, locationFilter]);
 
@@ -880,7 +881,7 @@ const Admin = () => {
             const { data, error } = await supabase.from('profiles').update(updateData).eq('id', userId).select();
             if (error) throw error;
             if (!data || data.length === 0) throw new Error('Update failed: No rows were changed.');
-            
+
             setUsersList(prev => prev.map(u => u.id === userId ? { ...u, ...updateData } : u));
             toast.success(`${isAssessor ? 'Assessor' : 'Business'} account ${status === 'active' ? 'approved & activated' : 'rejected'} successfully`);
             fetchUsers();
@@ -919,10 +920,10 @@ const Admin = () => {
         try {
             const assessmentId = selectedAssessmentForAssignment.id;
             const previousStatus = selectedAssessmentForAssignment.status;
-            
+
             const { error } = await supabase.from('assessments').update({ contractor_id: contractorId, status: 'assigned' }).eq('id', assessmentId);
             if (error) throw error;
-            
+
             await logAudit('assign_contractor', 'assessment', assessmentId, { contractor_id: contractorId, previous_status: previousStatus });
             toast.success('Assessor assigned successfully');
             setShowAssignModal(false);
@@ -1587,6 +1588,7 @@ const Admin = () => {
                         />
                     ) : view === 'assessments' ? (
                         <AssessmentsView
+                            assessments={assessments}
                             filteredAssessments={filteredAssessments} users_list={users_list}
                             searchTerm={searchTerm} setSearchTerm={setSearchTerm}
                             locationFilter={locationFilter} setLocationFilter={setLocationFilter}
@@ -1624,6 +1626,7 @@ const Admin = () => {
                             setItemToSuspend={setItemToSuspend} setShowSuspendModal={setShowSuspendModal}
                             updateRegistrationStatus={updateRegistrationStatus}
                             setNewUserRole={setNewUserRole} setShowAddUserModal={setShowAddUserModal}
+                            handleDeleteClick={handleDeleteClick}
                         />
                     ) : view === 'catalogue' ? (
                         <CatalogueView

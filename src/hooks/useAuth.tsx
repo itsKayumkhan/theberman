@@ -81,8 +81,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Listen for changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             // Only update state if it changed to prevent unnecessary re-renders
-            // But always fetch profile on sign in
-            if (event === 'SIGNED_IN' || event === 'PASSWORD_RECOVERY') {
+            if (event === 'SIGNED_IN' || event === 'PASSWORD_RECOVERY' || event === 'INITIAL_SESSION') {
                 // PASSWORD_RECOVERY fires when user clicks the admin-sent magic link.
                 // We set the session so UpdatePassword page can call updateUser().
                 setSession(session);

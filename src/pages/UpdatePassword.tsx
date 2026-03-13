@@ -20,14 +20,34 @@ const updatePasswordSchema = z.object({
 type UpdatePasswordFormData = z.infer<typeof updatePasswordSchema>;
 
 const UpdatePassword = () => {
-    const { updateUserPassword, user } = useAuth();
+    const { updateUserPassword, user, loading } = useAuth();
     const navigate = useNavigate();
     const [redirecting, setRedirecting] = useState(false);
+    const [authWait, setAuthWait] = useState(true);
+
+    // Give Supabase a moment to process the hash if user is not immediately available
+    useEffect(() => {
+        // If we already have a user, no need to wait
+        if (user) {
+            setAuthWait(false);
+            return;
+        }
+
+        // If there's no access token in the URL, don't wait either
+        if (!window.location.hash.includes('access_token')) {
+            setAuthWait(false);
+            return;
+        }
+
+        // We have a hash but no user yet — wait for onAuthStateChange to fire
+        const timer = setTimeout(() => {
+            setAuthWait(false);
+        }, 1500); 
+
+        return () => clearTimeout(timer);
+    }, [user]);
 
     // Only redirect when requires_password_change is explicitly set to FALSE.
-    // - true  → show the form (admin-created user, must change)
-    // - false → password was successfully changed via this form → redirect to next step
-    // - undefined → normal forgot-password flow user (flag never set) → show form
     useEffect(() => {
         if (!user) return;
         const needsChange = user.user_metadata?.requires_password_change;
@@ -64,15 +84,58 @@ const UpdatePassword = () => {
         resolver: zodResolver(updatePasswordSchema),
     });
 
+    // Show loading while either global auth or local wait is active
+    if (loading || authWait) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+                <Loader2 className="animate-spin text-[#007F00] mb-4" size={40} />
+                <p className="text-gray-600 font-medium">Verifying your secure link...</p>
+            </div>
+        );
+    }
+
     // Show nothing while auto-redirecting to avoid flash of update form
     if (redirecting) {
-        return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#007F00]" /></div>;
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <Loader2 className="animate-spin text-[#007F00]" size={40} />
+            </div>
+        );
+    }
+
+    // If no user and no hash after waiting, they probably accessed it directly/invalidly
+    if (!user && !window.location.hash.includes('access_token')) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+                <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-10 text-center border border-gray-100">
+                    <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <X size={32} />
+                    </div>
+                    <h2 className="text-2xl font-serif font-bold text-gray-900 mb-2">Invalid Session</h2>
+                    <p className="text-gray-500 mb-8">This link is invalid or has expired. Please use the "Forgot Password" link on the login page or contact support.</p>
+                    <Link to="/login" className="inline-flex items-center gap-2 text-white bg-[#007F00] px-8 py-3 rounded-xl font-bold hover:bg-green-800 transition-all">
+                        Go to Login
+                    </Link>
+                </div>
+            </div>
+        );
     }
 
     const onSubmit = async (data: UpdatePasswordFormData) => {
         try {
+            // Force a session refresh to be absolutely sure we have one
+            const { data: sessionData } = await supabase.auth.getSession();
+            
+            if (!sessionData.session) {
+                // If it's a cold start with hash, Supabase might need an extra ms to parse it
+                await new Promise(resolve => setTimeout(resolve, 500));
+                const { data: secondCheck } = await supabase.auth.getSession();
+                if (!secondCheck.session) {
+                    throw new Error('Authentication session not found. Please try logging in or click the link again.');
+                }
+            }
+
             // updateUserPassword returns the updated user — use it directly
-            // so we don't rely on the stale useAuth user that may reset after auth change
             const { data: updateData, error } = await updateUserPassword(data.password);
             if (error) throw error;
 

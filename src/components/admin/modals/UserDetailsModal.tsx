@@ -154,7 +154,7 @@ export const UserDetailsModal = ({
                                 <div className="col-span-2 p-3 bg-gray-50 rounded-xl border border-gray-100">
                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-1">
                                         <MapPin size={11} />
-                                        <span>Preferred Service Locations</span>
+                                        <span>Preference location</span>
                                     </p>
                                     <div className="flex flex-wrap gap-1.5">
                                         {user.preferred_counties && user.preferred_counties.length > 0 ? (
@@ -168,7 +168,7 @@ export const UserDetailsModal = ({
                                             ))
                                         ) : (
                                             <span className="text-xs text-gray-400 italic font-medium">
-                                                No Preference locations set
+                                                No Preference location set
                                             </span>
                                         )}
                                     </div>
