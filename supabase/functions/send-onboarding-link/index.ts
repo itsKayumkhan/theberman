@@ -43,31 +43,51 @@ Deno.serve(async (req: Request) => {
         const actionUrl = onboardingUrl || `${websiteUrl}/login`;
 
         const subject = isBusiness
-            ? "Your Business Partner Onboarding - The Berman"
-            : "Your BER Assessor Onboarding - The Berman";
+            ? "Welcome! Set Your Password – The Berman Business Partner"
+            : "Welcome! Set Your Password – The Berman BER Assessor";
 
         const html = `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
-                <h2 style="color: #2e7d32; margin-top: 0;">Welcome to The Berman</h2>
-                <p>Hello <strong>${fullName}</strong>,</p>
-                <p>Your account as a <strong>${roleName}</strong> has been created. Please use the button below to log in automatically and complete your registration:</p>
-                
-                <div style="text-align: center; margin: 30px 0;">
-                    <a href="${actionUrl}" target="_blank" style="display:inline-block;background-color:#2e7d32;color:#ffffff;padding:14px 30px;text-decoration:none;border-radius:5px;font-weight:bold;font-size:16px;">Complete Your Registration</a>
+            <div style="font-family: sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #eee; border-radius: 8px; background-color: #ffffff;">
+                <div style="text-align: center; margin-bottom: 25px;">
+                    <img src="${websiteUrl}/logo.svg" alt="The Berman" style="height: 40px; filter: grayscale(1) brightness(0.2);">
+                </div>
+                <h2 style="color: #2e7d32; margin-top: 0; text-align: center; font-size: 24px;">Welcome to The Berman</h2>
+                <p style="font-size: 16px; color: #333;">Hello <strong>${fullName}</strong>,</p>
+                <p style="font-size: 15px; color: #555; line-height: 1.6;">
+                    Your account as a <strong>${roleName}</strong> has been successfully created.
+                    We are excited to have you join our network of energy professionals in Ireland.
+                </p>
+
+                <p style="font-size: 15px; color: #555; line-height: 1.6;">
+                    Please click the button below to <strong>set your own password</strong> and access your dashboard.
+                    For your security, this direct setup link is valid for <strong>7 days</strong>.
+                </p>
+
+                <div style="text-align: center; margin: 40px 0;">
+                    <a href="${actionUrl}" target="_blank" style="display:inline-block;background-color:#2e7d32;color:#ffffff;padding:16px 35px;text-decoration:none;border-radius:6px;font-weight:bold;font-size:18px;box-shadow: 0 4px 6px rgba(0,0,0,0.15);">
+                        Set My Password &amp; Login
+                    </a>
                 </div>
 
-                <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px; border-left: 4px solid #2e7d32;">
-                    <h3 style="margin-top: 0; font-size: 14px; color: #333;">Your Login Credentials</h3>
-                    <p style="margin: 5px 0; font-size: 14px;"><strong>Email:</strong> ${email}</p>
-                    ${password ? `<p style="margin: 5px 0; font-size: 14px;"><strong>Password:</strong> ${password}</p>` : ''}
-                    <p style="margin: 10px 0 0 0; font-size: 11px; color: #666; font-style: italic;">Note: The button above will log you in automatically without needing your password.</p>
+                <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 30px;">
+                    <h3 style="margin-top: 0; font-size: 14px; color: #333; text-transform: uppercase; letter-spacing: 0.5px;">Fallback Credentials</h3>
+                    <p style="margin: 10px 0; font-size: 14px; color: #555;"><strong>Login Email:</strong> ${email}</p>
+                    ${password ? `<p style="margin: 10px 0; font-size: 14px; color: #555;"><strong>Temporary Password:</strong> <code style="background:#eee; padding:2px 4px; border-radius:3px;">${password}</code></p>` : ''}
+                    <p style="margin: 15px 0 0 0; font-size: 12px; color: #777; line-height: 1.4;">
+                        <em>If the button above has expired, you can still sign in manually at <strong>${websiteUrl}/login</strong> using these details.</em>
+                    </p>
                 </div>
 
-                <p style="color: #666; font-size: 14px;">If the button doesn't work, copy and paste this link into your browser:</p>
-                <p style="word-break: break-all; font-size: 12px;"><a href="${actionUrl}" style="color: #2e7d32;">${actionUrl}</a></p>
-                
-                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-                <p style="font-size: 12px; color: #999; margin-bottom: 0;">The Berman - Registration Team</p>
+                <p style="color: #888; font-size: 13px; text-align: center;">
+                    Direct Link:<br>
+                    <a href="${actionUrl}" style="color: #2e7d32; text-decoration: none; font-size: 11px; word-break: break-all;">${actionUrl}</a>
+                </p>
+
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+                <p style="font-size: 12px; color: #999; text-align: center; line-height: 1.6;">
+                    &copy; ${new Date().getFullYear()} The Berman. Registered in Ireland.<br>
+                    Supporting sustainable energy goals through professional assessments.
+                </p>
             </div>
         `;
 

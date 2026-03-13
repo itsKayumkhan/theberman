@@ -61,13 +61,36 @@ Deno.serve(async (req: Request) => {
             // 1. Notify Customer
             try {
                 const customerHtml = `
-                    <div style="font-family: Arial, sans-serif; padding: 20px;">
-                      <h2 style="color: #007F00;">Your BER job is live!</h2>
-                      <p>Hi ${customerName},</p>
-                      <p>Assessors in <strong>${county}</strong> have been notified of your request.</p>
-                      <p>We'll notify you when your first quote arrives.</p>
-                      <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-                      ${promoHtml}
+                    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 20px auto; padding: 0; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
+                        <div style="background-color: #007F00; color: white; padding: 35px 20px; text-align: center;">
+                            <img src="${websiteUrl}/logo.svg" alt="The Berman" style="height: 30px; margin-bottom: 12px; filter: brightness(0) invert(1);">
+                            <h2 style="margin: 0; font-size: 24px; font-weight: 700;">Your BER Request is Live!</h2>
+                        </div>
+                        <div style="padding: 35px 30px; color: #333;">
+                            <p style="font-size: 17px; font-weight: 600; margin-top: 0;">Hi ${customerName},</p>
+                            <p style="font-size: 15px; color: #555; line-height: 1.6;">
+                                Your request for a BER assessment in <strong>${town || county}</strong> is now active on our network.
+                            </p>
+
+                            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 25px 0;">
+                                <h3 style="margin-top: 0; font-size: 15px; color: #007F00;">What happens next?</h3>
+                                <ol style="padding-left: 20px; margin-bottom: 0; font-size: 14px; color: #555; line-height: 1.8;">
+                                    <li>Registered assessors in <strong>${county}</strong> are being notified.</li>
+                                    <li>You will receive quotes directly to your inbox.</li>
+                                    <li>Compare prices and book your preferred date online.</li>
+                                </ol>
+                            </div>
+
+                            <p style="font-size: 14px; color: #777;">
+                                We'll send you another email as soon as your first quote arrives.
+                            </p>
+
+                            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+                            ${promoHtml}
+                        </div>
+                        <div style="text-align: center; padding-bottom: 25px; font-size: 11px; color: #aaa;">
+                            &copy; ${new Date().getFullYear()} The Berman. Supporting Ireland's energy efficiency.
+                        </div>
                     </div>
                 `;
                 await client.send(smtpFrom, email, 'Your job is live on TheBerman.eu', customerHtml);
