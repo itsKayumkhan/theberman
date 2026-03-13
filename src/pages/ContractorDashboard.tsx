@@ -773,7 +773,7 @@ const ContractorDashboard = () => {
                                                 view === 'settings' ? 'Assessor Settings' : 'Dashboard'}
                                 </h2>
                                 <p className="text-gray-500 font-medium max-w-2xl">
-                                    {view === 'available' ? 'Browse and quote for energy assessment leads in your preferred counties.' :
+                                    {view === 'available' ? 'Browse and quote for energy assessment leads in your Preference location.' :
                                         view === 'my_quotes' ? "Track and manage quotes you've submitted to homeowners." :
                                             view === 'active' ? 'Manage your current inspection schedule and client communications.' :
                                                 view === 'settings' ? 'Configure your notification preferences and service area.' :
@@ -1479,9 +1479,9 @@ const ContractorDashboard = () => {
                                 {/* County Preferences */}
                                 <div className="py-12 px-4 text-center">
                                     <h3 className="text-gray-600 font-medium mb-8 flex items-center justify-center gap-2 text-lg">
-                                        Select Your County Lead Preferences <MapPin className="text-gray-700 fill-gray-700" size={24} />
+                                        Select Your Preference location for Leads <MapPin className="text-gray-700 fill-gray-700" size={24} />
                                     </h3>
-                                    <p className="text-sm text-gray-500 mb-6">Select the counties where you want to receive job notifications.</p>
+                                    <p className="text-sm text-gray-500 mb-6">Select your Preference location where you want to receive job notifications.</p>
                                     <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 px-4">
                                         {COUNTIES.map(county => {
                                             const isSelected = profile?.preferred_counties?.includes(county);

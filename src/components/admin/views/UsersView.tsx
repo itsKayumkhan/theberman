@@ -126,7 +126,7 @@ export const UsersView = React.memo(({
                             value={locationFilter}
                             onChange={e => setLocationFilter(e.target.value)}
                         >
-                            <option value="">All Counties ({activeGroup.length})</option>
+                            <option value="">All Preference locations ({activeGroup.length})</option>
                             {activeLocations.map(loc => (
                                 <option key={loc} value={loc}>{loc} ({countForLoc(loc)})</option>
                             ))}

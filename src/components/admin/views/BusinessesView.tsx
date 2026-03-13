@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Briefcase, AlertTriangle, CheckCircle2, Mail, Pencil, Plus, Eye, RefreshCw, XCircle, X } from 'lucide-react';
+import { Search, Briefcase, AlertTriangle, CheckCircle2, Mail, Pencil, Plus, Eye, RefreshCw, XCircle, X, Trash2 } from 'lucide-react';
 import { Filter as FilterIcon } from 'lucide-react';
 import type { Profile, CatalogueListing } from '../../../types/admin';
 import { StatusCell, SubscriptionInfo } from '../StatusBadges';
@@ -27,6 +27,7 @@ interface Props {
     updateRegistrationStatus: (id: string, status: 'active' | 'rejected') => void;
     setNewUserRole: (v: 'business') => void;
     setShowAddUserModal: (v: boolean) => void;
+    handleDeleteClick: (id: string, type: 'user') => void;
 }
 
 export const BusinessesView = React.memo(({
@@ -38,6 +39,7 @@ export const BusinessesView = React.memo(({
     setSelectedUser, setEditForm, setItemToSuspend, setShowSuspendModal,
     updateRegistrationStatus,
     setNewUserRole, setShowAddUserModal,
+    handleDeleteClick
 }: Props) => (
     <div className="space-y-4">
         {/* Toolbar */}
@@ -60,7 +62,7 @@ export const BusinessesView = React.memo(({
                         value={locationFilter}
                         onChange={e => setLocationFilter(e.target.value)}
                     >
-                        <option value="">All Counties</option>
+                        <option value="">All Preference locations</option>
                         {uniqueUserLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
                     </select>
                 </div>
@@ -204,6 +206,13 @@ export const BusinessesView = React.memo(({
                                                 title={u.is_active !== false ? 'Suspend' : 'Activate'}
                                                 className={`p-1.5 rounded-lg transition-all ${u.is_active !== false ? 'text-gray-300 hover:text-amber-500 hover:bg-amber-50' : 'text-green-400 hover:bg-green-50'}`}
                                             ><AlertTriangle size={14} /></button>
+                                            <button
+                                                onClick={() => handleDeleteClick(u.id, 'user')}
+                                                className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                title="Delete Business"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>

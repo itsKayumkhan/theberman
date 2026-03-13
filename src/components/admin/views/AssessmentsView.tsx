@@ -4,6 +4,7 @@ import type { Assessment, Profile } from '../../../types/admin';
 import { getStatusColor } from '../adminUtils';
 
 interface Props {
+    assessments: Assessment[];
     filteredAssessments: Assessment[];
     users_list: Profile[];
     searchTerm: string;
@@ -22,13 +23,13 @@ const paymentBadge = (status?: string) => {
 };
 
 export const AssessmentsView = React.memo(({
-    filteredAssessments, users_list,
+    assessments, filteredAssessments, users_list,
     searchTerm, setSearchTerm, locationFilter, setLocationFilter,
     setSelectedAssessment, setShowAssessmentDetailModal, handleDeleteClick
 }: Props) => {
     // Build unique county list from all assessment data (before filtering)
     const uniqueCounties = Array.from(
-        new Set(filteredAssessments.map(a => a.county).filter(Boolean))
+        new Set(assessments.map(a => a.county).filter(Boolean))
     ).sort() as string[];
 
     return (
@@ -53,7 +54,7 @@ export const AssessmentsView = React.memo(({
                             value={locationFilter}
                             onChange={e => setLocationFilter(e.target.value)}
                         >
-                            <option value="">All Counties</option>
+                            <option value="">All Preference locations</option>
                             {uniqueCounties.map(loc => (
                                 <option key={loc} value={loc}>{loc}</option>
                             ))}

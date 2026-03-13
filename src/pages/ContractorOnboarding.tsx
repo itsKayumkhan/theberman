@@ -502,7 +502,7 @@ const ContractorOnboarding = () => {
                         {/* Service Areas */}
                         <div className="pt-8">
                             <label className="block text-lg font-bold text-gray-900 mb-4">
-                                Select the counties you would like to receive jobs in:
+                                Select your Preference location to receive jobs in:
                             </label>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                                 {COUNTIES.map(county => (
