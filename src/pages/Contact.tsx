@@ -79,7 +79,7 @@ const Contact = () => {
             <SEOHead
                 title="Contact Us"
                 description="Get in touch with The Berman for BER assessments, energy ratings, and home energy upgrades across Ireland."
-                canonical="/contact"
+                canonical="/contact-us"
             />
 
             {/* 1. COMPACT HERO */}

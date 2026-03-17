@@ -540,7 +540,7 @@ const ContractorDashboard = () => {
                             <Link to="/" className="text-sm font-medium text-gray-600 hover:text-[#007F00] transition-colors">Home</Link>
                             <Link to="/catalogue" className="text-sm font-medium text-gray-600 hover:text-[#007F00] transition-colors">Catalogue</Link>
                             <Link to="/news" className="text-sm font-medium text-gray-600 hover:text-[#007F00] transition-colors">News</Link>
-                            <Link to="/contact" className="text-sm font-medium text-gray-600 hover:text-[#007F00] transition-colors">Contact</Link>
+                            <Link to="/contact-us" className="text-sm font-medium text-gray-600 hover:text-[#007F00] transition-colors">Contact</Link>
                         </nav>
                         <button
                             onClick={handleSignOut}

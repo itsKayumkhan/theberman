@@ -413,7 +413,7 @@ const BusinessDashboard = () => {
                             <Link to="/" className="text-sm font-medium text-gray-600 hover:text-[#007F00] transition-colors">Home</Link>
                             <Link to="/catalogue" className="text-sm font-medium text-gray-600 hover:text-[#007F00] transition-colors">Catalogue</Link>
                             <Link to="/news" className="text-sm font-medium text-gray-600 hover:text-[#007F00] transition-colors">News</Link>
-                            <Link to="/contact" className="text-sm font-medium text-gray-600 hover:text-[#007F00] transition-colors">Contact</Link>
+                            <Link to="/contact-us" className="text-sm font-medium text-gray-600 hover:text-[#007F00] transition-colors">Contact</Link>
                         </nav>
                         <button onClick={handleSignOut} className="text-sm font-bold text-gray-500 hover:text-red-500 transition-colors flex items-center gap-2">
                             <LogOut size={16} /> Sign Out
