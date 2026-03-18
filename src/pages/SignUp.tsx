@@ -133,7 +133,7 @@ const SignUp = () => {
                 if (redirectParam === 'quote' && data.role === 'contractor') {
                     const pendingQuote = sessionStorage.getItem('pendingQuote');
                     if (pendingQuote) {
-                        const { assessmentId, quoteData, contactInfo } = JSON.parse(pendingQuote);
+                        const { assessmentId, quoteData } = JSON.parse(pendingQuote);
                         
                         // Submit the quote with the new contractor ID
                         const { error: quoteError } = await supabase
