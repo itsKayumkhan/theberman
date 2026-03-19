@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import QuoteModal from '../components/QuoteModal';
 import EmailVerification from '../components/EmailVerification';
 import PaymentModal from '../components/PaymentModal';
-import DashboardLayout, { NavItem } from '../components/DashboardLayout';
+import DashboardLayout, { type NavItem } from '../components/DashboardLayout';
 
 interface Quote {
     id: string;

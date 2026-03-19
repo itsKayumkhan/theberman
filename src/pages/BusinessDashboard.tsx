@@ -20,7 +20,7 @@ import {
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { geocodeAddress } from '../lib/geocoding';
-import DashboardLayout, { NavItem } from '../components/DashboardLayout';
+import DashboardLayout, { type NavItem } from '../components/DashboardLayout';
 
 const IRISH_COUNTIES = [
     'Carlow', 'Cavan', 'Clare', 'Cork', 'Donegal', 'Dublin', 'Galway',

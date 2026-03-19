@@ -5,7 +5,7 @@ import { LogOut, HardHat, ClipboardList, CheckCircle2, Clock, X, TrendingUp, Dol
 import { useNavigate, Link } from 'react-router-dom';
 import { DatePicker } from '../components/ui/DatePicker';
 import { geocodeAddress } from '../lib/geocoding';
-import DashboardLayout, { NavItem } from '../components/DashboardLayout';
+import DashboardLayout, { type NavItem } from '../components/DashboardLayout';
 
 import toast from 'react-hot-toast';
 
