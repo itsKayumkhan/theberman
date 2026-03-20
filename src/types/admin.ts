@@ -42,11 +42,29 @@ export interface Profile {
     last_login?: string;
 }
 
+export interface Quote {
+    id: string;
+    price: number;
+    notes?: string;
+    status: 'pending' | 'accepted' | 'rejected';
+    created_at: string;
+    created_by: string;
+    contractor?: {
+        full_name: string;
+        email: string;
+        phone?: string;
+        seai_number?: string;
+        assessor_type?: string;
+        company_name?: string;
+        county?: string;
+    };
+}
+
 export interface Assessment {
     id: string;
     created_at: string;
     property_address: string;
-    status: 'draft' | 'submitted' | 'pending' | 'pending_quote' | 'quote_accepted' | 'scheduled' | 'completed' | 'assigned';
+    status: 'draft' | 'submitted' | 'pending' | 'pending_quote' | 'quote_accepted' | 'scheduled' | 'completed' | 'assigned' | 'live';
     scheduled_date: string | null;
     completed_at?: string | null;
     certificate_url: string | null;
@@ -67,11 +85,18 @@ export interface Assessment {
     contact_name?: string;
     contact_email?: string;
     contact_phone?: string;
+    job_type?: 'domestic' | 'commercial';
     profiles?: {
         full_name: string;
         email: string;
-        phone: string;
+        phone?: string;
+        county?: string;
+        town?: string;
+        registration_status?: string;
+        is_active?: boolean;
+        created_at?: string;
     };
+    quotes?: Quote[];
     referred_by_listing_id?: string | null;
     referred_by?: {
         name: string;

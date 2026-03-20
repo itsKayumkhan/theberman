@@ -285,22 +285,44 @@ const Admin = () => {
         }
     }, [setCatalogueCategories]);
 
-    const fetchAssessments = useCallback(async () => {
-        setLoading(true);
-        try {
-            const { data, error } = await supabase
-                .from('assessments')
-                .select('*, profiles:user_id (full_name, email, phone), referred_by:referred_by_listing_id (name, company_name)')
-                .order('created_at', { ascending: false });
-            if (error) throw error;
-            setAssessments((data || []).filter((r: any) => !r.deleted_at));
-        } catch (error) {
-            console.error('Error fetching assessments:', error);
-            toast.error('Failed to load assessments');
-        } finally {
-            setLoading(false);
-        }
-    }, [setAssessments, setLoading]);
+const fetchAssessments = useCallback(async () => {
+    setLoading(true);
+    try {
+        const { data, error } = await supabase
+            .from('assessments')
+            .select(`
+                *,
+                profiles:profiles(id, full_name, email, phone, county, town, registration_status, is_active, created_at),
+                quotes (
+                    id,
+                    price,
+                    notes,
+                    status,
+                    created_at,
+                    created_by,
+                    contractor:profiles!quotes_created_by_fkey(
+                        id,
+                        full_name,
+                        email,
+                        phone,
+                        seai_number,
+                        assessor_type,
+                        company_name,
+                        county
+                    )
+                )
+            `)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        setAssessments(data || []);
+    } catch (error: any) {
+        console.error('Failed to fetch assessments:', error);
+        toast.error('Failed to load assessments');
+    } finally {
+        setLoading(false);
+    }
+}, []);
 
     const fetchPayments = useCallback(async () => {
         setLoading(true);
@@ -958,6 +980,37 @@ const Admin = () => {
             setIsUpdating(false);
         }
     }, [selectedAssessmentForAssignment, logAudit, fetchAssessments]);
+
+    const handleGoLive = useCallback(async () => {
+        if (!selectedAssessment) return;
+        setIsUpdating(true);
+        try {
+            // Update assessment status to live
+            const { error: updateError } = await supabase.from('assessments').update({ status: 'live' }).eq('id', selectedAssessment.id);
+            if (updateError) throw updateError;
+
+            // Send email notifications to contractors
+            await supabase.functions.invoke('send-job-live-email', {
+                body: {
+                    email: selectedAssessment.contact_email,
+                    customerName: selectedAssessment.profiles?.full_name || selectedAssessment.contact_name,
+                    county: selectedAssessment.county,
+                    town: selectedAssessment.town,
+                    assessmentId: selectedAssessment.id,
+                    jobType: selectedAssessment.job_type || 'domestic'
+                }
+            }).catch(err => console.error('Failed to send job live email:', err));
+
+            await logAudit('go_live', 'assessment', selectedAssessment.id, { status: 'live' });
+            toast.success('Job is now live! Contractors have been notified.');
+            setShowAssessmentDetailModal(false);
+            fetchAssessments();
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to set job live');
+        } finally {
+            setIsUpdating(false);
+        }
+    }, [selectedAssessment, logAudit, fetchAssessments]);
 
     const handleGenerateQuote = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
@@ -1759,6 +1812,7 @@ const Admin = () => {
                     assessment={selectedAssessment}
                     onClose={() => setShowAssessmentDetailModal(false)}
                     onGenerateQuote={() => { setShowQuoteModal(true); setShowAssessmentDetailModal(false); }}
+                    onGoLive={handleGoLive}
                     onAssignAssessor={() => { setSelectedAssessmentForAssignment(selectedAssessment); setShowAssignModal(true); setShowAssessmentDetailModal(false); }}
                     onSchedule={() => { setShowScheduleModal(true); setShowAssessmentDetailModal(false); }}
                     onComplete={() => { setShowCompleteModal(true); setShowAssessmentDetailModal(false); }}
