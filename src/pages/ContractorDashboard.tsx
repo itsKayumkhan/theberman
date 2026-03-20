@@ -1431,9 +1431,9 @@ const ContractorDashboard = () => {
                                 {/* County Preferences */}
                                 <div className="py-12 px-4 text-center">
                                     <h3 className="text-gray-600 font-medium mb-8 flex items-center justify-center gap-2 text-lg">
-                                        Select Your Preference location for Leads <MapPin className="text-gray-700 fill-gray-700" size={24} />
+                                        Service Areas / Counties <span className="text-red-500">*</span> <MapPin className="text-gray-700 fill-gray-700" size={24} />
                                     </h3>
-                                    <p className="text-sm text-gray-500 mb-6">Select your Preference location where you want to receive job notifications.</p>
+                                    <p className="text-sm text-gray-500 mb-6">Select your Preference location where you want to receive job notifications. You must select at least one.</p>
                                     <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 px-4">
                                         {COUNTIES.map(county => {
                                             const isSelected = profile?.preferred_counties?.includes(county);
@@ -1444,6 +1444,10 @@ const ContractorDashboard = () => {
                                                         const current = profile?.preferred_counties || (profile?.home_county ? [profile.home_county] : []);
                                                         let newCounties;
                                                         if (current.includes(county)) {
+                                                            if (current.length === 1) {
+                                                                toast.error('You must select at least one Service Area / County');
+                                                                return;
+                                                            }
                                                             newCounties = current.filter((c: string) => c !== county);
                                                         } else {
                                                             newCounties = [...current, county];
@@ -1655,6 +1659,10 @@ const ContractorDashboard = () => {
                                         <div className="flex justify-center gap-4 pt-8 pb-12">
                                             <button
                                                 onClick={async () => {
+                                                    if (!profile?.preferred_counties || profile.preferred_counties.length === 0) {
+                                                        toast.error('Please select at least one Service Area / County');
+                                                        return;
+                                                    }
                                                     setIsSubmitting(true);
                                                     try {
                                                         // Fetch coordinates silently via Nominatim
