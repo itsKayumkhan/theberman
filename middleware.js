@@ -869,6 +869,16 @@ export default async function middleware(req) {
   const isEng = /epccert/.test(hostname);
   const tenant = isEsp ? 'spain' : (isEng ? 'england' : 'ireland');
 
+  // Skip middleware injection for admin / auth / API / asset routes — they are SPA/client-only
+  const skipPaths = ['/secure-admin-portal', '/api/', '/auth/', '/assets/', '/_next/', '/favicon', '/logo', '/robots', '/sitemap', '/.well-known'];
+  if (skipPaths.some(p => path.startsWith(p))) {
+    try {
+      return await fetch(req);
+    } catch (_e) {
+      return new Response(null, { status: 500 });
+    }
+  }
+
   // Handle SPA Conversions API bridge
   if (path === '/api/track-capi') {
     const eventName = url.searchParams.get('event') || 'PageView';

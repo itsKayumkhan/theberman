@@ -164,7 +164,13 @@ const Admin = () => {
     const [catalogueCategories, setCatalogueCategories] = useState<{ id: string; name: string }[]>([]);
     const [deletedItems, setDeletedItems] = useState<DeletedItem[]>([]);
 
-    const [view, setView] = useState<AdminView>('stats');
+    const [view, setViewState] = useState<AdminView>(() => {
+        const params = new URLSearchParams(window.location.search);
+        const viewParam = params.get('view') as AdminView | null;
+        if (viewParam) return viewParam;
+        const saved = localStorage.getItem('admin_view') as AdminView | null;
+        return saved || 'stats';
+    });
     const [loading, setLoading] = useState(true);
     const [isUpdating, setIsUpdating] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -189,9 +195,20 @@ const Admin = () => {
         return getTenantFromDomain();
     });
 
+    const setView = (next: AdminView) => {
+        setViewState(next);
+        localStorage.setItem('admin_view', next);
+        const params = new URLSearchParams(window.location.search);
+        params.set('view', next);
+        window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+    };
+
     const setSelectedTenant = (tenant: string) => {
-        setSelectedTenantState(tenant);
         localStorage.setItem('admin_selected_tenant', tenant);
+        const params = new URLSearchParams(window.location.search);
+        params.set('tenant', tenant);
+        params.set('view', view);
+        window.location.href = `${window.location.pathname}?${params.toString()}`;
     };
 
     const TENANTS = [
@@ -713,6 +730,7 @@ const Admin = () => {
                 }
             } finally {
                 setIsUpdating(false);
+                setLoading(false);
             }
         };
 
