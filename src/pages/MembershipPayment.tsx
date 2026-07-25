@@ -78,6 +78,7 @@ const MembershipPayment = () => {
                 const { data: settings, error } = await supabase
                     .from('app_settings')
                     .select('*')
+                    .eq('tenant', tenant)
                     .maybeSingle();
 
                 if (error) throw error;

@@ -11,6 +11,12 @@ export interface Lead {
     property_type?: string;
     purpose?: string;
     tenant?: string;
+    preferred_date?: string;
+    preferred_time?: string;
+    property_size?: string;
+    bedrooms?: number;
+    additional_features?: string;
+    heat_pump?: string;
 }
 
 export interface Profile {

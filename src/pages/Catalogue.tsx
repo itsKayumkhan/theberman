@@ -5,6 +5,33 @@ import SEOHead from '../components/SEOHead';
 import { usePageContent, cmsValue } from '../hooks/usePageContent';
 import { getTenantFromDomain } from '../lib/tenant';
 
+const INTERNAL_LINKS: Record<string, { label: string; to: string }[]> = {
+    england: [
+        { label: 'About EPC Cert', to: '/about-us' },
+        { label: 'EPC FAQ', to: '/epc-faq' },
+        { label: 'Get an EPC Quote', to: '/get-quote' },
+        { label: 'EPC Blog', to: '/blog' },
+        { label: 'Assessor Locations', to: '/locations' },
+        { label: 'Contact Us', to: '/contact-us' },
+    ],
+    spain: [
+        { label: 'Sobre Nosotros', to: '/sobre-nosotros' },
+        { label: 'Directorio Técnicos', to: '/directorio' },
+        { label: 'Preguntas Frecuentes', to: '/preguntas-frecuentes' },
+        { label: 'Blog Energético', to: '/blog' },
+        { label: 'Ubicaciones', to: '/ubicaciones' },
+        { label: 'Contacto', to: '/contacto' },
+    ],
+    default: [
+        { label: 'About Us', to: '/about-us' },
+        { label: 'Energy FAQ', to: '/ber-faqs/' },
+        { label: 'Get a Quote', to: '/get-quote' },
+        { label: 'Energy Blog', to: '/blog' },
+        { label: 'Assessor Locations', to: '/locations' },
+        { label: 'Contact Us', to: '/contact-us' },
+    ],
+};
+
 const CATEGORIES = [
     {
         title: 'Insulation',
@@ -118,6 +145,29 @@ const Catalogue = () => {
                                 </button>
                             </Link>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* INTERNAL INTERLINKING */}
+            <section className="py-12 md:py-16 bg-white">
+                <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
+                    <h2 className="text-xl md:text-2xl font-black text-gray-900 mb-6 uppercase tracking-tight text-center">
+                        {isEngland ? 'Explore EPC Cert Services' : 'Explore More'}
+                    </h2>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {(INTERNAL_LINKS[tenant] || INTERNAL_LINKS.default).map((link, i) => (
+                            <Link
+                                key={i}
+                                to={link.to}
+                                className="flex items-center justify-between p-4 md:p-5 bg-gray-50 rounded-2xl border border-gray-100 hover:border-green-200 hover:bg-green-50 transition-all group"
+                            >
+                                <span className="text-xs md:text-sm font-black text-gray-900 uppercase tracking-widest group-hover:text-[#007F00]">
+                                    {link.label}
+                                </span>
+                                <ArrowRight size={14} className="text-gray-400 group-hover:text-[#007F00] transition-colors" />
+                            </Link>
+                        ))}
                     </div>
                 </div>
             </section>

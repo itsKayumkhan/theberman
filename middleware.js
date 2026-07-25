@@ -1,33 +1,75 @@
 // Vercel Edge Middleware — Multi-tenant SEO Fix
 // Injects: canonical, title, meta description, OG tags, hreflang, JSON-LD schema
-// Also handles: Meta CAPI, GTM, cookie consent, Meta Pixel
 // Zero changes to the React app needed.
 
 export const config = { matcher: '/((?!_next|assets|favicon|logo|robots).*)' };
 
-const PUBLIC_FILE = /\.(?:avif|css|csv|gif|ico|jpe?g|js|json|map|pdf|png|svg|txt|webmanifest|woff2?|xml)$/i;
-
 // ─── Meta Conversions API (Server-Side) ───────────────────────────────────────
-const META_PIXEL_ID  = '1597842568530965';
-const META_CAPI_TOKEN = 'EAAWtpErNdrcBR4BBM0EMYCiZB6TSLpDYWaTZAT9QXEGKpJIfmZCsRCN0YPouekzreTdxACfkZCObm1i5dztNKzNZAGgrLvF02hd254DcwXQ7prKNy8NusteZBwaa4ZC0P6t6DwGCqGqI3bbEjLrWTRSpZA5OtJ6eJ0LormwfZA0KpT2vsdX6RQRiHU51h7xRk6q34ywZDZD';
+const META_PIXEL_ID   = '1597842568530965';
+const META_CAPI_TOKEN = 'EAAYbcgkRvWkBSP6ZCtwBiQt6kELyQEQ1PkYmiRS1zORExh8AmDNJlbltZBumkpkTSb9XXqXUvEGLit8d4oGl7v9zOSYeNHwEIiAyEZC1QeZC1h8oZBCxzkIGGkvOmGiagIo481aguiO4OQeqWZBYwLe5KbVX47fF5LfhswFZAlWWdRL1fCs84epy41jrChwLiDhyQZDZD';
 
-async function sendMetaCAPI(eventName, eventId, req, canonicalUrl) {
+// SHA-256 hash helper (Edge runtime — uses Web Crypto API)
+async function sha256(value) {
+  if (!value) return undefined;
+  const clean = value.trim().toLowerCase();
+  const buf   = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(clean));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Parse a single cookie value from Cookie header string
+function parseCookie(cookieHeader, name) {
+  if (!cookieHeader) return '';
+  const match = cookieHeader.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]*)'));
+  return match ? decodeURIComponent(match[1]) : '';
+}
+
+async function sendMetaCAPI(eventName, eventId, req, canonicalUrl, testEventCode = null) {
   try {
-    const ip  = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || '';
-    const ua  = req.headers.get('user-agent') || '';
+    const ip     = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || '';
+    const ua     = req.headers.get('user-agent') || '';
+    const cookie = req.headers.get('cookie') || '';
+
+    // Try to extract user identifiers from cookies (set by auth/form flows)
+    const rawEmail = parseCookie(cookie, 'user_email')
+                  || parseCookie(cookie, 'email')
+                  || parseCookie(cookie, '_user_email')
+                  || parseCookie(cookie, 'contact_email');
+    const rawPhone = parseCookie(cookie, 'user_phone')
+                  || parseCookie(cookie, 'phone')
+                  || parseCookie(cookie, '_user_phone')
+                  || parseCookie(cookie, 'contact_phone');
+    const rawFname = parseCookie(cookie, 'user_fname') || parseCookie(cookie, 'first_name');
+    const rawLname = parseCookie(cookie, 'user_lname') || parseCookie(cookie, 'last_name');
+
+    // Hash all available PII (Meta requires SHA-256)
+    const [em, ph, fn, ln] = await Promise.all([
+      sha256(rawEmail),
+      sha256(rawPhone),
+      sha256(rawFname),
+      sha256(rawLname),
+    ]);
+
+    const userData = {
+      client_ip_address: ip,
+      client_user_agent: ua,
+      ...(em && { em }),   // hashed email
+      ...(ph && { ph }),   // hashed phone
+      ...(fn && { fn }),   // hashed first name
+      ...(ln && { ln }),   // hashed last name
+    };
+
     const payload = {
       data: [{
-        event_name:    eventName,
-        event_time:    Math.floor(Date.now() / 1000),
-        event_id:      eventId,
+        event_name:       eventName,
+        event_time:       Math.floor(Date.now() / 1000),
+        event_id:         eventId,
         event_source_url: canonicalUrl,
-        action_source: 'website',
-        user_data: {
-          client_ip_address: ip,
-          client_user_agent: ua,
-        },
+        action_source:    'website',
+        user_data:        userData,
       }],
     };
+    if (testEventCode) payload.test_event_code = testEventCode;
+
     await fetch(
       `https://graph.facebook.com/v19.0/${META_PIXEL_ID}/events?access_token=${META_CAPI_TOKEN}`,
       { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
@@ -44,12 +86,12 @@ const PAGE_META_IE = {
     desc:  "Ireland's largest BER website. Get fast, reliable BER certificates from 100+ SEAI-registered assessors nationwide. Compare quotes and book online instantly.",
   },
   '/about': {
-    title: 'About The Berman | Ireland\'s BER Certificate Platform',
-    desc:  'Learn about The Berman — Ireland\'s largest BER certificate platform connecting property owners with 100+ SEAI-registered assessors across every county.',
+    title: "About The Berman | Ireland's BER Certificate Platform",
+    desc:  "Learn about The Berman — Ireland's largest BER certificate platform connecting property owners with 100+ SEAI-registered assessors across every county.",
   },
   '/about-us': {
-    title: 'About The Berman | Ireland\'s BER Certificate Platform',
-    desc:  'Learn about The Berman — Ireland\'s largest BER certificate platform connecting property owners with 100+ SEAI-registered assessors across every county.',
+    title: "About The Berman | Ireland's BER Certificate Platform",
+    desc:  "Learn about The Berman — Ireland's largest BER certificate platform connecting property owners with 100+ SEAI-registered assessors across every county.",
   },
   '/services': {
     title: 'BER Certificate Services Ireland | Residential & Commercial | The Berman',
@@ -117,7 +159,7 @@ const PAGE_META_IE = {
 const PAGE_META_EN = {
   '/': {
     title: "EPC Certificate England | Domestic & Commercial EPC",
-    desc: "Book Accredited EPC Assessments Across England. Fast Domestic and Commercial EPC Certificates with Competitive Pricing and Nationwide Coverage"
+    desc: "Book Accredited EPC Assessments Across England. Fast Domestic and Commercial EPC Certificates with Competitive Pricing and Nationwide Coverage",
   },
   '/about': {
     title: 'About EPC Cert | Energy Performance Certificate Experts',
@@ -171,6 +213,7 @@ const PAGE_META_EN = {
     title: 'Get a Free EPC Certificate Quote | Compare Prices England | EPC Cert',
     desc: 'Get free EPC certificate quotes from accredited assessors near you. Compare and book online instantly with EPC Cert.',
   },
+  // Blog posts — England
   '/blog/epc-certificate-cost-guide': {
     title: 'How Much Does an EPC Certificate Cost in England? | 2026 Price Guide',
     desc: 'EPC certificates in England cost £45–£150 for domestic properties. Compare prices from accredited assessors near you. Get your best EPC quote with EPC Cert.',
@@ -189,7 +232,7 @@ const PAGE_META_EN = {
   },
   '/blog/epc-band-c-2030-deadline-landlord-guide': {
     title: 'EPC Band C 2030 Deadline — Landlord Action Plan England | EPC Cert',
-    desc: "All English rentals must reach EPC Band C by 2030. With fines up to £30,000, here's your step-by-step landlord action plan to comply on time and save money.",
+    desc: 'All English rentals must reach EPC Band C by 2030. With fines up to £30,000, here\'s your step-by-step landlord action plan to comply on time and save money.',
   },
 };
 
@@ -197,15 +240,15 @@ const PAGE_META_EN = {
 const PAGE_META_ES = {
   '/': {
     title: "Certificado Energético en España | Precio desde 60€ | Técnicos Acreditados",
-    desc: "¿Necesitas tu certificado energético? Compara presupuestos de técnicos acreditados en toda España. Desde 60€, visita incluida, registro oficial. Entrega en 24–72h. ¡Solicita presupuesto gratis!"
+    desc: "¿Necesitas tu certificado energético? Compara presupuestos de certificadores acreditados en toda España. Desde 60€, visita incluida, registro oficial. Entrega en 24–72h. ¡Solicita presupuesto gratis!"
   },
   '/sobre-nosotros': {
     title: "Quiénes Somos | Plataforma Certificado Energético España | CertificadoEnergético.eu",
-    desc: "Somos la plataforma que conecta propietarios con técnicos certificadores acreditados en toda España. Más de 1.000 certificados completados. Rápido, transparente y 100% oficial.",
+    desc: "Somos la plataforma que conecta propietarios con técnicos certificadores acreditados en toda España. Más de 1.000 certificados completados. Rápido, transparente y 100% oficial."
   },
   '/contacto': {
     title: "Solicita tu Certificado Energético en España | Presupuesto Gratis | Contacto",
-    desc: "Solicita presupuesto gratuito para tu certificado energético. Técnicos acreditados en toda España. Visita incluida, registro oficial y entrega en 24–72h. Presupuesto sin compromiso.",
+    desc: "Solicita presupuesto gratuito para tu certificado energético. Técnicos acreditados en toda España. Visita incluida, registro oficial y entrega en 24–72h. Presupuesto sin compromiso."
   },
   '/directorio': {
     title: "Directorio Técnicos Certificado Energético España | Compara y Contrata",
@@ -213,43 +256,43 @@ const PAGE_META_ES = {
   },
   '/directorio/tecnicos-certificadores': {
     title: "Directorio de Técnicos Certificadores Energéticos | España",
-    desc: "Busca técnicos competentes acreditados en toda España para la emisión de Certificados de Eficiencia Energética residenciales y comerciales.",
+    desc: "Busca técnicos competentes acreditados en toda España para la emisión de Certificados de Eficiencia Energética residenciales y comerciales."
   },
   '/directorio/empresas-energia': {
     title: "Empresas de Eficiencia Energética en España | Directorio",
-    desc: "Conecta con empresas de eficiencia energética en toda España: instaladores solares, expertos en aislamiento, bombas de calor y consultores de reformas.",
+    desc: "Conecta con empresas de eficiencia energética en toda España: instaladores solares, expertos en aislamiento, bombas de calor y consultores de reformas."
   },
   '/asesor-energetico': {
     title: "Contrata Asesor Energético en España | Visita + Registro en 24–48h",
-    desc: "Habla con un asesor energético independiente. Te ayudamos a evaluar mejoras, priorizar actuaciones y mejorar la calificación de tu inmueble. Presupuesto sin compromiso.",
+    desc: "Habla con un asesor energético independiente. Te ayudamos a evaluar mejoras, priorizar actuaciones y mejorar la calificación de tu inmueble. Presupuesto sin compromiso."
   },
   '/preguntas-frecuentes': {
     title: "Preguntas Frecuentes Certificado Energético España | Precios, Validez, Multas",
-    desc: "¿Cuánto cuesta el certificado energético? ¿Es obligatorio para alquilar? ¿Cuánto tarda? Resolvemos todas tus dudas sobre el CEE en España. Guía completa 2026.",
+    desc: "¿Cuánto cuesta el certificado energético? ¿Es obligatorio para alquilar? ¿Cuánto tarda? Resolvemos todas tus dudas sobre el CEE en España. Guía completa 2026."
   },
   '/blog': {
     title: "Blog Certificado Energético España | Guías, Precios, Normativa 2026",
-    desc: "Guías prácticas sobre el certificado energético en España: precios 2026, cómo mejorar tu calificación, normativa obligatoria y ayudas para reformas. Actualizado julio 2026.",
+    desc: "Guías prácticas sobre el certificado energético en España: precios 2026, cómo mejorar tu calificación, normativa obligatoria y ayudas para reformas. Actualizado julio 2026."
   },
   '/blog/precio-certificado-energetico-espana': {
     title: "Precio del Certificado Energético en España 2026 | Guía Completa",
-    desc: "Descubre cuánto cuesta el Certificado Energético en España, qué factores afectan al precio y cómo solicitar presupuesto a técnicos acreditados.",
+    desc: "Descubre cuánto cuesta el Certificado Energético en España, qué factores afectan al precio y cómo solicitar presupuesto a técnicos acreditados."
   },
   '/blog/certificado-energetico-obligatorio-espana': {
     title: "¿Cuándo es Obligatorio el Certificado Energético en España? | Guía 2026",
-    desc: "Descubre cuándo es obligatorio el certificado energético en España: venta, alquiler, hipotecas, sanciones y excepciones. Guía completa actualizada 2026.",
+    desc: "Descubre cuándo es obligatorio el certificado energético en España: venta, alquiler, hipotecas, sanciones y excepciones. Guía completa actualizada 2026."
   },
   '/blog/mejorar-calificacion-energetica-vivienda': {
     title: "Cómo Mejorar la Calificación Energética de tu Vivienda | Guía Completa",
-    desc: "Descubre las mejores reformas para mejorar la calificación energética de tu vivienda: aislamiento, ventanas, caldera, solar. Ayudas y subvenciones disponibles en 2026.",
+    desc: "Descubre las mejores reformas para mejorar la calificación energética de tu vivienda: aislamiento, ventanas, caldera, solar. Ayudas y subvenciones disponibles en 2026."
   },
   '/noticias': {
     title: "Noticias Certificado Energético España 2026 | Normativa y Novedades",
-    desc: "Últimas noticias sobre el certificado energético en España: Orden ECM/599/2025, Directiva EPBD, obligación hipotecaria y nuevas exigencias 2030. Mantente al día.",
+    desc: "Últimas noticias sobre el certificado energético en España: Orden ECM/599/2025, Directiva EPBD, obligación hipotecaria y nuevas exigencias 2030. Mantente al día."
   },
   '/ubicaciones': {
     title: "Técnicos Certificado Energético en Toda España | Ubicaciones",
-    desc: "Conecta con técnicos certificadores acreditados en toda España. Compara presupuestos y organiza tu certificado energético en tu ciudad.",
+    desc: "Conecta con técnicos certificadores acreditados en toda España. Compara presupuestos y organiza tu certificado energético en tu ciudad."
   }
 };
 
@@ -270,11 +313,13 @@ function toTitle(slug) {
 }
 
 function getMeta(pathname, tenant) {
-  const cleanPath = pathname.replace(/\/$/, '');
+  const cleanPath = pathname.replace(/\/$/, ''); // strip trailing slash
   const activePath = cleanPath === '' ? '/' : cleanPath;
 
   if (tenant === 'spain') {
     if (PAGE_META_ES[activePath]) return PAGE_META_ES[activePath];
+
+    // Check if it's a location page: /certificado-energetico-town
     const match = activePath.match(/^\/certificado-energetico-([a-z\-]+)$/);
     if (match) {
       const citySlug = match[1];
@@ -282,9 +327,10 @@ function getMeta(pathname, tenant) {
       if (citySlug === 'palma') displayCity = 'Palma de Mallorca';
       if (citySlug === 'las-palmas') displayCity = 'Las Palmas';
       if (citySlug === 'san-sebastian') displayCity = 'San Sebastián';
+      
       return {
         title: `Certificado Energético ${displayCity} | Desde 60€ | Técnicos Acreditados`,
-        desc: `Solicita tu certificado energético en ${displayCity}. Técnicos colegiados, visita presencial obligatoria incluida y entrega rápida en 24–48h. Compara presupuestos gratis.`
+        desc: `Solicita tu certificado energético en ${displayCity}. Técnicos colegiados, visita presencial obligatoria incluida y entrega rápida en 24–48h. Compara presupuestos gratis.` 
       };
     }
     return PAGE_META_ES['/'];
@@ -292,19 +338,23 @@ function getMeta(pathname, tenant) {
 
   if (tenant === 'england') {
     if (PAGE_META_EN[activePath]) return PAGE_META_EN[activePath];
+
+    // Check if it's an England location page: /epc-assessment-town
     const match = activePath.match(/^\/epc-assessment-([a-z\-]+)$/);
     if (match) {
       const citySlug = match[1];
       const displayCity = toTitle(citySlug);
       return {
         title: `EPC Certificate ${displayCity} | Domestic & Commercial EPC`,
-        desc: `Need an EPC certificate in ${displayCity}? Compare quotes from local accredited assessors. Book your EPC assessment online with EPC Cert.`
+        desc: `Need an EPC certificate in ${displayCity}? Compare quotes from local accredited assessors. Book your EPC assessment online with EPC Cert.` 
       };
     }
     return PAGE_META_EN['/'];
   }
 
+  // Ireland
   if (PAGE_META_IE[activePath]) return PAGE_META_IE[activePath];
+
   const parts = activePath.replace(/^\//, '').split('/');
   const county = COUNTY_NAMES[parts[0]] || toTitle(parts[0]);
 
@@ -792,6 +842,7 @@ function breadcrumbSchema(pathname, tenant) {
   return JSON.stringify({ '@context':'https://schema.org', '@type':'BreadcrumbList', itemListElement: items });
 }
 
+// ─── Hreflang builder ────────────────────────────────────────────────────────
 function hreflangTags(pathname, tenant) {
   const cleanPath = pathname === '/' ? '/' : pathname;
   const domains = [
@@ -803,11 +854,389 @@ function hreflangTags(pathname, tenant) {
     { lang:'x-default', base:'https://theberman.eu' },
   ];
   return domains.map(d =>
-    `<link rel="alternate" hreflang="${d.lang}" href="${d.base}${cleanPath}" />`
+    `<link rel="alternate" hreflang="${d.lang}" href="${d.base}${cleanPath}" />` 
   ).join('\n  ');
 }
 
-// ─── Sitemap arrays ───────────────────────────────────────────────────────────
+// ─── Main handler ─────────────────────────────────────────────────────────────
+export default async function middleware(req) {
+  const url  = new URL(req.url);
+  const path = url.pathname;
+  const testEventCode = url.searchParams.get('test_event_code') || '';
+
+  const hostname = req.headers.get('host') || url.hostname;
+  const isEsp = /certificado|xn--/.test(hostname);
+  const isEng = /epccert/.test(hostname);
+  const tenant = isEsp ? 'spain' : (isEng ? 'england' : 'ireland');
+
+  // Handle SPA Conversions API bridge
+  if (path === '/api/track-capi') {
+    const eventName = url.searchParams.get('event') || 'PageView';
+    const eventId = url.searchParams.get('id') || '';
+    const trackPath = url.searchParams.get('path') || '/';
+    const trackCanonical = `${url.protocol}//${hostname}${trackPath}`;
+    
+    if (tenant === 'ireland') {
+      await sendMetaCAPI(eventName, eventId, req, trackCanonical, testEventCode);
+    }
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  // Handle redirects
+  if (tenant === 'spain') {
+    if (path === '/about') return new Response(null, { status: 301, headers: { Location: `${url.protocol}//${hostname}/sobre-nosotros` } });
+    if (path === '/faq') return new Response(null, { status: 301, headers: { Location: `${url.protocol}//${hostname}/preguntas-frecuentes` } });
+    if (path === '/catalogue') return new Response(null, { status: 301, headers: { Location: `${url.protocol}//${hostname}/directorio` } });
+    if (path === '/hire-agent') return new Response(null, { status: 301, headers: { Location: `${url.protocol}//${hostname}/asesor-energetico` } });
+    if (path === '/contact-us') return new Response(null, { status: 301, headers: { Location: `${url.protocol}//${hostname}/contacto` } });
+  } else if (tenant === 'ireland') {
+    if (path === '/about') return new Response(null, { status: 301, headers: { Location: `${url.protocol}//${hostname}/about-us` } });
+    if (path === '/faq') return new Response(null, { status: 301, headers: { Location: `${url.protocol}//${hostname}/ber-faqs/` } });
+  } else if (tenant === 'england') {
+    if (path === '/about') return new Response(null, { status: 301, headers: { Location: `${url.protocol}//${hostname}/about-us` } });
+    if (path === '/faq') return new Response(null, { status: 301, headers: { Location: `${url.protocol}//${hostname}/epc-faq` } });
+  }
+
+  // Dynamic Sitemap Interception
+  if (path === '/sitemap.xml') {
+    let urls = [];
+    let domain = '';
+    if (tenant === 'spain') { urls = SITEMAP_ES; domain = 'https://www.xn--certificadoenergtico-q2b.eu'; }
+    else if (tenant === 'england') { urls = SITEMAP_EN; domain = 'https://www.epccert.com'; }
+    else { urls = SITEMAP_IE; domain = 'https://www.theberman.eu'; }
+
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Add homepage if not in array
+    if (!urls.includes('/')) {
+        xml += `  <url>\n    <loc>${domain}/</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n`;
+    }
+
+    for (const u of urls) {
+      const isHome = u === '/';
+      const loc = isHome ? domain + '/' : domain + u;
+      xml += `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${isHome ? 'daily' : 'weekly'}</changefreq>\n    <priority>${isHome ? '1.0' : '0.8'}</priority>\n  </url>\n`;
+    }
+    xml += `</urlset>`;
+
+    return new Response(xml, {
+      status: 200,
+      headers: { 'Content-Type': 'application/xml', 'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400' }
+    });
+  }
+
+  // Fetch original response (proxy pattern — works on Vercel; falls back gracefully on local dev)
+  let res, html;
+  try {
+    res  = await fetch(req);
+    html = await res.text();
+  } catch (_fetchErr) {
+    // Local dev: no upstream to proxy → pass through without injecting tags
+    return new Response(null, { status: 200 });
+  }
+
+  const { title, desc } = getMeta(path, tenant);
+  
+  let canonicalBase = 'https://www.theberman.eu';
+  if (tenant === 'spain') canonicalBase = 'https://www.xn--certificadoenergtico-q2b.eu';
+  else if (tenant === 'england') canonicalBase = 'https://www.epccert.com';
+  
+  const canonical = `${canonicalBase}${path === '/' ? '/' : path}`;
+  
+  let ogImage = 'https://theberman.eu/logo.png';
+  if (tenant === 'spain') ogImage = 'https://www.xn--certificadoenergtico-q2b.eu/logo.png';
+  else if (tenant === 'england') ogImage = 'https://www.epccert.com/logo.png';
+
+  // Build all schemas
+  const schemas = [];
+  schemas.push(`<script type="application/ld+json">${orgSchema(tenant)}</script>`);
+
+  // FAQ schema — fires on FAQ page URLs for all tenants
+  if (path === '/faq' || path === '/preguntas-frecuentes' || path === '/epc-faq' || path === '/ber-faqs' || path === '/ber-faqs/')
+    schemas.push(`<script type="application/ld+json">${faqSchema(tenant)}</script>`);
+
+  const countyKeys = Object.keys(COUNTY_NAMES);
+  const parts = path.replace(/^\//, '').split('/');
+  
+  const isLocationIE = tenant === 'ireland' && parts.length >= 1 && countyKeys.includes(parts[0]);
+  const isLocationES = tenant === 'spain' && path.startsWith('/certificado-energetico-');
+  const isLocationEN = tenant === 'england' && path.startsWith('/epc-assessment-');
+  
+  if (isLocationIE || isLocationES || isLocationEN)
+    schemas.push(`<script type="application/ld+json">${locationSchema(path, tenant)}</script>`);
+
+  // BlogPosting schema for blog posts
+  const isBlogPost = parts[0] === 'blog' && parts.length === 2;
+  if (isBlogPost) {
+    const { title: postTitle, desc: postDesc } = getMeta(path, tenant);
+    const blogSlug = parts[1];
+    const blogPosting = {
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      headline: postTitle,
+      description: postDesc,
+      url: `${canonicalBase}${path}`,
+      datePublished: '2026-07-01',
+      dateModified: new Date().toISOString().split('T')[0],
+      author: { '@type': 'Organization', name: tenant === 'england' ? 'EPC Cert' : 'The Berman', url: canonicalBase },
+      publisher: {
+        '@type': 'Organization',
+        name: tenant === 'england' ? 'EPC Cert' : 'The Berman',
+        logo: { '@type': 'ImageObject', url: `${canonicalBase}/logo.png` }
+      },
+      mainEntityOfPage: { '@type': 'WebPage', '@id': `${canonicalBase}${path}` },
+      inLanguage: tenant === 'spain' ? 'es-ES' : tenant === 'england' ? 'en-GB' : 'en-IE',
+    };
+    schemas.push(`<script type="application/ld+json">${JSON.stringify(blogPosting)}</script>`);
+  }
+
+  // Article schema for news posts
+  const isNewsPost = parts[0] === 'news' && parts.length === 2;
+  if (isNewsPost) {
+    const { title: newsTitle, desc: newsDesc } = getMeta(path, tenant);
+    const article = {
+      '@context': 'https://schema.org',
+      '@type': 'NewsArticle',
+      headline: newsTitle,
+      description: newsDesc,
+      url: `${canonicalBase}${path}`,
+      datePublished: '2026-07-01',
+      dateModified: new Date().toISOString().split('T')[0],
+      author: { '@type': 'Organization', name: tenant === 'england' ? 'EPC Cert' : 'The Berman', url: canonicalBase },
+      publisher: {
+        '@type': 'Organization',
+        name: tenant === 'england' ? 'EPC Cert' : 'The Berman',
+        logo: { '@type': 'ImageObject', url: `${canonicalBase}/logo.png` }
+      },
+      mainEntityOfPage: { '@type': 'WebPage', '@id': `${canonicalBase}${path}` },
+      inLanguage: tenant === 'spain' ? 'es-ES' : tenant === 'england' ? 'en-GB' : 'en-IE',
+    };
+    schemas.push(`<script type="application/ld+json">${JSON.stringify(article)}</script>`);
+  }
+
+  const bc = breadcrumbSchema(path, tenant);
+  if (bc) schemas.push(`<script type="application/ld+json">${bc}</script>`);
+
+  const schemaBlock = schemas.join('\n  ');
+
+  let locale = 'en_IE';
+  let siteName = 'The Berman';
+  if (tenant === 'spain') { locale = 'es_ES'; siteName = 'Certificado Energético'; }
+  else if (tenant === 'england') { locale = 'en_GB'; siteName = 'EPC Cert'; }
+
+  let gscCode = '';
+  if (tenant === 'england') gscCode = 'uU6Ruam97ElN2rtvSBjwfgOUx93cCD93YRVyiBUePiw';
+  else if (tenant === 'spain') gscCode = 'KoLJU_4hf55xdAgYYjqQ6ip3pK4huH5JPZj4Omhc30o';
+
+  const gscMeta = gscCode ? `<meta name="google-site-verification" content="${gscCode}" />` : '';
+  const fbMeta = tenant === 'ireland' ? '<meta name="facebook-domain-verification" content="vzxrqz9dqomp4g8iphshju59so27v8" />' : '';
+
+  // ── Meta CAPI — determine event type based on page ───────────────────────
+  let metaEventId = `mw-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
+  // Contact/Lead pages
+  const isContactPage = ['/contact-us', '/contacto', '/get-quote', '/hire-agent', '/asesor-energetico'].includes(path);
+  // Thank-you / confirmation page = Lead
+  const isThankYou = path.includes('thank') || path.includes('success') || path.includes('confirmation');
+  // Catalogue / directory = ViewContent
+  const isViewContent = path.startsWith('/catalogue') || path.startsWith('/directorio') || path.startsWith('/locations') || path.startsWith('/ubicaciones');
+  // Blog = ViewContent
+  const isBlog = path.startsWith('/blog') || path.startsWith('/noticias') || path.startsWith('/news');
+
+  // ── Event Assignment ──────────────────────────────────────────────────────
+  // IMPORTANT: Middleware fires only PageView / ViewContent on page load.
+  // Lead and Contact conversion events are fired by GTM on actual form
+  // submission to avoid double-counting (GTM writes cookies + fires pixel;
+  // middleware reads cookies + fires CAPI on the next request).
+  let metaEventName = 'PageView';
+  let metaEventValue = null;
+  if (isThankYou) {
+    // Thank-you page = confirmed form submission → fire Lead via CAPI
+    // Read the event_id that GTM wrote into a cookie so CAPI & pixel share the same ID
+    const gtmEventId = parseCookie(req.headers.get('cookie') || '', 'meta_event_id');
+    if (gtmEventId) metaEventId = gtmEventId;   // override middleware-generated ID with GTM's
+    metaEventName = 'Lead';
+    metaEventValue = { value: 150, currency: 'EUR' };
+  } else if (isContactPage || isViewContent || isBlog) {
+    metaEventName = 'ViewContent';
+  }
+
+  // Fire server-side CAPI — Ireland only
+  if (tenant === 'ireland') {
+    sendMetaCAPI(metaEventName, metaEventId, req, canonical, testEventCode);
+  }
+
+  // ── Browser Meta Pixel — Ireland only, all events with deduplication ─────
+  const metaBrowserEvent = metaEventName === 'Lead'
+    ? `fbq('track', 'Lead', ${JSON.stringify(metaEventValue || {})}, {eventID: '${metaEventId}'${testEventCode ? `, test_event_code: '${testEventCode}'` : ''}});` 
+    : metaEventName === 'ViewContent'
+    ? `fbq('track', 'ViewContent', {content_name: '${title.replace(/'/g, "\\'")}', content_type: 'website'}, {eventID: '${metaEventId}'${testEventCode ? `, test_event_code: '${testEventCode}'` : ''}});` 
+    : `fbq('track', 'PageView', {}, {eventID: '${metaEventId}'${testEventCode ? `, test_event_code: '${testEventCode}'` : ''}});`;
+
+  const metaPixelSnippet = tenant === 'ireland' ? `
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+t.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+// Automatic Advanced Matching — Meta auto-detects & hashes email/phone from forms
+fbq('init', '${META_PIXEL_ID}', {}, {autoConfig: true});
+${metaBrowserEvent}
+
+// SPA router listener for client-side routing tracking
+// NOTE: Lead/Contact events are handled by GTM on form submit.
+   var originalReplace = history.replaceState;
+   var originalPush = history.pushState;
+function handleSPA() {
+  let eventName = 'PageView';
+  let eventData = {};
+
+  if (isContactPage || isViewContent) {
+    eventName = 'ViewContent';
+    eventData = { content_type: 'website' };
+  }
+
+  const eventId = 'spa-' + Date.now() + '-' + Math.random().toString(36).slice(2, 9);
+  fbq('track', eventName, eventData, { eventID: eventId });
+}
+
+history.replaceState = function () {
+  originalReplace.apply(this, arguments);
+  handleSPA();
+};
+
+history.pushState = function () {
+  originalPush.apply(this, arguments);
+  handleSPA();
+};
+
+window.addEventListener('popstate', function () {
+  handleSPA();
+});
+
+// ---- Form submission handling (Lead / Contact) ----
+function setMetaEventId(id) {
+  document.cookie = \`meta_event_id=\${id};path=/;max-age=86400\`;
+}
+function handleFormSubmit(event) {
+  const eventId = 'form-' + Date.now() + '-' + Math.random().toString(36).slice(2, 9);
+  setMetaEventId(eventId);
+}
+document.addEventListener('submit', handleFormSubmit, true);
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->` : '';
+
+
+  // GTM — inject for all tenants using each site's own container
+  // IMPORTANT: Developer must remove GTM-57CD932S from the React app (it was the old hardcoded one)
+  // This middleware now controls GTM for all three sites
+  let gtmId = 'GTM-NK5NJ78J'; // Ireland (theberman.eu) — user's main container
+  if (tenant === 'england') gtmId = 'GTM-WZVH9HVD';
+  else if (tenant === 'spain') gtmId = 'GTM-TL8C5GNJ';
+
+  // GTM — fires immediately on page load
+  const gtmHead = gtmId ? `
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','${gtmId}');</script>
+<!-- End Google Tag Manager -->` : '';
+
+  const gtmBody = gtmId ? `
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=${gtmId}"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->` : '';
+
+
+  // ── Strip duplicate/unwanted scripts from the original HTML ─────────────────
+  // 1. Remove GTM-57CD932S IIFE init (targets only the GTM init function, not other scripts)
+  // 2. Remove GTM-57CD932S noscript iframe (targets specific iframe src, safe)
+  // 3. Remove cookie-consent-wrapped scripts (type="text/plain" + data-cookieconsent)
+  let cleanHtml = html
+    // Remove GTM-57CD932S by targeting the GTM IIFE signature — safe, cannot cross script blocks
+    .replace(/\(function\(w,d,s,l,i\)\{[\s\S]*?\}\)\(window,document,'script','dataLayer','GTM-57CD932S'\);/g, '')
+    // Remove GTM-57CD932S noscript — targets specific iframe src attribute, cannot match others
+    .replace(/<noscript>\s*<iframe\s+src="https:\/\/www\.googletagmanager\.com\/ns\.html\?id=GTM-57CD932S"[^>]*><\/iframe>\s*<\/noscript>/gi, '')
+    // Remove surrounding GTM-57CD932S HTML comments if present
+    .replace(/<!--\s*Google Tag Manager \(noscript\)\s*-->\s*\n?\s*<!--\s*End Google Tag Manager \(noscript\)\s*-->/gi, '')
+    // Remove any type="text/plain" cookie-consent scripts (pixel/GTM blocked by consent)
+    // This uses anchored attributes so it cannot match normal scripts
+    .replace(/<script\s[^>]*type="text\/plain"[^>]*data-cookieconsent[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<script\s[^>]*data-cookieconsent[^>]*type="text\/plain"[^>]*>[\s\S]*?<\/script>/gi, '')
+    // Remove the cookie consent comment wrapper if present
+    .replace(/<!--\s*Google Tag Manager \+ Meta Pixel[^-]*-->/gi, '');
+
+  const injected = cleanHtml.replace(
+    /<title>[^<]*<\/title>/,
+    `<title>${title}</title>` 
+  ).replace(
+    /<meta name="description" content="[^"]*" \/>/,
+    `<meta name="description" content="${desc}" />` 
+  ).replace(
+    /<link rel="canonical" href="[^"]*" \/>/,
+    `<link rel="canonical" href="${canonical}" />` 
+  ).replace(
+    /<meta property="og:title" content="[^"]*" \/>/,
+    `<meta property="og:title" content="${title}" />` 
+  ).replace(
+    /<meta property="og:description" content="[^"]*" \/>/,
+    `<meta property="og:description" content="${desc}" />` 
+  ).replace(
+    /<meta property="og:url" content="[^"]*" \/>/,
+    `<meta property="og:url" content="${canonical}" />` 
+  ).replace(
+    /<meta property="og:image" content="[^"]*" \/>/,
+    `<meta property="og:image" content="${ogImage}" />` 
+  ).replace(
+    /<meta property="og:locale" content="[^"]*" \/>/,
+    `<meta property="og:locale" content="${locale}" />` 
+  ).replace(
+    /<meta property="og:site_name" content="[^"]*" \/>/,
+    `<meta property="og:site_name" content="${siteName}" />` 
+  ).replace(
+    /<meta name="twitter:title" content="[^"]*" \/>/,
+    `<meta name="twitter:title" content="${title}" />` 
+  ).replace(
+    /<meta name="twitter:description" content="[^"]*" \/>/,
+    `<meta name="twitter:description" content="${desc}" />` 
+  ).replace(
+    /<meta name="twitter:image" content="[^"]*" \/>/,
+    `<meta name="twitter:image" content="${ogImage}" />` 
+  ).replace(
+    /<meta name="author" content="[^"]*" \/>/,
+    `<meta name="author" content="${siteName}" />` 
+  ).replace(
+    '</head>',
+    `  <meta name="description" content="${desc}" />\n  <link rel="canonical" href="${canonical}" />\n  <meta property="og:title" content="${title}" />\n  <meta property="og:description" content="${desc}" />\n  <meta property="og:url" content="${canonical}" />\n  <meta property="og:image" content="${ogImage}" />\n  <meta property="og:locale" content="${locale}" />\n  <meta property="og:site_name" content="${siteName}" />\n  <meta property="og:type" content="website" />\n  <meta name="twitter:card" content="summary_large_image" />\n  <meta name="twitter:title" content="${title}" />\n  <meta name="twitter:description" content="${desc}" />\n  <meta name="twitter:image" content="${ogImage}" />\n  ${gscMeta}\n  ${fbMeta}\n  ${hreflangTags(path, tenant)}\n  ${schemaBlock}\n  ${gtmHead}\n  ${metaPixelSnippet}\n</head>` 
+  ).replace(
+    /<body([^>]*)>/i,
+    `<body$1>${gtmBody}` 
+  );
+
+  return new Response(injected, {
+    status:  res.status,
+    headers: {
+      ...Object.fromEntries(res.headers),
+      'content-type': 'text/html; charset=utf-8',
+      'cache-control': 'public, max-age=3600, stale-while-revalidate=86400',
+    },
+  });
+}
 const SITEMAP_IE = [
   '/',
   '/blog',
@@ -869,7 +1298,7 @@ const SITEMAP_IE = [
   '/clare/miltown-malbay',
   '/clare/mountshannon',
   '/clare/newmarket-on-fergus',
-  '/clare/o\'briensbridge',
+  '/clare/o-briensbridge',
   '/clare/quin',
   '/clare/scariff',
   '/clare/shannon',
@@ -990,7 +1419,7 @@ const SITEMAP_IE = [
   '/dublin/glencullen',
   '/dublin/goatstown',
   '/dublin/grangegorman',
-  '/dublin/harold\'s-cross',
+  '/dublin/harold-s-cross',
   '/dublin/howth',
   '/dublin/inchicore',
   '/dublin/irishtown',
@@ -1479,7 +1908,6 @@ const SITEMAP_IE = [
   '/wicklow/tinahely',
   '/wicklow/wicklow-town',
 ];
-
 const SITEMAP_EN = [
   '/',
   '/about-us',
@@ -1501,7 +1929,6 @@ const SITEMAP_EN = [
   '/epc-assessment-sheffield',
   '/epc-assessment-nottingham'
 ];
-
 const SITEMAP_ES = [
   '/',
   '/sobre-nosotros',
@@ -1529,297 +1956,3 @@ const SITEMAP_ES = [
   '/certificado-energetico-bilbao',
   '/certificado-energetico-alicante'
 ];
-
-export default async function middleware(req) {
-  const url  = new URL(req.url);
-  const path = url.pathname;
-
-  if (PUBLIC_FILE.test(path) && path !== '/sitemap.xml') {
-    return;
-  }
-
-  const hostname = req.headers.get('host') || url.hostname;
-  const isEsp = /certificado|xn--/.test(hostname);
-  const isEng = /epccert/.test(hostname);
-  const tenant = isEsp ? 'spain' : (isEng ? 'england' : 'ireland');
-
-  if (tenant === 'spain') {
-    if (path === '/about') return Response.redirect(`${url.protocol}//${hostname}/sobre-nosotros`, 301);
-    if (path === '/faq') return Response.redirect(`${url.protocol}//${hostname}/preguntas-frecuentes`, 301);
-    if (path === '/catalogue') return Response.redirect(`${url.protocol}//${hostname}/directorio`, 301);
-    if (path === '/hire-agent') return Response.redirect(`${url.protocol}//${hostname}/asesor-energetico`, 301);
-    if (path === '/contact-us') return Response.redirect(`${url.protocol}//${hostname}/contacto`, 301);
-  } else if (tenant === 'ireland') {
-    if (path === '/about') return Response.redirect(`${url.protocol}//${hostname}/about-us`, 301);
-    if (path === '/faq') return Response.redirect(`${url.protocol}//${hostname}/ber-faqs/`, 301);
-  } else if (tenant === 'england') {
-    if (path === '/about') return Response.redirect(`${url.protocol}//${hostname}/about-us`, 301);
-    if (path === '/faq') return Response.redirect(`${url.protocol}//${hostname}/epc-faq`, 301);
-  }
-
-  // Dynamic Sitemap Interception
-  if (path === '/sitemap.xml') {
-    let urls = [];
-    let domain = '';
-    if (tenant === 'spain') { urls = SITEMAP_ES; domain = 'https://www.xn--certificadoenergtico-q2b.eu'; }
-    else if (tenant === 'england') { urls = SITEMAP_EN; domain = 'https://www.epccert.com'; }
-    else { urls = SITEMAP_IE; domain = 'https://www.theberman.eu'; }
-
-    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
-    const today = new Date().toISOString().split('T')[0];
-    
-    // Add homepage if not in array
-    if (!urls.includes('/')) {
-        xml += `  <url>\n    <loc>${domain}/</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n`;
-    }
-
-    for (const u of urls) {
-      const isHome = u === '/';
-      const loc = isHome ? domain + '/' : domain + u;
-      xml += `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${isHome ? 'daily' : 'weekly'}</changefreq>\n    <priority>${isHome ? '1.0' : '0.8'}</priority>\n  </url>\n`;
-    }
-    xml += `</urlset>`;
-
-    return new Response(xml, {
-      status: 200,
-      headers: { 'Content-Type': 'application/xml', 'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400' }
-    });
-  }
-
-  const indexUrl = new URL('/index.html', req.url);
-  const res = await fetch(indexUrl, { headers: req.headers });
-  const contentType = res.headers.get('content-type') || '';
-  if (!contentType.includes('text/html')) {
-    return res;
-  }
-  const html = await res.text();
-
-  const { title, desc } = getMeta(path, tenant);
-  
-  let canonicalBase = 'https://www.theberman.eu';
-  if (tenant === 'spain') canonicalBase = 'https://www.xn--certificadoenergtico-q2b.eu';
-  else if (tenant === 'england') canonicalBase = 'https://www.epccert.com';
-  
-  const canonical = `${canonicalBase}${path === '/' ? '/' : path}`;
-  
-  let ogImage = 'https://theberman.eu/logo.png';
-  if (tenant === 'spain') ogImage = 'https://www.xn--certificadoenergtico-q2b.eu/logo.png';
-  else if (tenant === 'england') ogImage = 'https://www.epccert.com/logo.png';
-
-  const schemas = [];
-  schemas.push(`<script type="application/ld+json">${orgSchema(tenant)}</script>`);
-
-  if (path === '/faq' || path === '/preguntas-frecuentes' || path === '/epc-faq' || path === '/ber-faqs' || path === '/ber-faqs/')
-    schemas.push(`<script type="application/ld+json">${faqSchema(tenant)}</script>`);
-
-  const countyKeys = Object.keys(COUNTY_NAMES);
-  const parts = path.replace(/^\//, '').split('/');
-  
-  const isLocationIE = tenant === 'ireland' && parts.length >= 1 && countyKeys.includes(parts[0]);
-  const isLocationES = tenant === 'spain' && path.startsWith('/certificado-energetico-');
-  const isLocationEN = tenant === 'england' && path.startsWith('/epc-assessment-');
-  
-  if (isLocationIE || isLocationES || isLocationEN)
-    schemas.push(`<script type="application/ld+json">${locationSchema(path, tenant)}</script>`);
-
-  const isBlogPost = parts[0] === 'blog' && parts.length === 2;
-  if (isBlogPost) {
-    const { title: postTitle, desc: postDesc } = getMeta(path, tenant);
-    const blogPosting = {
-      '@context': 'https://schema.org',
-      '@type': 'BlogPosting',
-      headline: postTitle,
-      description: postDesc,
-      url: `${canonicalBase}${path}`,
-      datePublished: '2026-07-01',
-      dateModified: new Date().toISOString().split('T')[0],
-      author: { '@type': 'Organization', name: tenant === 'england' ? 'EPC Cert' : 'The Berman', url: canonicalBase },
-      publisher: {
-        '@type': 'Organization',
-        name: tenant === 'england' ? 'EPC Cert' : 'The Berman',
-        logo: { '@type': 'ImageObject', url: `${canonicalBase}/logo.png` }
-      },
-      mainEntityOfPage: { '@type': 'WebPage', '@id': `${canonicalBase}${path}` },
-      inLanguage: tenant === 'spain' ? 'es-ES' : tenant === 'england' ? 'en-GB' : 'en-IE',
-    };
-    schemas.push(`<script type="application/ld+json">${JSON.stringify(blogPosting)}</script>`);
-  }
-
-  const isNewsPost = parts[0] === 'news' && parts.length === 2;
-  if (isNewsPost) {
-    const { title: newsTitle, desc: newsDesc } = getMeta(path, tenant);
-    const article = {
-      '@context': 'https://schema.org',
-      '@type': 'NewsArticle',
-      headline: newsTitle,
-      description: newsDesc,
-      url: `${canonicalBase}${path}`,
-      datePublished: '2026-07-01',
-      dateModified: new Date().toISOString().split('T')[0],
-      author: { '@type': 'Organization', name: tenant === 'england' ? 'EPC Cert' : 'The Berman', url: canonicalBase },
-      publisher: {
-        '@type': 'Organization',
-        name: tenant === 'england' ? 'EPC Cert' : 'The Berman',
-        logo: { '@type': 'ImageObject', url: `${canonicalBase}/logo.png` }
-      },
-      mainEntityOfPage: { '@type': 'WebPage', '@id': `${canonicalBase}${path}` },
-      inLanguage: tenant === 'spain' ? 'es-ES' : tenant === 'england' ? 'en-GB' : 'en-IE',
-    };
-    schemas.push(`<script type="application/ld+json">${JSON.stringify(article)}</script>`);
-  }
-
-  const bc = breadcrumbSchema(path, tenant);
-  if (bc) schemas.push(`<script type="application/ld+json">${bc}</script>`);
-
-  const schemaBlock = schemas.join('\n  ');
-
-  let locale = 'en_IE';
-  let siteName = 'The Berman';
-  if (tenant === 'spain') { locale = 'es_ES'; siteName = 'Certificado Energético'; }
-  else if (tenant === 'england') { locale = 'en_GB'; siteName = 'EPC Cert'; }
-
-  let gscCode = '';
-  if (tenant === 'england') gscCode = 'uU6Ruam97ElN2rtvSBjwfgOUx93cCD93YRVyiBUePiw';
-  else if (tenant === 'spain') gscCode = 'KoLJU_4hf55xdAgYYjqQ6ip3pK4huH5JPZj4Omhc30o';
-  
-  const gscMeta = gscCode ? `<meta name="google-site-verification" content="${gscCode}" />` : '';
-  const fbMeta = tenant === 'ireland' ? '<meta name="facebook-domain-verification" content="vzxrqz9dqomp4g8iphshju59so27v8" />' : '';
-
-  // ── Meta CAPI — determine event type based on page ───────────────────────
-  const metaEventId = `mw-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-
-  const isContactPage = ['/contact-us', '/contacto', '/get-quote', '/hire-agent', '/asesor-energetico'].includes(path);
-  const isThankYou = path.includes('thank') || path.includes('success') || path.includes('confirmation');
-  const isViewContent = path.startsWith('/catalogue') || path.startsWith('/directorio') || path.startsWith('/locations') || path.startsWith('/ubicaciones');
-  const isBlog = path.startsWith('/blog') || path.startsWith('/noticias') || path.startsWith('/news');
-
-  let metaEventName = 'PageView';
-  let metaEventValue = null;
-  if (isThankYou)         { metaEventName = 'Lead';        metaEventValue = { value: 150, currency: 'EUR' }; }
-  else if (isContactPage) { metaEventName = 'Contact'; }
-  else if (isViewContent || isBlog) { metaEventName = 'ViewContent'; }
-
-  // Fire server-side CAPI — Ireland only
-  if (tenant === 'ireland') {
-    sendMetaCAPI(metaEventName, metaEventId, req, canonical);
-  }
-
-  // ── Browser Meta Pixel — Ireland only, all events with deduplication ─────
-  const metaBrowserEvent = metaEventName === 'Lead'
-    ? `fbq('track', 'Lead', ${JSON.stringify(metaEventValue || {})}, {eventID: '${metaEventId}'});` 
-    : metaEventName === 'Contact'
-    ? `fbq('track', 'Contact', {}, {eventID: '${metaEventId}'});` 
-    : metaEventName === 'ViewContent'
-    ? `fbq('track', 'ViewContent', {content_name: '${title.replace(/'/g, "\\'")}', content_type: 'website'}, {eventID: '${metaEventId}'});` 
-    : `fbq('track', 'PageView', {}, {eventID: '${metaEventId}'});`;
-
-  // ── GTM IDs ──────────────────────────────────────────────────────────────
-  let gtmId = '';
-  if (tenant === 'england') gtmId = 'GTM-WZVH9HVD';
-  else if (tenant === 'spain') gtmId = 'GTM-TL8C5GNJ';
-  else if (tenant === 'ireland') gtmId = 'GTM-NK5NJ78J';
-
-  // ── Cookie Consent Banner — Ireland only (GDPR required) ─────────────────
-  const cookieConsentBanner = tenant === 'ireland' ? `
-<!-- Cookie Consent by TermsFeed -->
-<script type="text/javascript" src="https://www.termsfeed.com/public/cookie-consent/4.2.0/cookie-consent.js" charset="UTF-8"></script>
-<script type="text/javascript" charset="UTF-8">
-document.addEventListener('DOMContentLoaded', function () {
-  cookieconsent.run({"notice_banner_type":"interstitial","consent_type":"express","palette":"light","language":"en","page_load_consent_levels":["strictly-necessary"],"notice_banner_reject_button_hide":false,"preferences_center_close_button_hide":false,"page_refresh_confirmation_buttons":false,"website_name":"https://www.theberman.eu/","website_privacy_policy_url":"https://www.theberman.eu/privacy"});
-});
-</script>
-<noscript>Free cookie consent management tool by <a href="https://www.termsfeed.com/">TermsFeed Generator</a></noscript>
-<!-- End Cookie Consent -->` : '';
-
-  // GTM — Ireland fires after consent, England/Spain fire immediately
-  const gtmHead = tenant === 'ireland' ? `
-<!-- Google Tag Manager + Meta Pixel — loads after cookie consent -->
-<script type="text/plain" data-cookieconsent="targeting">
-(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','${gtmId}');
-</script>
-<script type="text/plain" data-cookieconsent="targeting">
-!function(f,b,e,v,n,t,s)
-{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];
-s.parentNode.insertBefore(t,s)}(window, document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '${META_PIXEL_ID}');
-${metaBrowserEvent}
-</script>` : gtmId ? `
-<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','${gtmId}');</script>
-<!-- End Google Tag Manager -->` : '';
-
-  const gtmBody = gtmId ? `
-<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=${gtmId}"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->` : '';
-
-  const injected = html.replace(
-    /<title>[^<]*<\/title>/,
-    `<title>${title}</title>`
-  ).replace(
-    /<meta name="description" content="[^"]*" \/>/,
-    `<meta name="description" content="${desc}" />`
-  ).replace(
-    /<link rel="canonical" href="[^"]*" \/>/,
-    `<link rel="canonical" href="${canonical}" />`
-  ).replace(
-    /<meta property="og:title" content="[^"]*" \/>/,
-    `<meta property="og:title" content="${title}" />`
-  ).replace(
-    /<meta property="og:description" content="[^"]*" \/>/,
-    `<meta property="og:description" content="${desc}" />`
-  ).replace(
-    /<meta property="og:url" content="[^"]*" \/>/,
-    `<meta property="og:url" content="${canonical}" />`
-  ).replace(
-    /<meta property="og:image" content="[^"]*" \/>/,
-    `<meta property="og:image" content="${ogImage}" />`
-  ).replace(
-    /<meta property="og:locale" content="[^"]*" \/>/,
-    `<meta property="og:locale" content="${locale}" />`
-  ).replace(
-    /<meta property="og:site_name" content="[^"]*" \/>/,
-    `<meta property="og:site_name" content="${siteName}" />`
-  ).replace(
-    /<meta name="twitter:title" content="[^"]*" \/>/,
-    `<meta name="twitter:title" content="${title}" />`
-  ).replace(
-    /<meta name="twitter:description" content="[^"]*" \/>/,
-    `<meta name="twitter:description" content="${desc}" />`
-  ).replace(
-    /<meta name="twitter:image" content="[^"]*" \/>/,
-    `<meta name="twitter:image" content="${ogImage}" />`
-  ).replace(
-    /<meta name="author" content="[^"]*" \/>/,
-    `<meta name="author" content="${siteName}" />`
-  ).replace(
-    '</head>',
-    `  <meta name="description" content="${desc}" />\n  <link rel="canonical" href="${canonical}" />\n  <meta property="og:title" content="${title}" />\n  <meta property="og:description" content="${desc}" />\n  <meta property="og:url" content="${canonical}" />\n  <meta property="og:image" content="${ogImage}" />\n  <meta property="og:locale" content="${locale}" />\n  <meta property="og:site_name" content="${siteName}" />\n  <meta property="og:type" content="website" />\n  <meta name="twitter:card" content="summary_large_image" />\n  <meta name="twitter:title" content="${title}" />\n  <meta name="twitter:description" content="${desc}" />\n  <meta name="twitter:image" content="${ogImage}" />\n  ${gscMeta}\n  ${fbMeta}\n  ${hreflangTags(path, tenant)}\n  ${schemaBlock}\n  ${cookieConsentBanner}\n  ${gtmHead}\n</head>`
-  ).replace(
-    /<body([^>]*)>/i,
-    `<body$1>${gtmBody}`
-  );
-
-  return new Response(injected, {
-    status:  res.status,
-    headers: {
-      ...Object.fromEntries(res.headers),
-      'content-type': 'text/html; charset=utf-8',
-      'cache-control': 'public, max-age=3600, stale-while-revalidate=86400',
-    },
-  });
-}

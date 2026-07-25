@@ -23,6 +23,12 @@ const getContactSchema = (isSpanish: boolean, isPortuguese: boolean) => z.object
     town: z.string().min(2, isSpanish ? 'La ciudad es obligatoria' : isPortuguese ? 'A cidade é obrigatória' : 'Town/City is required'),
     property_type: z.string().min(1, isSpanish ? 'Por favor, selecciona un tipo de propiedad' : isPortuguese ? 'Por favor, selecione um tipo de imóvel' : 'Please select a property type'),
     purpose: z.string().min(1, isSpanish ? 'Por favor, selecciona un propósito' : isPortuguese ? 'Por favor, selecione uma finalidade' : 'Please select a purpose'),
+    preferred_date: z.string().optional(),
+    preferred_time: z.string().optional(),
+    property_size: z.string().optional(),
+    bedrooms: z.string().optional(),
+    additional_features: z.string().optional(),
+    heat_pump: z.string().optional(),
     message: z.string().min(10, isSpanish ? 'El mensaje es demasiado corto (mínimo 10 caracteres)' : isPortuguese ? 'A mensagem é demasiado curta (mínimo 10 caracteres)' : 'Message is too short (min 10 chars)'),
     bot_check: z.string().optional(), // Honeypot field
 });
@@ -102,6 +108,18 @@ const Contact = () => {
         renting: isSpanish ? 'Alquiler' : isPortuguese ? 'Arrendamento' : 'Renting',
         grant: isSpanish ? 'Subvención' : isPortuguese ? 'Subvenção' : 'Govt Grant',
         other: isSpanish ? 'Otro' : isPortuguese ? 'Outro' : 'Other',
+        preferredDate: isSpanish ? 'Fecha Preferida' : isPortuguese ? 'Data Preferida' : 'Preferred Date',
+        preferredTime: isSpanish ? 'Hora Preferida' : isPortuguese ? 'Hora Preferida' : 'Preferred Time',
+        propertySize: isSpanish ? 'Tamaño de la Propiedad' : isPortuguese ? 'Tamanho do Imóvel' : 'Property Size',
+        bedrooms: isSpanish ? 'Número de Dormitorios' : isPortuguese ? 'N.º de Quartos' : 'Number of Bedrooms',
+        additionalFeatures: isSpanish ? 'Características Adicionales' : isPortuguese ? 'Características Adicionais' : 'Any Additional Features',
+        heatPump: isSpanish ? 'Bomba de Calor Instalada' : isPortuguese ? 'Bomba de Calor Instalada' : 'Heat Pump Installed',
+        selectOption: isSpanish ? 'Seleccionar' : isPortuguese ? 'Selecionar' : 'Select...',
+        morning: isSpanish ? 'Mañana' : isPortuguese ? 'Manhã' : 'Morning',
+        afternoon: isSpanish ? 'Tarde' : isPortuguese ? 'Tarde' : 'Afternoon',
+        evening: isSpanish ? 'Noche' : isPortuguese ? 'Fim de Tarde' : 'Evening',
+        yes: isSpanish ? 'Sí' : isPortuguese ? 'Sim' : 'Yes',
+        no: isSpanish ? 'No' : isPortuguese ? 'Não' : 'No',
         message: isSpanish ? 'Mensaje' : isEngland ? 'Message' : isPortuguese ? 'Mensagem' : 'Message',
         messagePlaceholder: isSpanish ? 'Cuéntanos más sobre tu solicitud...' : isEngland ? 'Tell us about your property or EPC assessment requirements.' : isPortuguese ? 'Fale-nos sobre o seu imóvel ou necessidade de certificação energética.' : 'Tell us about your property or BER assessment requirements.',
         sending: isSpanish ? 'Enviando...' : isEngland ? 'Sending...' : isPortuguese ? 'A enviar...' : 'Submitting...',
@@ -128,6 +146,12 @@ const Contact = () => {
                     town: data.town,
                     property_type: data.property_type,
                     purpose: data.purpose,
+                    preferred_date: data.preferred_date || null,
+                    preferred_time: data.preferred_time || null,
+                    property_size: data.property_size || null,
+                    bedrooms: data.bedrooms ? parseInt(data.bedrooms) : null,
+                    additional_features: data.additional_features || null,
+                    heat_pump: data.heat_pump || null,
                     message: data.message,
                 }]);
 
@@ -371,6 +395,72 @@ const Contact = () => {
                                         <option value="Other">{tr.other}</option>
                                     </select>
                                     {errors.purpose && <p className="text-red-500 text-xs font-bold mt-1 ml-1">{errors.purpose.message}</p>}
+                                </div>
+
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <FormInput
+                                        label={tr.preferredDate}
+                                        type="date"
+                                        register={register('preferred_date')}
+                                        error={errors.preferred_date}
+                                        placeholder=""
+                                    />
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">{tr.preferredTime}</label>
+                                        <select
+                                            {...register('preferred_time')}
+                                            className="w-full bg-white border-2 rounded-2xl px-5 py-3 outline-none transition-all appearance-none cursor-pointer border-gray-100 focus:border-[#007F00]"
+                                        >
+                                            <option value="">{tr.selectOption}</option>
+                                            <option value="Morning">{tr.morning}</option>
+                                            <option value="Afternoon">{tr.afternoon}</option>
+                                            <option value="Evening">{tr.evening}</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <FormInput
+                                        label={tr.propertySize}
+                                        register={register('property_size')}
+                                        error={errors.property_size}
+                                        placeholder={isSpanish ? 'ej. 120 m²' : isPortuguese ? 'ex. 120 m²' : 'e.g. 120 sqm'}
+                                    />
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">{tr.bedrooms}</label>
+                                        <select
+                                            {...register('bedrooms')}
+                                            className="w-full bg-white border-2 rounded-2xl px-5 py-3 outline-none transition-all appearance-none cursor-pointer border-gray-100 focus:border-[#007F00]"
+                                        >
+                                            <option value="">{tr.selectOption}</option>
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                            <option value="3">3</option>
+                                            <option value="4">4</option>
+                                            <option value="5">5</option>
+                                            <option value="6">6+</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">{tr.heatPump}</label>
+                                        <select
+                                            {...register('heat_pump')}
+                                            className="w-full bg-white border-2 rounded-2xl px-5 py-3 outline-none transition-all appearance-none cursor-pointer border-gray-100 focus:border-[#007F00]"
+                                        >
+                                            <option value="">{tr.selectOption}</option>
+                                            <option value="Yes">{tr.yes}</option>
+                                            <option value="No">{tr.no}</option>
+                                        </select>
+                                    </div>
+                                    <FormInput
+                                        label={tr.additionalFeatures}
+                                        register={register('additional_features')}
+                                        error={errors.additional_features}
+                                        placeholder={isSpanish ? 'ej. paneles solares, ático aislado' : isPortuguese ? 'ex. painéis solares, sótão isolado' : 'e.g. solar panels, insulated attic'}
+                                    />
                                 </div>
 
                                 <div className="space-y-1">

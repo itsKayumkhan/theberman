@@ -1,4 +1,4 @@
-import { X, Calendar, Mail, Phone, MapPin, Home } from 'lucide-react';
+import { X, Calendar, Mail, Phone, MapPin, Home, Clock, Ruler, BedDouble, Zap, Plus } from 'lucide-react';
 import { ChevronDown, Loader2 } from 'lucide-react';
 import type { Lead } from '../../../types/admin';
 import { getStatusColor } from '../adminUtils';
@@ -121,6 +121,80 @@ export const LeadDetailsModal = ({ lead, isUpdating, onClose, updateStatus }: Pr
                         {lead.message}
                     </div>
                 </div>
+
+                {(lead.preferred_date || lead.preferred_time || lead.property_size || lead.bedrooms || lead.additional_features || lead.heat_pump) && (
+                    <div>
+                        <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 pl-1">ASSESSMENT PREFERENCES</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {lead.preferred_date && (
+                                <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-4 border border-gray-100">
+                                    <div className="w-8 h-8 rounded-full bg-blue-50 text-[#007EA7] flex items-center justify-center shrink-0">
+                                        <Calendar size={16} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Preferred Date</p>
+                                        <p className="text-sm font-bold text-gray-900">{new Date(lead.preferred_date).toLocaleDateString('en-GB')}</p>
+                                    </div>
+                                </div>
+                            )}
+                            {lead.preferred_time && (
+                                <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-4 border border-gray-100">
+                                    <div className="w-8 h-8 rounded-full bg-blue-50 text-[#007EA7] flex items-center justify-center shrink-0">
+                                        <Clock size={16} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Preferred Time</p>
+                                        <p className="text-sm font-bold text-gray-900">{lead.preferred_time}</p>
+                                    </div>
+                                </div>
+                            )}
+                            {lead.property_size && (
+                                <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-4 border border-gray-100">
+                                    <div className="w-8 h-8 rounded-full bg-blue-50 text-[#007EA7] flex items-center justify-center shrink-0">
+                                        <Ruler size={16} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Property Size</p>
+                                        <p className="text-sm font-bold text-gray-900">{lead.property_size}</p>
+                                    </div>
+                                </div>
+                            )}
+                            {lead.bedrooms != null && (
+                                <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-4 border border-gray-100">
+                                    <div className="w-8 h-8 rounded-full bg-blue-50 text-[#007EA7] flex items-center justify-center shrink-0">
+                                        <BedDouble size={16} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Bedrooms</p>
+                                        <p className="text-sm font-bold text-gray-900">{lead.bedrooms}</p>
+                                    </div>
+                                </div>
+                            )}
+                            {lead.heat_pump && (
+                                <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-4 border border-gray-100">
+                                    <div className="w-8 h-8 rounded-full bg-blue-50 text-[#007EA7] flex items-center justify-center shrink-0">
+                                        <Zap size={16} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Heat Pump Installed</p>
+                                        <p className="text-sm font-bold text-gray-900">{lead.heat_pump}</p>
+                                    </div>
+                                </div>
+                            )}
+                            {lead.additional_features && (
+                                <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-4 border border-gray-100 md:col-span-2">
+                                    <div className="w-8 h-8 rounded-full bg-blue-50 text-[#007EA7] flex items-center justify-center shrink-0">
+                                        <Plus size={16} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Additional Features</p>
+                                        <p className="text-sm font-bold text-gray-900">{lead.additional_features}</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
 
                 <div className="flex flex-col gap-3 pt-4 border-t border-gray-50">
                     <div className="grid grid-cols-1 gap-4 relative z-10">

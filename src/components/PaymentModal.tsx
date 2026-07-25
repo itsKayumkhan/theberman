@@ -20,7 +20,7 @@ interface PaymentModalProps {
     description?: string;
 }
 
-const CheckoutForm = ({ onSuccess, amount, isSpanish }: { onSuccess: (id: string) => void, amount: number, isSpanish: boolean }) => {
+const CheckoutForm = ({ onSuccess, amount, isSpanish, currency }: { onSuccess: (id: string) => void, amount: number, isSpanish: boolean, currency: string }) => {
     const stripe = useStripe();
     const elements = useElements();
     const [message, setMessage] = useState<string | null>(null);
@@ -82,7 +82,7 @@ const CheckoutForm = ({ onSuccess, amount, isSpanish }: { onSuccess: (id: string
                 ) : (
                     <>
                         <Lock size={18} />
-                        {isSpanish ? `Pagar Depósito de Reserva: €${amount.toFixed(2)}` : `Pay Booking Deposit: €${amount.toFixed(2)}`}
+                        {isSpanish ? `Pagar Depósito de Reserva: ${currency === 'gbp' ? '£' : '€'}${amount.toFixed(2)}` : `Pay Booking Deposit: ${currency === 'gbp' ? '£' : '€'}${amount.toFixed(2)}`}
                     </>
                 )}
             </button>
@@ -163,6 +163,7 @@ const PaymentModal = ({ isOpen, onClose, amount, currency = 'eur', onSuccess, me
                                 onSuccess={onSuccess}
                                 amount={amount}
                                 isSpanish={isSpanish}
+                                currency={currency}
                             />
                         </Elements>
                     ) : (

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useTranslation } from '../hooks/useTranslation';
 import { supabase } from '../lib/supabase';
-import { formatCurrency, getTenantFromDomain } from '../lib/tenant';
+import { formatCurrency, getTenantFromDomain, getTenantCurrency } from '../lib/tenant';
 import { LogOut, FileText, User, Home, AlertCircle, X, Menu, Trash2, Search, Clock } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -161,9 +161,11 @@ const UserDashboard = () => {
 
     const fetchAppSettings = async () => {
         try {
+            const currentTenant = getTenantFromDomain();
             const { data, error } = await supabase
                 .from('app_settings')
                 .select('platform_fee_amount, hidden_fee_amount')
+                .eq('tenant', currentTenant)
                 .single();
             if (error) throw error;
             if (data) {
@@ -341,7 +343,7 @@ const UserDashboard = () => {
             // 1. Record Payment in DB
             const { error: paymentError } = await supabase.from('payments').insert({
                 amount: paymentQuote.amount,
-                currency: 'eur',
+                currency: getTenantCurrency(tenant).toLowerCase(),
                 status: 'completed',
                 assessment_id: paymentQuote.assessmentId,
                 user_id: user?.id,
@@ -1052,6 +1054,7 @@ const UserDashboard = () => {
                     isOpen={paymentModalOpen}
                     onClose={() => setPaymentModalOpen(false)}
                     amount={paymentQuote.amount}
+                    currency={getTenantCurrency(tenant).toLowerCase()}
                     onSuccess={handlePaymentSuccess}
                     metadata={{
                         assessmentId: paymentQuote.assessmentId,

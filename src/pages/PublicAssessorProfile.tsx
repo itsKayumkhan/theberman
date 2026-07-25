@@ -36,7 +36,14 @@ const PublicAssessorProfile = () => {
         email: '',
         phone: '',
         eircode: '',
-        message: ''
+        message: '',
+        preferred_date: '',
+        preferred_time: '',
+        property_type: '',
+        property_size: '',
+        bedrooms: '',
+        additional_features: '',
+        heat_pump: '',
     });
 
     useEffect(() => {
@@ -77,7 +84,14 @@ const PublicAssessorProfile = () => {
                     message: formData.message || `Direct quote request from profile for ${profile?.full_name}`,
                     status: 'new',
                     county: profile?.home_county || '',
-                    purpose: 'Profile Direct'
+                    purpose: 'Profile Direct',
+                    preferred_date: formData.preferred_date || null,
+                    preferred_time: formData.preferred_time || null,
+                    property_type: formData.property_type || null,
+                    property_size: formData.property_size || null,
+                    bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : null,
+                    additional_features: formData.additional_features || null,
+                    heat_pump: formData.heat_pump || null,
                 }]);
 
             if (error) throw error;
@@ -86,7 +100,7 @@ const PublicAssessorProfile = () => {
                 duration: 5000,
                 icon: '🚀'
             });
-            setFormData({ name: '', email: '', phone: '', eircode: '', message: '' });
+            setFormData({ name: '', email: '', phone: '', eircode: '', message: '', preferred_date: '', preferred_time: '', property_type: '', property_size: '', bedrooms: '', additional_features: '', heat_pump: '' });
         } catch (error: any) {
             toast.error(error.message || 'Failed to send request');
         } finally {
@@ -316,6 +330,101 @@ const PublicAssessorProfile = () => {
                                         />
                                     </div>
                                 </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Tipo de Propiedad' : isPortuguese ? 'Tipo de Imóvel' : 'Property Type'}</label>
+                                        <select
+                                            value={formData.property_type}
+                                            onChange={e => setFormData({ ...formData, property_type: e.target.value })}
+                                            className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-[#007EA7] focus:bg-white rounded-2xl outline-none font-bold text-sm transition-all"
+                                        >
+                                            <option value="">{isSpanish ? 'Seleccionar' : isPortuguese ? 'Selecionar' : 'Select...'}</option>
+                                            <option value="Apartment">{isSpanish ? 'Apartamento' : isPortuguese ? 'Apartamento' : 'Apartment'}</option>
+                                            <option value="Mid-Terrace">{isSpanish ? 'Adosada' : isPortuguese ? 'Moradia em Banda' : 'Mid-Terrace'}</option>
+                                            <option value="Semi-Detached">{isSpanish ? 'Pareada' : isPortuguese ? 'Geminada' : 'Semi-Detached'}</option>
+                                            <option value="Detached">{isSpanish ? 'Independiente' : isPortuguese ? 'Isolada' : 'Detached'}</option>
+                                            <option value="Bungalow">{isSpanish ? 'Chalet' : isPortuguese ? 'Bungalow' : 'Bungalow'}</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Tamaño' : isPortuguese ? 'Tamanho' : 'Property Size'}</label>
+                                        <input
+                                            type="text"
+                                            placeholder={isSpanish ? 'ej. 120 m²' : isPortuguese ? 'ex. 120 m²' : 'e.g. 120 sqm'}
+                                            value={formData.property_size}
+                                            onChange={e => setFormData({ ...formData, property_size: e.target.value })}
+                                            className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-[#007EA7] focus:bg-white rounded-2xl outline-none font-bold text-sm transition-all"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Fecha Preferida' : isPortuguese ? 'Data Preferida' : 'Preferred Date'}</label>
+                                        <input
+                                            type="date"
+                                            value={formData.preferred_date}
+                                            onChange={e => setFormData({ ...formData, preferred_date: e.target.value })}
+                                            className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-[#007EA7] focus:bg-white rounded-2xl outline-none font-bold text-sm transition-all"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Hora Preferida' : isPortuguese ? 'Hora Preferida' : 'Preferred Time'}</label>
+                                        <select
+                                            value={formData.preferred_time}
+                                            onChange={e => setFormData({ ...formData, preferred_time: e.target.value })}
+                                            className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-[#007EA7] focus:bg-white rounded-2xl outline-none font-bold text-sm transition-all"
+                                        >
+                                            <option value="">{isSpanish ? 'Seleccionar' : isPortuguese ? 'Selecionar' : 'Select...'}</option>
+                                            <option value="Morning">{isSpanish ? 'Mañana' : isPortuguese ? 'Manhã' : 'Morning'}</option>
+                                            <option value="Afternoon">{isSpanish ? 'Tarde' : isPortuguese ? 'Tarde' : 'Afternoon'}</option>
+                                            <option value="Evening">{isSpanish ? 'Noche' : isPortuguese ? 'Fim de Tarde' : 'Evening'}</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Dormitorios' : isPortuguese ? 'Quartos' : 'Bedrooms'}</label>
+                                        <select
+                                            value={formData.bedrooms}
+                                            onChange={e => setFormData({ ...formData, bedrooms: e.target.value })}
+                                            className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-[#007EA7] focus:bg-white rounded-2xl outline-none font-bold text-sm transition-all"
+                                        >
+                                            <option value="">{isSpanish ? 'Seleccionar' : isPortuguese ? 'Selecionar' : 'Select...'}</option>
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                            <option value="3">3</option>
+                                            <option value="4">4</option>
+                                            <option value="5">5</option>
+                                            <option value="6">6+</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Bomba de Calor' : isPortuguese ? 'Bomba de Calor' : 'Heat Pump'}</label>
+                                        <select
+                                            value={formData.heat_pump}
+                                            onChange={e => setFormData({ ...formData, heat_pump: e.target.value })}
+                                            className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-[#007EA7] focus:bg-white rounded-2xl outline-none font-bold text-sm transition-all"
+                                        >
+                                            <option value="">{isSpanish ? 'Seleccionar' : isPortuguese ? 'Selecionar' : 'Select...'}</option>
+                                            <option value="Yes">{isSpanish ? 'Sí' : isPortuguese ? 'Sim' : 'Yes'}</option>
+                                            <option value="No">{isSpanish ? 'No' : isPortuguese ? 'Não' : 'No'}</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Características Adicionales' : isPortuguese ? 'Características Adicionais' : 'Additional Features'}</label>
+                                    <input
+                                        type="text"
+                                        placeholder={isSpanish ? 'ej. paneles solares, ático aislado' : isPortuguese ? 'ex. painéis solares, sótão isolado' : 'e.g. solar panels, insulated attic'}
+                                        value={formData.additional_features}
+                                        onChange={e => setFormData({ ...formData, additional_features: e.target.value })}
+                                        className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-[#007EA7] focus:bg-white rounded-2xl outline-none font-bold text-sm transition-all"
+                                    />
+                                </div>
+
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Mensaje (Opcional)' : isPortuguese ? 'Mensagem (Opcional)' : 'Message (Optional)'}</label>
                                     <textarea

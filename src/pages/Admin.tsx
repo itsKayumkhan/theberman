@@ -2400,6 +2400,7 @@ const Admin = () => {
                         <LocationPagesView selectedTenant={selectedTenant} />
                     ) : view === 'settings' ? (
                         <SettingsView
+                            key={selectedTenant}
                             appSettings={appSettings}
                             promoSettings={promoSettings} setPromoSettings={setPromoSettings}
                             isSavingSettings={isSavingSettings} setIsSavingSettings={setIsSavingSettings}
