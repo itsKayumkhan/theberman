@@ -185,7 +185,7 @@ const Admin = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [locationFilter, setLocationFilter] = useState('');
     const [customMonths, setCustomMonths] = useState<number>(1);
-    const [selectedTenant, setSelectedTenantState] = useState<string>(() => {
+    const [selectedTenant] = useState<string>(() => {
         // Priority: URL param > localStorage > domain detection
         const urlParams = new URLSearchParams(window.location.search);
         const urlTenant = urlParams.get('tenant');
