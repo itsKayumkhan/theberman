@@ -1,4 +1,4 @@
-import { X, Calendar, Mail, Phone, MapPin, Home, Clock, Ruler, BedDouble, Zap, Plus } from 'lucide-react';
+import { X, Calendar, Mail, Phone, MapPin, Home, Clock, Ruler, BedDouble, Zap, Plus, Hash } from 'lucide-react';
 import { ChevronDown, Loader2 } from 'lucide-react';
 import type { Lead } from '../../../types/admin';
 import { getStatusColor } from '../adminUtils';
@@ -105,6 +105,14 @@ export const LeadDetailsModal = ({ lead, isUpdating, onClose, updateStatus }: Pr
                                     </div>
                                     <span className="font-medium text-gray-600">{lead.property_type || 'N/A'}</span>
                                 </div>
+                                {lead.eircode && (
+                                    <div className="flex items-center gap-3 text-sm text-gray-700 p-2 hover:bg-blue-50/50 rounded-lg transition-colors -mx-2">
+                                        <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 shrink-0">
+                                            <Hash size={18} />
+                                        </div>
+                                        <span className="font-mono font-medium text-gray-600">{lead.eircode}</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                         <div className="mt-6">

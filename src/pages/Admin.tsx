@@ -298,6 +298,7 @@ const Admin = () => {
             l.name?.toLowerCase().includes(q) ||
             l.email?.toLowerCase().includes(q) ||
             l.town?.toLowerCase().includes(q) ||
+            l.eircode?.toLowerCase().includes(q) ||
             (l.status || 'new').toLowerCase().includes(q)
         );
     }), [leads, searchTerm]);
@@ -500,6 +501,7 @@ const Admin = () => {
                         price,
                         notes,
                         status,
+                        notification_status,
                         created_at,
                         created_by
                     )
@@ -1520,6 +1522,25 @@ const Admin = () => {
         }
     }, [selectedAssessment, logAudit, fetchAssessments, selectedTenant]);
 
+    const handleResendQuotes = useCallback(async () => {
+        if (!selectedAssessment) return;
+        setIsUpdating(true);
+        try {
+            const { data, error } = await supabase.functions.invoke('resend-quotes', {
+                body: { assessmentId: selectedAssessment.id, tenant: selectedAssessment.tenant || selectedTenant }
+            });
+            if (error) throw error;
+            if (!data?.success) throw new Error(data?.error || 'Failed to resend quotes');
+            toast.success(`Quotes resent to ${selectedAssessment.contact_email || selectedAssessment.user?.email}`);
+            await fetchAssessments();
+        } catch (error: any) {
+            console.error('Failed to resend quotes:', error);
+            toast.error(error.message || 'Failed to resend quotes');
+        } finally {
+            setIsUpdating(false);
+        }
+    }, [selectedAssessment, selectedTenant, fetchAssessments]);
+
     const handleGenerateQuote = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedAssessment) return;
@@ -2503,6 +2524,7 @@ const Admin = () => {
                     onComplete={() => { setShowCompleteModal(true); setShowAssessmentDetailModal(false); }}
                     onMessage={(content) => { setMessageContent(content); setShowMessageModal(true); setShowAssessmentDetailModal(false); }}
                     onEdit={() => { setShowEditJobModal(true); }}
+                    onResendQuotes={handleResendQuotes}
                 />
             )}
 

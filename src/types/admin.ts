@@ -17,6 +17,7 @@ export interface Lead {
     bedrooms?: number;
     additional_features?: string;
     heat_pump?: string;
+    eircode?: string;
 }
 
 export interface Profile {
@@ -57,6 +58,7 @@ export interface Quote {
     price: number;
     notes?: string;
     status: 'pending' | 'accepted' | 'rejected';
+    notification_status?: 'pending' | 'sent' | 'failed';
     created_at: string;
     created_by: string;
     contractor?: {

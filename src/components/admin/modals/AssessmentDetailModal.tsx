@@ -1,4 +1,4 @@
-import { X, Home, Calendar, Send, User, Building, Euro, Clock, Edit } from 'lucide-react';
+import { X, Home, Calendar, Send, User, Building, Euro, Clock, Edit, Mail } from 'lucide-react';
 import type { Assessment } from '../../../types/admin';
 import { getStatusColor } from '../adminUtils';
 import { getTenantFromDomain } from '../../../lib/tenant';
@@ -13,13 +13,14 @@ interface Props {
     onComplete: () => void;
     onMessage: (content: string) => void;
     onEdit?: () => void;
+    onResendQuotes?: () => void;
 }
 
 const tenant = getTenantFromDomain();
 const regNumberLabel = tenant === 'spain' ? 'CEE CAT' : tenant === 'england' ? 'Assessor ID' : 'SEAI';
 
 export const AssessmentDetailModal = ({
-    assessment, onClose, onGenerateQuote, onResendNotifications, onAssignAssessor, onSchedule, onComplete, onMessage, onEdit,
+    assessment, onClose, onGenerateQuote, onResendNotifications, onAssignAssessor, onSchedule, onComplete, onMessage, onEdit, onResendQuotes,
 }: Props) => (
     <div
         className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
@@ -187,10 +188,21 @@ export const AssessmentDetailModal = ({
 
                     {/* Quotes Section */}
                     <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-100">
-                        <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                            <Euro size={20} className="text-emerald-600" />
-                            Quotes Received ({assessment.quotes?.length || 0})
-                        </h3>
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                <Euro size={20} className="text-emerald-600" />
+                                Quotes Received ({assessment.quotes?.length || 0})
+                            </h3>
+                            {onResendQuotes && assessment.quotes && assessment.quotes.length > 0 && (
+                                <button
+                                    onClick={onResendQuotes}
+                                    className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-emerald-700 transition-all shadow-sm flex items-center gap-2"
+                                >
+                                    <Mail size={14} />
+                                    Resend All Quotes
+                                </button>
+                            )}
+                        </div>
                         {assessment.quotes && assessment.quotes.length > 0 ? (
                             <div className="space-y-4">
                                 {assessment.quotes.map((quote) => (
@@ -201,6 +213,9 @@ export const AssessmentDetailModal = ({
                                                     <span className="text-sm font-bold text-gray-900">{quote.contractor?.full_name || 'Unknown'}</span>
                                                     <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${quote.status === 'accepted' ? 'bg-green-100 text-green-700' : quote.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
                                                         {quote.status}
+                                                    </span>
+                                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${quote.notification_status === 'sent' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
+                                                        {quote.notification_status === 'sent' ? 'Sent' : 'Pending'}
                                                     </span>
                                                 </div>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-600">

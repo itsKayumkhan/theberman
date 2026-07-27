@@ -82,13 +82,14 @@ export const LeadsView = React.memo(({ leads, filteredLeads, searchTerm, setSear
                             <th className="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Date</th>
                             <th className="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Contact</th>
                             <th className="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Location</th>
+                            <th className="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Eircode</th>
                             <th className="px-5 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Purpose</th>
                             <th className="px-5 py-3 text-right text-[10px] font-bold text-gray-400 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                         {filtered.length === 0 ? (
-                            <tr><td colSpan={6} className="px-5 py-12 text-center text-gray-300 text-sm italic">No leads found{statusFilter ? ` with status "${statusFilter}"` : ''}{locationFilter ? ` in ${locationFilter}` : ''}.</td></tr>
+                            <tr><td colSpan={7} className="px-5 py-12 text-center text-gray-300 text-sm italic">No leads found{statusFilter ? ` with status "${statusFilter}"` : ''}{locationFilter ? ` in ${locationFilter}` : ''}.</td></tr>
                         ) : filtered.map(lead => (
                             <tr key={lead.id} className="hover:bg-gray-50/60 transition-colors cursor-pointer" onClick={() => setSelectedLead(lead)}>
                                 <td className="px-5 py-3"><LeadStatusBadge status={lead.status || 'new'} /></td>
@@ -103,6 +104,7 @@ export const LeadsView = React.memo(({ leads, filteredLeads, searchTerm, setSear
                                 <td className="px-5 py-3 text-[12px] text-gray-500">
                                     {lead.town ? `${lead.town}${lead.county ? `, Co. ${lead.county}` : ''}` : lead.county ? `Co. ${lead.county}` : '—'}
                                 </td>
+                                <td className="px-5 py-3 text-[12px] text-gray-500 font-mono">{lead.eircode || '—'}</td>
                                 <td className="px-5 py-3 text-[12px] text-gray-400">{lead.purpose || '—'}</td>
                                 <td className="px-5 py-3">
                                     <div className="flex items-center justify-end gap-1" onClick={e => e.stopPropagation()}>

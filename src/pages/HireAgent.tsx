@@ -64,6 +64,7 @@ const hireAgentSchema = z.object({
     property_type: z.string().min(1, vMsgs.propertyTypeRequired),
     purpose: z.string().min(1, vMsgs.purposeRequired),
     message: z.string().min(10, vMsgs.messageMin),
+    eircode: z.string().optional(),
     bot_check: z.string().optional(), // Honeypot field
 });
 
@@ -144,6 +145,8 @@ const HireAgent = () => {
         other: 'Otro',
         message: 'Mensaje',
         messagePh: 'Cuéntanos tus objetivos de eficiencia energética...',
+        eircodeLabel: 'Código Postal',
+        eircodePh: '28001',
         sending: 'Enviando...',
         hireBtn: 'Contratar Asesor Energético',
         toastSuccess: '¡Tu consulta ha sido enviada! Un Asesor Energético se pondrá en contacto contigo en breve.',
@@ -203,6 +206,8 @@ const HireAgent = () => {
         other: 'Outro',
         message: 'Mensagem',
         messagePh: 'Diga-nos quais são os seus objetivos de eficiência energética...',
+        eircodeLabel: 'Código Postal',
+        eircodePh: '1000-001',
         sending: 'A enviar...',
         hireBtn: 'Contratar Consultor Energético',
         toastSuccess: 'A sua consulta foi enviada! Um Consultor Energético entrará em contacto consigo em breve.',
@@ -262,6 +267,8 @@ const HireAgent = () => {
         other: 'Other',
         message: 'Message',
         messagePh: 'Tell us about your home energy goals...',
+        eircodeLabel: 'Postcode',
+        eircodePh: 'SW1A 1AA',
         sending: 'Sending...',
         hireBtn: 'Get Started',
         toastSuccess: 'Your inquiry has been sent! An Energy Advisor will contact you shortly.',
@@ -321,6 +328,8 @@ const HireAgent = () => {
         other: 'Other',
         message: 'Message',
         messagePh: 'Tell us about your home energy goals...',
+        eircodeLabel: 'Eircode',
+        eircodePh: 'A65 F123',
         sending: 'Sending...',
         hireBtn: 'Hire Energy Agent',
         toastSuccess: 'Your inquiry has been sent! An Energy Advisor will contact you shortly.',
@@ -345,6 +354,7 @@ const HireAgent = () => {
                     town: data.town,
                     property_type: data.property_type,
                     purpose: data.purpose,
+                    eircode: data.eircode || null,
                     message: `[HIRE AGENT INQUIRY]: ${data.message}`,
                 }]);
 
@@ -563,20 +573,28 @@ const HireAgent = () => {
                                     </div>
                                 </div>
 
-                                <div className="space-y-1">
-                                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">{tr.purposeLabel}</label>
-                                    <select
-                                        {...register('purpose')}
-                                        className={`w-full bg-white border-2 rounded-2xl px-5 py-3 outline-none transition-all appearance-none cursor-pointer ${errors.purpose ? 'border-red-500' : 'border-gray-100 focus:border-[#007F00]'}`}
-                                    >
-                                        <option value="">{tr.selectPurpose}</option>
-                                        <option value="Mortgage/Bank">{tr.mortgage}</option>
-                                        <option value="Selling">{tr.selling}</option>
-                                        <option value="Renting">{tr.renting}</option>
-                                        <option value="Govt Grant">{tr.grant}</option>
-                                        <option value="Other">{tr.other}</option>
-                                    </select>
-                                    {errors.purpose && <p className="text-red-500 text-xs font-bold mt-1 ml-1">{errors.purpose.message}</p>}
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">{tr.purposeLabel}</label>
+                                        <select
+                                            {...register('purpose')}
+                                            className={`w-full bg-white border-2 rounded-2xl px-5 py-3 outline-none transition-all appearance-none cursor-pointer ${errors.purpose ? 'border-red-500' : 'border-gray-100 focus:border-[#007F00]'}`}
+                                        >
+                                            <option value="">{tr.selectPurpose}</option>
+                                            <option value="Mortgage/Bank">{tr.mortgage}</option>
+                                            <option value="Selling">{tr.selling}</option>
+                                            <option value="Renting">{tr.renting}</option>
+                                            <option value="Govt Grant">{tr.grant}</option>
+                                            <option value="Other">{tr.other}</option>
+                                        </select>
+                                        {errors.purpose && <p className="text-red-500 text-xs font-bold mt-1 ml-1">{errors.purpose.message}</p>}
+                                    </div>
+                                    <FormInput
+                                        label={tr.eircodeLabel}
+                                        register={register('eircode')}
+                                        error={errors.eircode}
+                                        placeholder={tr.eircodePh}
+                                    />
                                 </div>
 
                                 <div className="space-y-1">

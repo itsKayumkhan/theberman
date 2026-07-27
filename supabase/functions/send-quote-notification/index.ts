@@ -123,6 +123,19 @@ Deno.serve(async (req: Request) => {
                     : `Hi ${assessment.contact_name}, great news! You've received a new BER quote on ${websiteUrl.replace('https://', '')}. Log in to review and compare prices: ${websiteUrl}`, config.phone_country_code, config.twilio_account_sid, config.twilio_auth_token, config.twilio_messaging_service_sid);
 
             await client.close();
+
+            // Mark the latest quote as notified
+            const { data: latestQuote } = await supabase
+                .from('quotes')
+                .select('id')
+                .eq('assessment_id', assessmentId)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+            if (latestQuote) {
+                await supabase.from('quotes').update({ notification_status: 'sent' }).eq('id', latestQuote.id);
+            }
+
             console.log(`[send-quote-notification] SUCCESS: Notification sent to ${assessment.contact_email} (tenant: ${tenant})`);
             return new Response(JSON.stringify({ success: true, message: 'Notification email & SMS sent to homeowner', tenant }), { headers: responseHeaders });
 

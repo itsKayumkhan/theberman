@@ -99,6 +99,23 @@ export const CreateJobModal = ({ onClose, onJobCreated, selectedTenant = 'irelan
         setIsSubmitting(true);
         try {
             const tenant = selectedTenant;
+
+            // Auto-link or create homeowner account from contact email
+            let homeownerUserId: string | null = null;
+            try {
+                const { data: accountData, error: accountError } = await supabase.functions.invoke('create-homeowner-account', {
+                    body: { email: contactEmail, fullName: contactName, phone: contactPhone, tenant }
+                });
+                if (!accountError && accountData?.success && accountData?.userId) {
+                    homeownerUserId = accountData.userId;
+                    if (accountData.created) {
+                        toast.success(`Homeowner account created for ${contactEmail}`);
+                    }
+                }
+            } catch (accountErr) {
+                console.error('Failed to create/link homeowner account:', accountErr);
+            }
+
             const basePayload: any = {
                 property_address: `${town}, ${county}`,
                 town,
@@ -110,7 +127,7 @@ export const CreateJobModal = ({ onClose, onJobCreated, selectedTenant = 'irelan
                 contact_email: contactEmail,
                 contact_phone: contactPhone,
                 eircode: eircode || null,
-                user_id: null,
+                user_id: homeownerUserId,
                 job_type: jobType || 'domestic',
                 tenant,
                 posted_by: 'admin',

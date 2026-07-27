@@ -29,6 +29,7 @@ const getContactSchema = (isSpanish: boolean, isPortuguese: boolean) => z.object
     bedrooms: z.string().optional(),
     additional_features: z.string().optional(),
     heat_pump: z.string().optional(),
+    eircode: z.string().optional(),
     message: z.string().min(10, isSpanish ? 'El mensaje es demasiado corto (mínimo 10 caracteres)' : isPortuguese ? 'A mensagem é demasiado curta (mínimo 10 caracteres)' : 'Message is too short (min 10 chars)'),
     bot_check: z.string().optional(), // Honeypot field
 });
@@ -114,6 +115,8 @@ const Contact = () => {
         bedrooms: isSpanish ? 'Número de Dormitorios' : isPortuguese ? 'N.º de Quartos' : 'Number of Bedrooms',
         additionalFeatures: isSpanish ? 'Características Adicionales' : isPortuguese ? 'Características Adicionais' : 'Any Additional Features',
         heatPump: isSpanish ? 'Bomba de Calor Instalada' : isPortuguese ? 'Bomba de Calor Instalada' : 'Heat Pump Installed',
+        eircodeLabel: isSpanish ? 'Código Postal' : isPortuguese ? 'Código Postal' : isEngland ? 'Postcode' : 'Eircode',
+        eircodePlaceholder: isSpanish ? '28001' : isPortuguese ? '1000-001' : isEngland ? 'SW1A 1AA' : 'A65 F123',
         selectOption: isSpanish ? 'Seleccionar' : isPortuguese ? 'Selecionar' : 'Select...',
         morning: isSpanish ? 'Mañana' : isPortuguese ? 'Manhã' : 'Morning',
         afternoon: isSpanish ? 'Tarde' : isPortuguese ? 'Tarde' : 'Afternoon',
@@ -152,6 +155,7 @@ const Contact = () => {
                     bedrooms: data.bedrooms ? parseInt(data.bedrooms) : null,
                     additional_features: data.additional_features || null,
                     heat_pump: data.heat_pump || null,
+                    eircode: data.eircode || null,
                     message: data.message,
                 }]);
 
@@ -456,10 +460,10 @@ const Contact = () => {
                                         </select>
                                     </div>
                                     <FormInput
-                                        label={tr.additionalFeatures}
-                                        register={register('additional_features')}
-                                        error={errors.additional_features}
-                                        placeholder={isSpanish ? 'ej. paneles solares, ático aislado' : isPortuguese ? 'ex. painéis solares, sótão isolado' : 'e.g. solar panels, insulated attic'}
+                                        label={tr.eircodeLabel}
+                                        register={register('eircode')}
+                                        error={errors.eircode}
+                                        placeholder={tr.eircodePlaceholder}
                                     />
                                 </div>
 
