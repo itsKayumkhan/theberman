@@ -741,6 +741,7 @@ const Admin = () => {
             .channel('admin-changes')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => fetchLeads())
             .on('postgres_changes', { event: '*', schema: 'public', table: 'assessments' }, () => fetchAssessments())
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'quotes' }, () => fetchAssessments())
             .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => fetchUsers())
             .on('postgres_changes', { event: '*', schema: 'public', table: 'payments' }, () => fetchPayments())
             .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, () => fetchAppSettings())
