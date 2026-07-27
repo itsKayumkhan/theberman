@@ -2,7 +2,7 @@
 // Injects: canonical, title, meta description, OG tags, hreflang, JSON-LD schema
 // Zero changes to the React app needed.
 
-export const config = { matcher: '/((?!_next|assets|favicon|logo|robots).*)' };
+export const config = { matcher: '/((?!_next|assets|favicon|logo|robots|.*\\..*).*)' };
 
 // ─── Meta Conversions API (Server-Side) ───────────────────────────────────────
 const META_PIXEL_ID   = '1597842568530965';
@@ -870,7 +870,7 @@ export default async function middleware(req) {
   const tenant = isEsp ? 'spain' : (isEng ? 'england' : 'ireland');
 
   // Skip middleware injection for admin / auth / API / asset routes — they are SPA/client-only
-  const skipPaths = ['/secure-admin-portal', '/api/', '/auth/', '/assets/', '/_next/', '/favicon', '/logo', '/robots', '/sitemap', '/.well-known'];
+  const skipPaths = ['/secure-admin-portal', '/api/', '/auth/', '/assets/', '/_next/', '/favicon', '/logo', '/robots', '/sitemap', '/.well-known', '/vite.svg', '/llms.txt'];
   if (skipPaths.some(p => path.startsWith(p))) {
     try {
       return await fetch(req);
@@ -949,6 +949,17 @@ export default async function middleware(req) {
     return new Response(null, { status: 200 });
   }
 
+  // Only inject meta tags into HTML responses — skip SVG, PDF, JSON, etc.
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('text/html')) {
+    return new Response(html, {
+      status: res.status,
+      headers: Object.fromEntries(res.headers),
+    });
+  }
+
+  // Wrap all meta injection in try/catch — never crash a page load due to SEO injection
+  try {
   const { title, desc } = getMeta(path, tenant);
   
   let canonicalBase = 'https://www.theberman.eu';
@@ -1246,6 +1257,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       'cache-control': 'public, max-age=3600, stale-while-revalidate=86400',
     },
   });
+  } catch (_injectErr) {
+    // If meta injection fails for any reason, return the original HTML unmodified
+    return new Response(html, {
+      status: res.status,
+      headers: {
+        ...Object.fromEntries(res.headers),
+        'content-type': 'text/html; charset=utf-8',
+      },
+    });
+  }
 }
 const SITEMAP_IE = [
   '/',
