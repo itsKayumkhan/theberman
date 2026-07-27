@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Search, TrendingUp, Briefcase, Home, Eye, AlertTriangle, Mail, Send, Edit2, Plus, CheckCircle2, X, Trash2 } from 'lucide-react';
 import { Filter as FilterIcon } from 'lucide-react';
 import { getTenantFromDomain } from '../../../lib/tenant';
@@ -41,6 +41,12 @@ export const UsersView = React.memo(({
 }: Props) => {
     const isAssessors = view === 'assessors';
     const [typeFilter, setTypeFilter] = useState('');
+    const [regStatusFilter, setRegStatusFilter] = useState('');
+    const [townFilter, setTownFilter] = useState('');
+
+    const uniqueTowns = useMemo(() =>
+        Array.from(new Set(users_list.flatMap(u => [u.town, u.home_county, u.county]).filter(Boolean))).sort() as string[],
+    [users_list]);
 
     const isTypeMatch = (assessorType: string | null | undefined, filter: string) => {
         if (!filter) return true;
@@ -89,7 +95,7 @@ export const UsersView = React.memo(({
             return u.county === loc || u.home_county === loc;
         }).length;
 
-    // Final filtered list: role + search + location + type
+    // Final filtered list: role + search + location + type + reg status + town
     const filtered = activeGroup.filter(u => {
         const q = searchTerm.toLowerCase();
         const matchSearch =
@@ -107,7 +113,9 @@ export const UsersView = React.memo(({
                     (u.preferred_counties && u.preferred_counties.includes(locationFilter))
                 )
                 : (u.county === locationFilter || u.home_county === locationFilter));
-        return matchSearch && matchLoc;
+        const matchRegStatus = !regStatusFilter || u.registration_status === regStatusFilter;
+        const matchTown = !townFilter || u.town === townFilter || u.home_county === townFilter || u.county === townFilter;
+        return matchSearch && matchLoc && matchRegStatus && matchTown;
     });
 
     return (
@@ -154,6 +162,31 @@ export const UsersView = React.memo(({
                             </select>
                         </div>
                     )}
+                    <div className="relative w-full sm:w-40">
+                        <FilterIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={13} />
+                        <select
+                            className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00] outline-none transition-all bg-gray-50 appearance-none text-gray-600"
+                            value={regStatusFilter}
+                            onChange={e => setRegStatusFilter(e.target.value)}
+                        >
+                            <option value="">All Reg Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="active">Active</option>
+                            <option value="completed">Completed</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div className="relative w-full sm:w-40">
+                        <FilterIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={13} />
+                        <select
+                            className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00] outline-none transition-all bg-gray-50 appearance-none text-gray-600"
+                            value={townFilter}
+                            onChange={e => setTownFilter(e.target.value)}
+                        >
+                            <option value="">All Towns/Cities</option>
+                            {uniqueTowns.map(t => <option key={t} value={t}>{t}</option>)}
+                        </select>
+                    </div>
                 </div>
                 <div className="flex items-center gap-3">
                     {isAssessors && (

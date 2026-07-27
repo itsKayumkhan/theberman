@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Search, Briefcase, AlertTriangle, CheckCircle2, Mail, Pencil, Eye, RefreshCw, XCircle, X, Trash2, Send } from 'lucide-react';
 import { Filter as FilterIcon } from 'lucide-react';
 import type { Profile, CatalogueListing } from '../../../types/admin';
@@ -40,7 +40,21 @@ export const BusinessesView = React.memo(({
     setNewUserRole, setShowAddUserModal,
     handleDeleteClick,
     onResendOnboarding
-}: Props) => (
+}: Props) => {
+    const [regStatusFilter, setRegStatusFilter] = useState('');
+    const [townFilter, setTownFilter] = useState('');
+
+    const uniqueTowns = useMemo(() =>
+        Array.from(new Set(users_list.filter(u => u.role === 'business').flatMap(u => [u.town, u.home_county, u.county]).filter(Boolean))).sort() as string[],
+    [users_list]);
+
+    const filtered = useMemo(() => filteredBusinessLeads.filter(u => {
+        const matchRegStatus = !regStatusFilter || u.registration_status === regStatusFilter;
+        const matchTown = !townFilter || u.town === townFilter || u.home_county === townFilter || u.county === townFilter;
+        return matchRegStatus && matchTown;
+    }), [filteredBusinessLeads, regStatusFilter, townFilter]);
+
+    return (
     <div className="space-y-4">
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between bg-white px-4 py-3 rounded-xl border border-gray-100 shadow-sm">
@@ -62,8 +76,33 @@ export const BusinessesView = React.memo(({
                         value={locationFilter}
                         onChange={e => setLocationFilter(e.target.value)}
                     >
-                        <option value="">All Preference locations</option>
+                        <option value="">All Locations</option>
                         {uniqueUserLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                    </select>
+                </div>
+                <div className="relative w-full sm:w-40">
+                    <FilterIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={13} />
+                    <select
+                        className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00] outline-none transition-all bg-gray-50 appearance-none text-gray-600"
+                        value={regStatusFilter}
+                        onChange={e => setRegStatusFilter(e.target.value)}
+                    >
+                        <option value="">All Reg Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="active">Active</option>
+                        <option value="completed">Completed</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+                <div className="relative w-full sm:w-40">
+                    <FilterIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={13} />
+                    <select
+                        className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00] outline-none transition-all bg-gray-50 appearance-none text-gray-600"
+                        value={townFilter}
+                        onChange={e => setTownFilter(e.target.value)}
+                    >
+                        <option value="">All Towns/Cities</option>
+                        {uniqueTowns.map(t => <option key={t} value={t}>{t}</option>)}
                     </select>
                 </div>
             </div>
@@ -75,7 +114,7 @@ export const BusinessesView = React.memo(({
                     <Briefcase size={14} /> Add Business
                 </button>
                 <span className="text-xs text-gray-400">
-                    {filteredBusinessLeads.length} / {users_list.filter(u => u.role === 'business').length}
+                    {filtered.length} / {users_list.filter(u => u.role === 'business').length}
                     {locationFilter && ` · ${locationFilter}`}
                 </span>
             </div>
@@ -96,11 +135,11 @@ export const BusinessesView = React.memo(({
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                        {filteredBusinessLeads.length === 0 ? (
+                        {filtered.length === 0 ? (
                             <tr><td colSpan={6} className="px-5 py-12 text-center text-gray-300 text-sm italic">
-                                No businesses found{locationFilter ? ` in ${locationFilter}` : ''}.
+                                No businesses found{regStatusFilter ? ` with status "${regStatusFilter}"` : ''}{locationFilter ? ` in ${locationFilter}` : ''}.
                             </td></tr>
-                        ) : filteredBusinessLeads.map(u => {
+                        ) : filtered.map(u => {
                             const listing = listings.find(l => l.user_id === u.id || l.owner_id === u.id);
                             const isPending = u.registration_status === 'pending';
                             const isActive = u.registration_status === 'active' || u.registration_status === 'completed';
@@ -232,4 +271,5 @@ export const BusinessesView = React.memo(({
             </div>
         </div>
     </div>
-));
+    );
+});

@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Eye, Trash2, Search, MapPin } from 'lucide-react';
+import { Filter as FilterIcon } from 'lucide-react';
 import type { Assessment, Profile } from '../../../types/admin';
 import { getStatusColor } from '../adminUtils';
 
@@ -27,16 +28,26 @@ export const AssessmentsView = React.memo(({
     searchTerm, setSearchTerm, locationFilter, setLocationFilter,
     setSelectedAssessment, setShowAssessmentDetailModal, handleDeleteClick
 }: Props) => {
+    const [statusFilter, setStatusFilter] = useState('');
+
     // Build unique county list from all assessment data (before filtering)
     const uniqueCounties = Array.from(
         new Set(assessments.map(a => a.county).filter(Boolean))
     ).sort() as string[];
 
+    const uniqueStatuses = useMemo(() =>
+        Array.from(new Set(assessments.map(a => a.status).filter(Boolean))).sort() as string[],
+    [assessments]);
+
+    const filtered = useMemo(() => filteredAssessments.filter(a => {
+        return !statusFilter || a.status === statusFilter;
+    }), [filteredAssessments, statusFilter]);
+
     return (
         <div className="space-y-4">
             {/* Toolbar */}
             <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between bg-white px-4 py-3 rounded-xl border border-gray-100 shadow-sm">
-                <div className="flex flex-col sm:flex-row gap-2 flex-1 max-w-xl">
+                <div className="flex flex-col sm:flex-row gap-2 flex-1 max-w-2xl">
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={15} />
                         <input
@@ -54,15 +65,26 @@ export const AssessmentsView = React.memo(({
                             value={locationFilter}
                             onChange={e => setLocationFilter(e.target.value)}
                         >
-                            <option value="">All Preference locations</option>
+                            <option value="">All Locations</option>
                             {uniqueCounties.map(loc => (
                                 <option key={loc} value={loc}>{loc}</option>
                             ))}
                         </select>
                     </div>
+                    <div className="relative w-full sm:w-40">
+                        <FilterIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={13} />
+                        <select
+                            className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00] outline-none transition-all bg-gray-50 appearance-none text-gray-600"
+                            value={statusFilter}
+                            onChange={e => setStatusFilter(e.target.value)}
+                        >
+                            <option value="">All Statuses</option>
+                            {uniqueStatuses.map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
+                        </select>
+                    </div>
                 </div>
                 <span className="text-xs text-gray-400">
-                    {filteredAssessments.length} result{filteredAssessments.length !== 1 ? 's' : ''}
+                    {filtered.length} result{filtered.length !== 1 ? 's' : ''}
                     {locationFilter && ` · ${locationFilter}`}
                 </span>
             </div>
@@ -85,11 +107,11 @@ export const AssessmentsView = React.memo(({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
-                            {filteredAssessments.length === 0 ? (
-                                <tr><td colSpan={8} className="px-5 py-12 text-center text-gray-300 text-sm italic">
-                                    No assessments found{locationFilter ? ` in ${locationFilter}` : ''}.
+                            {filtered.length === 0 ? (
+                                <tr><td colSpan={9} className="px-5 py-12 text-center text-gray-300 text-sm italic">
+                                    No assessments found{statusFilter ? ` with status "${statusFilter.replace(/_/g, ' ')}"` : ''}{locationFilter ? ` in ${locationFilter}` : ''}.
                                 </td></tr>
-                            ) : filteredAssessments.map(a => (
+                            ) : filtered.map(a => (
                                 <tr
                                     key={a.id}
                                     onClick={() => { setSelectedAssessment(a); setShowAssessmentDetailModal(true); }}

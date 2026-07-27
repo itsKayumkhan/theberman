@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Search, MapPin, Clock, FileText, ChevronDown, ChevronRight, X, Briefcase, AlertTriangle, XCircle, Eye, Trash2, Plus } from 'lucide-react';
+import { Filter as FilterIcon } from 'lucide-react';
 import { formatCurrency } from '../../../lib/tenant';
 import { getTenantFromDomain } from '../../../lib/tenant';
 import type { Assessment } from '../../../types/admin';
@@ -107,6 +108,8 @@ export const JobsView: React.FC<Props> = ({
 }) => {
     const [activeTab, setActiveTab] = useState<JobTab>('live');
     const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
+    const [statusFilter, setStatusFilter] = useState('');
+    const [townFilter, setTownFilter] = useState('');
 
     const uniqueCounties = useMemo(() => {
         const counties = new Set<string>();
@@ -115,6 +118,14 @@ export const JobsView: React.FC<Props> = ({
         });
         return Array.from(counties).sort();
     }, [assessments]);
+
+    const uniqueStatuses = useMemo(() =>
+        Array.from(new Set(assessments.map(a => a.status).filter(Boolean))).sort() as string[],
+    [assessments]);
+
+    const uniqueTowns = useMemo(() =>
+        Array.from(new Set(assessments.map(a => a.town).filter(Boolean))).sort() as string[],
+    [assessments]);
 
     // Categorize assessments based on 7-day inactivity rule
     // A job expires if there's been no activity for 7 days.
@@ -189,10 +200,12 @@ export const JobsView: React.FC<Props> = ({
                 (assessment.eircode || '').toLowerCase().includes(query);
 
             const matchLocation = !locationFilter || assessment.county === locationFilter;
+            const matchStatus = !statusFilter || assessment.status === statusFilter;
+            const matchTown = !townFilter || assessment.town === townFilter;
 
-            return matchSearch && matchLocation;
+            return matchSearch && matchLocation && matchStatus && matchTown;
         });
-    }, [tabJobs, searchTerm, locationFilter]);
+    }, [tabJobs, searchTerm, locationFilter, statusFilter, townFilter]);
 
     // Stats
     const stats = useMemo(() => ({
@@ -328,7 +341,29 @@ export const JobsView: React.FC<Props> = ({
                         ))}
                     </select>
                 </div>
-                {(searchTerm || locationFilter) && (
+                <div className="relative flex-shrink-0">
+                    <FilterIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="pl-8 pr-8 py-2 bg-white border border-gray-300 rounded text-sm text-gray-900 focus:outline-none focus:border-[#007F00] appearance-none cursor-pointer"
+                    >
+                        <option value="">All Statuses</option>
+                        {uniqueStatuses.map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
+                    </select>
+                </div>
+                <div className="relative flex-shrink-0">
+                    <FilterIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                    <select
+                        value={townFilter}
+                        onChange={(e) => setTownFilter(e.target.value)}
+                        className="pl-8 pr-8 py-2 bg-white border border-gray-300 rounded text-sm text-gray-900 focus:outline-none focus:border-[#007F00] appearance-none cursor-pointer"
+                    >
+                        <option value="">All Towns</option>
+                        {uniqueTowns.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                </div>
+                {(searchTerm || locationFilter || statusFilter || townFilter) && (
                     <span className="text-xs font-bold text-gray-500">
                         {filteredJobs.length} of {tabJobs.length} jobs
                     </span>

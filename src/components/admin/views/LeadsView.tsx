@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Search, Eye, Trash2 } from 'lucide-react';
+import { Filter as FilterIcon } from 'lucide-react';
 import type { Lead } from '../../../types/admin';
 import { LeadStatusBadge } from '../StatusBadges';
 
@@ -12,21 +13,63 @@ interface Props {
     handleDeleteClick: (id: string, type: 'lead' | 'sponsor' | 'assessment' | 'user') => void;
 }
 
-export const LeadsView = React.memo(({ leads, filteredLeads, searchTerm, setSearchTerm, setSelectedLead, handleDeleteClick }: Props) => (
+export const LeadsView = React.memo(({ leads, filteredLeads, searchTerm, setSearchTerm, setSelectedLead, handleDeleteClick }: Props) => {
+    const [statusFilter, setStatusFilter] = useState('');
+    const [locationFilter, setLocationFilter] = useState('');
+
+    const uniqueStatuses = useMemo(() =>
+        Array.from(new Set(leads.map(l => l.status || 'new').filter(Boolean))).sort() as string[],
+    [leads]);
+
+    const uniqueLocations = useMemo(() =>
+        Array.from(new Set(leads.flatMap(l => [l.town, l.county]).filter(Boolean))).sort() as string[],
+    [leads]);
+
+    const filtered = useMemo(() => filteredLeads.filter(l => {
+        const matchStatus = !statusFilter || (l.status || 'new') === statusFilter;
+        const matchLoc = !locationFilter || l.town === locationFilter || l.county === locationFilter;
+        return matchStatus && matchLoc;
+    }), [filteredLeads, statusFilter, locationFilter]);
+
+    return (
     <div className="space-y-4">
         {/* Toolbar */}
-        <div className="flex items-center justify-between bg-white px-4 py-3 rounded-xl border border-gray-100 shadow-sm">
-            <div className="relative w-full max-w-sm">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={15} />
-                <input
-                    type="text"
-                    placeholder="Name, email, location or status..."
-                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00] outline-none transition-all bg-gray-50"
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                />
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between bg-white px-4 py-3 rounded-xl border border-gray-100 shadow-sm">
+            <div className="flex flex-col sm:flex-row gap-2 flex-1 max-w-2xl">
+                <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={15} />
+                    <input
+                        type="text"
+                        placeholder="Name, email, location or status..."
+                        className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00] outline-none transition-all bg-gray-50"
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                <div className="relative w-full sm:w-40">
+                    <FilterIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={13} />
+                    <select
+                        className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00] outline-none transition-all bg-gray-50 appearance-none text-gray-600"
+                        value={statusFilter}
+                        onChange={e => setStatusFilter(e.target.value)}
+                    >
+                        <option value="">All Statuses</option>
+                        {uniqueStatuses.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                </div>
+                <div className="relative w-full sm:w-40">
+                    <FilterIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={13} />
+                    <select
+                        className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00] outline-none transition-all bg-gray-50 appearance-none text-gray-600"
+                        value={locationFilter}
+                        onChange={e => setLocationFilter(e.target.value)}
+                    >
+                        <option value="">All Locations</option>
+                        {uniqueLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                    </select>
+                </div>
             </div>
-            <span className="text-xs text-gray-400 ml-4">{filteredLeads.length} of {leads.length} leads</span>
+            <span className="text-xs text-gray-400 ml-4">{filtered.length} of {leads.length} leads</span>
         </div>
 
         {/* Table */}
@@ -44,9 +87,9 @@ export const LeadsView = React.memo(({ leads, filteredLeads, searchTerm, setSear
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                        {filteredLeads.length === 0 ? (
-                            <tr><td colSpan={6} className="px-5 py-12 text-center text-gray-300 text-sm italic">No leads found.</td></tr>
-                        ) : filteredLeads.map(lead => (
+                        {filtered.length === 0 ? (
+                            <tr><td colSpan={6} className="px-5 py-12 text-center text-gray-300 text-sm italic">No leads found{statusFilter ? ` with status "${statusFilter}"` : ''}{locationFilter ? ` in ${locationFilter}` : ''}.</td></tr>
+                        ) : filtered.map(lead => (
                             <tr key={lead.id} className="hover:bg-gray-50/60 transition-colors cursor-pointer" onClick={() => setSelectedLead(lead)}>
                                 <td className="px-5 py-3"><LeadStatusBadge status={lead.status || 'new'} /></td>
                                 <td className="px-5 py-3 text-[12px] text-gray-400 whitespace-nowrap">
@@ -74,4 +117,5 @@ export const LeadsView = React.memo(({ leads, filteredLeads, searchTerm, setSear
             </div>
         </div>
     </div>
-));
+    );
+});
