@@ -353,6 +353,7 @@ const Layout = () => {
                         {(() => {
                             const phoneConfig: Record<string, { number: string; display: string; label: string }> = {
                                 spain: { number: '+34613907509', display: '+34 613 90 75 09', label: 'Llámanos' },
+                                // TODO: Confirm correct Portuguese phone number with Sean before publishing
                                 portugal: { number: '+351920123456', display: '+351 920 123 456', label: 'Fale Connosco' },
                             };
                             const cfg = phoneConfig[tenant] || { number: '0818213131', display: '0818213131', label: 'Talk to Us' };
@@ -551,10 +552,7 @@ const Layout = () => {
                                         EPC Cert
                                     </span>
                                 ) : tenant === 'portugal' ? (
-                                    <>
-                                        <img src="/certificado-energia-logo.svg" alt={tenantDisplayName} className="h-16" />
-                                        <span className="text-xl font-serif font-bold">{tenantDisplayName}</span>
-                                    </>
+                                    <img src="/certificado-energia-logo.svg" alt={tenantDisplayName} className="h-16" />
                                 ) : (
                                     <>
                                         <img src="/logo.svg" alt={tenantDisplayName} className="h-16" />
@@ -579,12 +577,7 @@ const Layout = () => {
                                     <>
                                         <a href="#" className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#007F00] hover:text-white transition cursor-pointer"><Facebook size={16} /></a>
                                         <a href="#" className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#007F00] hover:text-white transition cursor-pointer"><Instagram size={16} /></a>
-                                        <a href="#" className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#007F00] hover:text-white transition cursor-pointer"><Linkedin size={16} /></a>
-                                        <a href="#" className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#007F00] hover:text-white transition cursor-pointer">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                                <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932L18.901 1.153zM17.61 20.644h2.039L6.486 3.24H4.298L17.61 20.644z" />
-                                            </svg>
-                                        </a>
+                                        <a href="https://www.linkedin.com/company/certificados-energ%C3%A9ticos-eu-powered-by-the-berman-portugal/" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#007F00] hover:text-white transition cursor-pointer"><Linkedin size={16} /></a>
                                     </>
                                 ) : (
                                     <>

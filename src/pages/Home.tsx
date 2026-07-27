@@ -62,7 +62,7 @@ const HomePage = () => {
                     : tenant === 'england'
                         ? 'Book Accredited EPC Assessments Across England. Fast Domestic and Commercial EPC Certificates with Competitive Pricing and Nationwide Coverage'
                         : tenant === 'portugal'
-                            ? 'A plataforma líder de certificação energética em Portugal. Obtenha o seu Certificado Energético com peritos certificados. Peça um orçamento grátis online.'
+                            ? 'A plataforma líder de certificação energética em Portugal. Obtenha o seu Certificado Energético com peritos qualificados. Peça um orçamento grátis online.'
                             : "Need a BER Cert in Ireland? The BER Man Connects You with Local, SEAI-Registered Assessors Nationwide. Get a Free Quote Online Today!"
                 }
                 canonical="/"
@@ -267,7 +267,7 @@ const HomePage = () => {
                                     </div>
                                     <div className="bg-green-50 p-8 rounded-3xl border border-green-100">
                                         <div className="text-4xl font-black text-[#007F00] mb-2">{c('benefits', 'stat2_value', isSpanish ? '1000+' : tenant === 'portugal' ? '100+' : '100+')}</div>
-                                        <div className="text-sm font-bold text-gray-500 uppercase">{c('benefits', 'stat2_label', isSpanish ? 'Certificadores' : tenant === 'portugal' ? 'Peritos Certificados' : 'Assessors')}</div>
+                                        <div className="text-sm font-bold text-gray-500 uppercase">{c('benefits', 'stat2_label', isSpanish ? 'Certificadores' : tenant === 'portugal' ? 'Peritos Qualificados' : 'Assessors')}</div>
                                     </div>
                                 </div>
                                 <div className="space-y-4">
@@ -548,7 +548,7 @@ const HomePage = () => {
                                 Serviços de Certificação Energética em Todo o Portugal
                             </h2>
                             <p className="text-center text-gray-600 font-medium mb-12 max-w-2xl mx-auto">
-                                Ajudamos proprietários em todo o país a ligar-se a peritos certificados na sua zona.
+                                Ajudamos proprietários em todo o país a ligar-se a peritos qualificados na sua zona.
                             </p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl mx-auto">
                                 {[
@@ -674,17 +674,17 @@ const HomePage = () => {
             </section>
 
             {/* 6. FINAL CTA / NEWSLETTER - moved to /subscribe page */}
-            {isSpanish && <section id="newsletter" className="py-24 bg-gray-50 border-t border-gray-100">
+            {(isSpanish || tenant === 'portugal') && <section id="newsletter" className="py-24 bg-gray-50 border-t border-gray-100">
                 <div className="container mx-auto px-6">
                     <div className="p-16 text-center relative overflow-hidden">
                         <div className="absolute top-0 right-0 -mr-32 -mt-32 w-80 h-80 rounded-full bg-white/5 blur-3xl"></div>
                         <div className="absolute bottom-0 left-0 -ml-32 -mb-32 w-80 h-80 rounded-full bg-white/5 blur-3xl"></div>
 
                         <div className="relative z-10 max-w-3xl mx-auto">
-                            <span className="text-[#007F00] font-bold uppercase tracking-widest text-sm mb-6 block">{c('newsletter', 'tag', isSpanish ? 'Recursos Premium' : 'Premium Resources')}</span>
-                            <h2 className="text-4xl md:text-5xl font-black mb-8 leading-tight text-gray-900">{c('newsletter', 'heading', isSpanish ? 'Consigue nuestra guía completa de mejoras energéticas' : 'Get Our Complete Home Energy Upgrade Guide')}</h2>
+                            <span className="text-[#007F00] font-bold uppercase tracking-widest text-sm mb-6 block">{c('newsletter', 'tag', isSpanish ? 'Recursos Premium' : tenant === 'portugal' ? 'Recursos Premium' : 'Premium Resources')}</span>
+                            <h2 className="text-4xl md:text-5xl font-black mb-8 leading-tight text-gray-900">{c('newsletter', 'heading', isSpanish ? 'Consigue nuestra guía completa de mejoras energéticas' : tenant === 'portugal' ? 'Fique a par das novidades' : 'Get Our Complete Home Energy Upgrade Guide')}</h2>
                             <p className="text-gray-600 mb-12 text-xl font-medium leading-relaxed">
-                                {c('newsletter', 'description', isSpanish ? 'Únete a más de 5.000 propietarios que reciben nuestras novedades energéticas semanales, ofertas flash y promociones exclusivas de rehabilitación energética.' : 'Join 5,000+ homeowners receiving our weekly energy updates, flash sales, and exclusive energy upgrade offers.')}
+                                {c('newsletter', 'description', isSpanish ? 'Únete a más de 5.000 propietarios que reciben nuestras novedades energéticas semanales, ofertas flash y promociones exclusivas de rehabilitación energética.' : tenant === 'portugal' ? 'Subscreva para receber atualizações sobre apoios à eficiência energética, campanhas e guias técnicos.' : 'Join 5,000+ homeowners receiving our weekly energy updates, flash sales, and exclusive energy upgrade offers.')}
                             </p>
 
                             <form
@@ -725,7 +725,7 @@ const HomePage = () => {
                             >
                                 <input
                                     type="email"
-                                    placeholder={c('newsletter', 'placeholder', isSpanish ? 'Introduce tu correo electrónico' : tenant === 'portugal' ? 'Introduza o seu email' : 'Enter your email address')}
+                                    placeholder={c('newsletter', 'placeholder', isSpanish ? 'Introduce tu correo electrónico' : tenant === 'portugal' ? 'Endereço de e-mail' : 'Enter your email address')}
                                     className="flex-grow bg-white border border-gray-200 rounded-2xl px-6 py-5 text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#007F00] transition-all font-bold text-lg"
                                     required
                                     disabled={isSubmitting}
@@ -745,7 +745,7 @@ const HomePage = () => {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <ZapIcon size={14} className="text-[#007F00]" />
-                                    {isSpanish ? 'Descarga Instantánea' : tenant === 'portugal' ? 'Descarga Instantânea' : 'Instant Download'}
+                                    {isSpanish ? 'Descarga Instantánea' : tenant === 'portugal' ? 'Download Instantâneo' : 'Instant Download'}
                                 </div>
                             </div>
                         </div>

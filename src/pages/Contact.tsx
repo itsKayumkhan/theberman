@@ -65,7 +65,7 @@ const Contact = () => {
             : isEngland
                 ? 'Book an EPC assessment in England with accredited assessors. Contact EPC Cert to compare quotes and arrange your EPC today'
                 : isPortuguese
-                    ? 'Contacte a Certificado Energia para certificação energética em Portugal. Peritos certificados e orçamentos competitivos.'
+                    ? 'Contacte a Certificado Energia para certificação energética em Portugal. Peritos qualificados e orçamentos competitivos.'
                     : 'Book a BER Assessment in Ireland or Contact the BER Man for Support. Connect with Qualified BER Assessors and Get Assistance with Your Enquiry',
         badge: isSpanish ? 'Ponte en Contacto' : isPortuguese ? 'Contacto' : 'Get In Touch',
         title1: isSpanish ? '¿En qué podemos' : isEngland ? 'Book an EPC Assessment' : isPortuguese ? 'Como podemos' : 'Book a BER',
@@ -77,7 +77,7 @@ const Contact = () => {
                 : isPortuguese
                     ? 'Tem alguma dúvida sobre certificados energéticos? A nossa equipa está aqui para o ajudar.'
                     : 'Contact The BER Man to book a BER assessment, connect with qualified BER assessors, or get support with your enquiry.',
-        trustStrip: isEngland ? '' : isPortuguese ? '1.000+ Avaliações Concluídas • 100+ Peritos Certificados • Cobertura Nacional' : '1,000+ Assessments Completed • 100+ Qualified Assessors • Nationwide Coverage',
+        trustStrip: isEngland ? '' : isPortuguese ? '1.000+ Avaliações Concluídas • 100+ Peritos Qualificados • Cobertura Nacional' : '1,000+ Assessments Completed • 100+ Qualified Assessors • Nationwide Coverage',
         ourDetails: isSpanish ? 'Nuestros Datos' : isEngland ? 'Our details' : isPortuguese ? 'Os Nossos Detalhes' : 'Contact Information',
         emailUs: isSpanish ? 'Escríbenos' : isPortuguese ? 'Email' : 'Email Us',
         website: isSpanish ? 'Sitio Web' : isPortuguese ? 'Website' : 'Website',

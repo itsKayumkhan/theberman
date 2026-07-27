@@ -19,7 +19,7 @@ const About = () => {
 
     const tr = isPortugal ? {
         seoTitle: 'Sobre Nós - Especialistas em Certificação Energética',
-        seoDesc: 'Conheça a Certificado Energia, a plataforma de confiança para certificação energética em Portugal. Peritos certificados, avaliações rápidas e profissionais.',
+        seoDesc: 'Conheça a Certificado Energia, a plataforma de confiança para certificação energética em Portugal. Peritos qualificados, avaliações rápidas e profissionais.',
         missionTag: 'A Nossa Missão',
         title1: 'Precisão em cada',
         title2: 'Certificação.',
@@ -27,13 +27,13 @@ const About = () => {
         storyH: 'A Nossa História',
         story: [
             `A ${brand} nasceu com um objetivo claro: trazer clareza profissional e rigor técnico ao setor da certificação energética em Portugal.`,
-            'O que começou como uma pequena equipa em Lisboa cresceu para uma rede nacional de peritos certificados.',
+            'O que começou como uma pequena equipa em Lisboa cresceu para uma rede nacional de peritos qualificados.',
             `Hoje, a ${brand} é uma plataforma de confiança para avaliações energéticas em todo o Portugal. Já facilitámos milhares de Certificados Energéticos.`,
             'Olhando para o futuro, o nosso foco mantém-se na inovação, na conformidade e em ajudar os proprietários a cumprir a legislação energética mais recente.',
         ],
         stats: [
             { n: '1k+', l1: 'Avaliações Energéticas', l2: 'Concluídas' },
-            { n: '100+', l1: 'Peritos Certificados', l2: 'em Todo o País' },
+            { n: '100+', l1: 'Peritos Qualificados', l2: 'em Todo o País' },
             { n: 'ADENE', l1: 'Peritos', l2: 'Certificados' },
         ],
         howH: 'Como Trabalhamos',
@@ -53,12 +53,12 @@ const About = () => {
             { q: 'Qual a validade do Certificado Energético?', a: 'É válido por 10 anos, salvo se forem efetuadas alterações significativas que afetem o desempenho energético do imóvel.' },
             { q: 'Como obtenho um Certificado Energético?', a: 'Marca com um perito certificado, este visita e avalia o imóvel, e o certificado é emitido e registado.' },
             { q: 'Posso escolher a data e hora da avaliação?', a: 'Sim. Pode selecionar a data e hora preferidas ao reservar através da plataforma.' },
-            { q: 'Os peritos estão certificados e são de confiança?', a: 'Sim. Todas as avaliações são realizadas por peritos certificados que seguem um código oficial de boas práticas.' },
+            { q: 'Os peritos estão qualificados e são de confiança?', a: 'Sim. Todas as avaliações são realizadas por peritos qualificados que seguem um código oficial de boas práticas.' },
             { q: 'O que acontece se obtiver uma classificação baixa?', a: 'Uma classificação baixa não impede a venda do imóvel; apenas informa o comprador. O nosso relatório de recomendações indicará como melhorar.' },
         ],
         joinH: 'Junte-se à',
         joinH2: `${brand}`,
-        joinP: 'Pronto para uma avaliação energética profissional? A nossa rede nacional de peritos certificados está pronta para o ajudar hoje.',
+        joinP: 'Pronto para uma avaliação energética profissional? A nossa rede nacional de peritos qualificados está pronta para o ajudar hoje.',
         cta: 'Pedir o Meu Orçamento',
     } : isSpanish ? {
         seoTitle: 'Sobre Nosotros - Certificadores Energéticos Expertos',

@@ -97,7 +97,7 @@ const LocationPage = () => {
 
     // Tenant-specific labels
     const labels = {
-        assessor: isSpanish ? 'Técnicos Certificados' : isEngland ? 'DEA/EPC Assessors' : isFrance ? 'Diagnostiqueurs Certifiés' : isPortugal ? 'Peritos Certificados' : 'BER Assessors',
+        assessor: isSpanish ? 'Técnicos Certificados' : isEngland ? 'DEA/EPC Assessors' : isFrance ? 'Diagnostiqueurs Certifiés' : isPortugal ? 'Peritos Qualificados' : 'BER Assessors',
         certificate: isSpanish ? 'Certificado de Eficiencia Energética' : isEngland ? 'EPC Certificate' : isFrance ? 'DPE' : isPortugal ? 'Certificado Energético' : 'BER Certificate',
         in: isSpanish ? 'en' : isFrance ? 'à' : isPortugal ? 'em' : 'in',
         find: isSpanish ? 'Encuentra' : isFrance ? 'Trouvez' : isPortugal ? 'Encontre' : 'Find',
@@ -132,14 +132,18 @@ const LocationPage = () => {
     const heroTitle = customData?.hero_title || `${labels.assessor} ${labels.in} ${townName || displayName}`;
     const heroSubtitle = customData?.hero_subtitle || (isSpanish
         ? `Su Certificado de Eficiencia Energética en ${countyName}.`
-        : (townName
-            ? `Find ${labels.assessor.toLowerCase()} ${labels.in} ${townName}, ${countyName}. Certified assessors ready to help with your energy certificate.`
-            : `Find ${labels.assessor.toLowerCase()} ${labels.in} ${displayName}. Certified assessors ready to help with your energy certificate.`)
+        : isPortugal
+            ? `Encontre peritos qualificados em ${townName || displayName}. Compare orçamentos e reserve online.`
+            : (townName
+                ? `Find ${labels.assessor.toLowerCase()} ${labels.in} ${townName}, ${countyName}. Certified assessors ready to help with your energy certificate.`
+                : `Find ${labels.assessor.toLowerCase()} ${labels.in} ${displayName}. Certified assessors ready to help with your energy certificate.`)
     );
 
     const introText = customData?.intro_text || (isSpanish
         ? `Su Certificado de Eficiencia Energética en ${countyName}.`
-        : `${brandName} connects homeowners with ${isEngland ? 'certified assessors' : 'BER assessors'} in ${townName || displayName}. Our expert assessors are ready to provide high-quality ${isEngland ? 'Energy Performance Certificates' : 'Building Energy Ratings'}.`
+        : isPortugal
+            ? `A Certificado Energia conecta proprietários com peritos qualificados em ${townName || displayName}. Os nossos peritos estão prontos a fornecer certificados de eficiência energética de alta qualidade.`
+            : `${brandName} connects homeowners with ${isEngland ? 'certified assessors' : 'BER assessors'} in ${townName || displayName}. Our expert assessors are ready to provide high-quality ${isEngland ? 'Energy Performance Certificates' : 'Building Energy Ratings'}.`
     );
 
     return (
@@ -148,7 +152,7 @@ const LocationPage = () => {
             <div className="bg-gradient-to-r from-[#007F00] to-[#007EA7] text-white py-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <nav className="flex items-center gap-2 text-sm opacity-80 mb-4">
-                        <Link to="/" className="hover:underline">Home</Link>
+                        <Link to="/" className="hover:underline">{isPortugal ? 'Início' : 'Home'}</Link>
                         <span>/</span>
                         {townName ? (
                             <>
@@ -191,7 +195,7 @@ const LocationPage = () => {
                             <CheckCircle2 size={32} />
                             <span>{labels.available}</span>
                         </div>
-                        <p className="text-gray-600">Today</p>
+                        <p className="text-gray-600">{isPortugal ? 'Hoje' : 'Today'}</p>
                     </div>
                 </div>
             </div>
@@ -209,7 +213,9 @@ const LocationPage = () => {
                             <p>
                                 {isSpanish
                                     ? `Todos nuestros técnicos están debidamente certificados y tienen experiencia en la evaluación de eficiencia energética de propiedades en ${countyName}.`
-                                    : `All our assessors are fully certified and experienced in energy rating properties in ${countyName}.`
+                                    : isPortugal
+                                        ? `Todos os nossos peritos são plenamente qualificados e experientes na avaliação energética de imóveis em ${countyName}.`
+                                        : `All our assessors are fully certified and experienced in energy rating properties in ${countyName}.`
                                 }
                             </p>
                         </div>
@@ -250,12 +256,14 @@ const LocationPage = () => {
             <div className="bg-gray-900 text-white py-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <h2 className="text-3xl font-bold mb-4">
-                        {isSpanish ? '¿Listo para obtener su certificado?' : 'Ready to Get Your Certificate?'}
+                        {isSpanish ? '¿Listo para obtener su certificado?' : isPortugal ? 'Pronto para obter o seu certificado?' : 'Ready to Get Your Certificate?'}
                     </h2>
                     <p className="text-xl opacity-90 mb-8">
                         {isSpanish
                             ? 'Compare precios de técnicos certificados en minutos'
-                            : 'Compare prices from certified assessors in minutes'
+                            : isPortugal
+                                ? 'Compare orçamentos de peritos qualificados em minutos'
+                                : 'Compare prices from certified assessors in minutes'
                         }
                     </p>
                     <Link

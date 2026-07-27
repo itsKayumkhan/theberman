@@ -177,13 +177,15 @@ const Catalogue = () => {
                 <div className="container max-w-full">
                     <div className="bg-gray-50 px-6 py-12 md:p-20 text-center relative overflow-hidden border border-gray-100">
                         <div className="relative z-10">
-                            <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-gray-900 mb-4 md:mb-6 uppercase tracking-tight">Ready to start <br />your upgrade?</h2>
+                            <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-gray-900 mb-4 md:mb-6 uppercase tracking-tight">
+                                {tenant === 'portugal' ? <>Precisa do seu <br />certificado energético?</> : <>Ready to start <br />your upgrade?</>}
+                            </h2>
                             <p className="text-gray-500 text-base md:text-lg mb-8 md:mb-10 max-w-xl mx-auto font-medium">
-                                Join thousands of homeowners who have significantly reduced their energy bills with our help.
+                                {tenant === 'portugal' ? 'Compare orçamentos de peritos qualificados em poucos minutos.' : 'Join thousands of homeowners who have significantly reduced their energy bills with our help.'}
                             </p>
                             <Link to="/contact-us">
                                 <button className="bg-[#007F00] text-white font-black px-8 md:px-12 py-4 md:py-5 rounded-2xl hover:bg-[#006400] transition-all shadow-xl flex items-center gap-3 mx-auto transform hover:-translate-y-1 active:translate-y-0 text-xs uppercase tracking-widest cursor-pointer">
-                                    Enquire Today
+                                    {tenant === 'portugal' ? 'Pedir orçamento' : 'Enquire Today'}
                                 </button>
                             </Link>
                         </div>

@@ -31,7 +31,7 @@ const Locations = () => {
         viewListings: 'Voir les Listes',
     } : isPortugal ? {
         seoTitle: 'Peritos por Localização',
-        seoDesc: 'Encontre peritos certificados na sua zona em Portugal. Navegue por região.',
+        seoDesc: 'Encontre peritos qualificados na sua zona em Portugal. Navegue por região.',
         heading: 'Navegar por Localização',
         subtitle: 'Encontre profissionais certificados na sua área. Selecione uma região para ver os listados disponíveis.',
         viewListings: 'Ver Listados',
