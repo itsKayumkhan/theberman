@@ -39,7 +39,7 @@
       } else if (isPor) {
         siteName = "Certificado Energia";
         baseUrl = "https://certificadoenergia.com";
-        ogImage = "https://certificadoenergia.com/certificado-energia-logo.svg";
+        ogImage = "https://certificadoenergia.com/certificado-energia-logo.png";
         title = "Certificado Energia Portugal | Certificados de Eficiência Energética";
         desc = "A plataforma líder de certificação energética em Portugal. Obtenha o seu certificado de eficiência energética com peritos certificados.";
         locale = "pt_PT";
@@ -58,7 +58,7 @@
       // Update favicon for the current tenant
       var favicon = document.querySelector('link[rel="icon"]');
       if (favicon) {
-        favicon.href = isPor ? '/certificado-energia-logo.svg' : (isEsp ? '/certificado-logo-trimmed.png' : (isEng ? '/epc-logo-trimmed.png' : '/logo.svg'));
+        favicon.href = isPor ? '/certificado-energia-logo.png' : (isEsp ? '/certificado-logo-trimmed.png' : (isEng ? '/epc-logo-trimmed.png' : '/logo.svg'));
       }
 
       // Create Helmet-tracked (data-rh) default tags so non-JS crawlers get

@@ -31,7 +31,7 @@ const TENANT_CONFIG: Record<string, { siteName: string; baseUrl: string; ogImage
     portugal: {
         siteName: 'Certificado Energia',
         baseUrl: 'https://certificadoenergia.com',
-        ogImage: 'https://certificadoenergia.com/certificado-energia-logo.svg',
+        ogImage: 'https://certificadoenergia.com/certificado-energia-logo.png',
         locale: 'pt_PT',
         currency: 'EUR',
     },

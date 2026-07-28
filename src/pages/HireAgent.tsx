@@ -394,7 +394,7 @@ const HireAgent = () => {
                         '@type': 'Organization',
                         name: isEngland ? 'EPC Cert' : isPortuguese ? 'Certificado Energia' : 'The BER Man',
                         url: tenantDomain,
-                        logo: isEngland ? 'https://www.epccert.com/logo.png' : isPortuguese ? 'https://certificadoenergia.com/certificado-energia-logo.svg' : 'https://www.theberman.eu/logo.svg',
+                        logo: isEngland ? 'https://www.epccert.com/logo.png' : isPortuguese ? 'https://certificadoenergia.com/certificado-energia-logo.png' : 'https://www.theberman.eu/logo.svg',
                         sameAs: isEngland
                             ? ['https://www.facebook.com/epccert', 'https://www.instagram.com/epccert']
                             : isPortuguese

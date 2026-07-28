@@ -49,13 +49,26 @@ async function sendMetaCAPI(eventName, eventId, req, canonicalUrl, testEventCode
       sha256(rawLname),
     ]);
 
+    // ── fbc (Facebook Click ID) — fixes Meta's High Priority recommendation ──
+    // Priority: 1) _fbc cookie  2) fbclid URL param (build fbc format)
+    const reqUrl    = new URL(req.url);
+    const fbclid    = reqUrl.searchParams.get('fbclid');
+    const fbcCookie = parseCookie(cookie, '_fbc');
+    const fbc = fbcCookie
+      || (fbclid ? `fb.1.${Date.now()}.${fbclid}` : null);
+
+    // ── fbp (Facebook Browser ID) — from _fbp cookie set by pixel ──
+    const fbp = parseCookie(cookie, '_fbp') || null;
+
     const userData = {
       client_ip_address: ip,
       client_user_agent: ua,
-      ...(em && { em }),   // hashed email
-      ...(ph && { ph }),   // hashed phone
-      ...(fn && { fn }),   // hashed first name
-      ...(ln && { ln }),   // hashed last name
+      ...(em  && { em }),   // hashed email
+      ...(ph  && { ph }),   // hashed phone
+      ...(fn  && { fn }),   // hashed first name
+      ...(ln  && { ln }),   // hashed last name
+      ...(fbc && { fbc }),  // Facebook Click ID — improves match quality
+      ...(fbp && { fbp }),  // Facebook Browser ID — improves match quality
     };
 
     const payload = {
@@ -951,7 +964,7 @@ export default async function middleware(req) {
 
   // Only inject meta tags into HTML responses — skip SVG, PDF, JSON, etc.
   const contentType = res.headers.get('content-type') || '';
-  if (!contentType.includes('text/html')) {
+  if (!contentType.includes('text/html') || !html || !html.includes('</head>')) {
     return new Response(html, {
       status: res.status,
       headers: Object.fromEntries(res.headers),
@@ -1184,23 +1197,23 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->` : '';
 
 
-  // ── Strip duplicate/unwanted scripts from the original HTML ─────────────────
-  // 1. Remove GTM-57CD932S IIFE init (targets only the GTM init function, not other scripts)
-  // 2. Remove GTM-57CD932S noscript iframe (targets specific iframe src, safe)
-  // 3. Remove cookie-consent-wrapped scripts (type="text/plain" + data-cookieconsent)
-  let cleanHtml = html
-    // Remove GTM-57CD932S by targeting the GTM IIFE signature — safe, cannot cross script blocks
-    .replace(/\(function\(w,d,s,l,i\)\{[\s\S]*?\}\)\(window,document,'script','dataLayer','GTM-57CD932S'\);/g, '')
-    // Remove GTM-57CD932S noscript — targets specific iframe src attribute, cannot match others
-    .replace(/<noscript>\s*<iframe\s+src="https:\/\/www\.googletagmanager\.com\/ns\.html\?id=GTM-57CD932S"[^>]*><\/iframe>\s*<\/noscript>/gi, '')
-    // Remove surrounding GTM-57CD932S HTML comments if present
-    .replace(/<!--\s*Google Tag Manager \(noscript\)\s*-->\s*\n?\s*<!--\s*End Google Tag Manager \(noscript\)\s*-->/gi, '')
-    // Remove any type="text/plain" cookie-consent scripts (pixel/GTM blocked by consent)
-    // This uses anchored attributes so it cannot match normal scripts
-    .replace(/<script\s[^>]*type="text\/plain"[^>]*data-cookieconsent[^>]*>[\s\S]*?<\/script>/gi, '')
-    .replace(/<script\s[^>]*data-cookieconsent[^>]*type="text\/plain"[^>]*>[\s\S]*?<\/script>/gi, '')
-    // Remove the cookie consent comment wrapper if present
-    .replace(/<!--\s*Google Tag Manager \+ Meta Pixel[^-]*-->/gi, '');
+  // ── Strip duplicate/unwanted scripts — wrapped in try/catch for safety ───────
+  let cleanHtml = html;
+  try {
+    cleanHtml = html
+      // Remove GTM-57CD932S IIFE — safe, targets specific GTM init signature only
+      .replace(/\(function\(w,d,s,l,i\)\{[\s\S]*?\}\)\(window,document,'script','dataLayer','GTM-57CD932S'\);/g, '')
+      // Remove GTM-57CD932S noscript — targets specific iframe src attribute
+      .replace(/<noscript>\s*<iframe\s[^>]*GTM-57CD932S[^>]*><\/iframe>\s*<\/noscript>/gi, '')
+      // Remove cookie-consent-wrapped scripts (type="text/plain" + data-cookieconsent)
+      .replace(/<script\s[^>]*type="text\/plain"[^>]*data-cookieconsent[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/<script\s[^>]*data-cookieconsent[^>]*type="text\/plain"[^>]*>[\s\S]*?<\/script>/gi, '')
+      // Remove leftover cookie consent comment wrappers
+      .replace(/<!--\s*Google Tag Manager \+ Meta Pixel[^-]*-->/gi, '');
+  } catch (_stripErr) {
+    // If stripping fails for any reason, use original HTML — never crash
+    cleanHtml = html;
+  }
 
   const injected = cleanHtml.replace(
     /<title>[^<]*<\/title>/,

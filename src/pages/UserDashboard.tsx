@@ -68,7 +68,7 @@ const UserDashboard = () => {
     const isEngland = tenant === 'england';
     const isPortuguese = tenant === 'portugal';
     const brandName = isEngland ? 'EPC Cert' : isSpanish ? 'Certificado Energético' : isPortuguese ? 'Certificado Energia' : 'The Berman';
-    const logoUrl = isPortuguese ? '/certificado-energia-logo.svg' : '/logo.svg';
+    const logoUrl = isPortuguese ? '/certificado-energia-logo.png' : '/logo.svg';
     const assessmentLabel = isEngland ? 'EPC' : isSpanish ? 'Certificación Energética' : isPortuguese ? 'Certificado Energético' : 'BER';
     const { user, signOut, profile } = useAuth();
     const navigate = useNavigate();

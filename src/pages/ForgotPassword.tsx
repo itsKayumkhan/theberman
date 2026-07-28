@@ -24,7 +24,7 @@ const ForgotPassword = () => {
     const isPortuguese = tenant === 'portugal';
     const isSpanish = tenant === 'spain';
     const brandName = isEngland ? 'EPC Cert' : isSpanish ? 'Certificado Energético' : isPortuguese ? 'Certificado Energia' : 'The Berman';
-    const logoUrl = isPortuguese ? '/certificado-energia-logo.svg' : '/logo.svg';
+    const logoUrl = isPortuguese ? '/certificado-energia-logo.png' : '/logo.svg';
     const [sent, setSent] = useState(false);
 
     const {

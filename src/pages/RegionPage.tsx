@@ -11,7 +11,7 @@ import { supabase } from '../lib/supabase';
 import { getTenantFromDomain } from '../lib/tenant';
 
 const TENANT = getTenantFromDomain();
-const TENANT_LOGO_URL = TENANT === 'portugal' ? '/certificado-energia-logo.svg' : '/logo.svg';
+const TENANT_LOGO_URL = TENANT === 'portugal' ? '/certificado-energia-logo.png' : '/logo.svg';
 
 // Fix Leaflet marker icons icon issue
 import icon from 'leaflet/dist/images/marker-icon.png';

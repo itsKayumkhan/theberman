@@ -383,7 +383,7 @@ const NewCatalogue = () => {
                         '@type': 'Organization',
                         name: brand,
                         url: baseUrl,
-                        logo: tenant === 'portugal' ? `${baseUrl}/certificado-energia-logo.svg` : `${baseUrl}/logo.svg`,
+                        logo: tenant === 'portugal' ? `${baseUrl}/certificado-energia-logo.png` : `${baseUrl}/logo.svg`,
                         sameAs: tenant === 'england'
                             ? ['https://www.facebook.com/epccert', 'https://www.instagram.com/epccert']
                             : isSpanish

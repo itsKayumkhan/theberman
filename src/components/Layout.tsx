@@ -260,7 +260,7 @@ const Layout = () => {
                         ) : tenant === 'england' ? (
                             <img src="/epc-logo-trimmed.png" alt="EPC Certificate England which provides a rating from A to G" style={{ height: '4rem', width: 'auto' }} className="relative z-10" />
                         ) : tenant === 'portugal' ? (
-                            <img src="/certificado-energia-logo.svg" alt="Certificado Energia Logo" style={{ height: '4rem', width: 'auto' }} className="relative z-10" />
+                            <img src="/certificado-energia-logo.png" alt="Certificado Energia Logo" style={{ height: '4rem', width: 'auto' }} className="relative z-10" />
                         ) : (
                             <img src="/logo.svg" alt={tenant === 'ireland' ? 'The BER Man - BER Cert Ireland Specialists' : `${tenantDisplayName} Logo`} style={{ height: '4.5rem', width: 'auto' }} className="relative z-10" />
                         )}
@@ -552,7 +552,7 @@ const Layout = () => {
                                         EPC Cert
                                     </span>
                                 ) : tenant === 'portugal' ? (
-                                    <img src="/certificado-energia-logo.svg" alt={tenantDisplayName} className="h-16" />
+                                    <img src="/certificado-energia-logo.png" alt={tenantDisplayName} className="h-16" />
                                 ) : (
                                     <>
                                         <img src="/logo.svg" alt={tenantDisplayName} className="h-16" />

@@ -195,7 +195,7 @@ const Contact = () => {
                         '@type': 'Organization',
                         name: tenant === 'england' ? 'EPC Cert' : isSpanish ? 'Certificado Energético' : tenant === 'france' ? 'DPE France' : isPortuguese ? 'Certificado Energia' : 'The BER Man',
                         url: tenantDomain,
-                        logo: tenant === 'england' ? 'https://www.epccert.com/logo.png' : isSpanish ? `https://${tenantDomain}/logo.png` : tenant === 'france' ? `https://${tenantDomain}/logo.png` : isPortuguese ? `https://${tenantDomain}/certificado-energia-logo.svg` : 'https://www.theberman.eu/logo.svg',
+                        logo: tenant === 'england' ? 'https://www.epccert.com/logo.png' : isSpanish ? `https://${tenantDomain}/logo.png` : tenant === 'france' ? `https://${tenantDomain}/logo.png` : isPortuguese ? `https://${tenantDomain}/certificado-energia-logo.png` : 'https://www.theberman.eu/logo.svg',
                         sameAs: tenant === 'england'
                             ? ['https://www.facebook.com/epccert', 'https://www.instagram.com/epccert']
                             : isSpanish
