@@ -13,7 +13,7 @@ const Services = () => {
     const brand = isSpanish ? 'Certificado Energ\u00e9tico' : isEngland ? 'EPC Cert' : isFrance ? 'DPE France' : isPortugal ? 'Certificado Energia' : 'The Berman';
     const serviceName = isSpanish ? 'Certificado Energ\u00e9tico' : isEngland ? 'EPC Certificate' : isFrance ? 'DPE' : isPortugal ? 'Certificado Energético' : 'BER Certificate';
     const baseUrl = isEngland ? 'https://www.epccert.com' : isSpanish ? 'https://certificadoenerg\u00e9tico.eu' : isFrance ? 'https://dpefrance.eu' : isPortugal ? 'https://certificadoenergia.com' : 'https://theberman.eu';
-    const locale = isEngland ? 'London' : isSpanish ? 'Madrid' : isFrance ? 'Paris' : isPortugal ? 'Lisboa' : 'Dublin';
+    const locale = isEngland ? 'London' : isSpanish ? 'Madrid' : isFrance ? 'Paris' : isPortugal ? 'Portugal' : 'Dublin';
     const country = isEngland ? 'GB' : isSpanish ? 'ES' : isFrance ? 'FR' : isPortugal ? 'PT' : 'IE';
 
     const title = isSpanish ? 'Nuestros Servicios - Certificados Energ\u00e9ticos Expertos' : isEngland ? 'Our Services - Expert EPC Certificates' : isFrance ? 'Nos Services - DPE Experts' : isPortugal ? 'Os nossos Serviços - Certificados Energéticos' : 'Our Services - Expert BER Assessments';

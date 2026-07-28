@@ -7,7 +7,7 @@ const QuoteForm = () => {
     const navigate = useNavigate();
     const { t, isSpanish, tenant } = useTranslation();
     const ratingName = isSpanish ? 'Certificado Energético' : tenant === 'england' ? 'EPC' : tenant === 'france' ? 'DPE' : tenant === 'portugal' ? 'Certificado Energético' : 'BER';
-    const assessorDesc = isSpanish ? 'certificadores acreditados' : tenant === 'england' ? 'accredited EPC assessors' : tenant === 'france' ? 'diagnostiqueurs certifiés' : tenant === 'portugal' ? 'peritos certificados' : 'SEAI registered BER assessors';
+    const assessorDesc = isSpanish ? 'certificadores acreditados' : tenant === 'england' ? 'accredited EPC assessors' : tenant === 'france' ? 'diagnostiqueurs certifiés' : tenant === 'portugal' ? 'peritos qualificados' : 'SEAI registered BER assessors';
 
     return (
         <div className="min-h-screen bg-white">

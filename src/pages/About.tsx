@@ -27,7 +27,7 @@ const About = () => {
         storyH: 'A Nossa História',
         story: [
             `A ${brand} nasceu com um objetivo claro: trazer clareza profissional e rigor técnico ao setor da certificação energética em Portugal.`,
-            'O que começou como uma pequena equipa em Lisboa cresceu para uma rede nacional de peritos qualificados.',
+            'O que começou como uma pequena equipa cresceu para uma rede nacional de peritos qualificados.',
             `Hoje, a ${brand} é uma plataforma de confiança para avaliações energéticas em todo o Portugal. Já facilitámos milhares de Certificados Energéticos.`,
             'Olhando para o futuro, o nosso foco mantém-se na inovação, na conformidade e em ajudar os proprietários a cumprir a legislação energética mais recente.',
         ],

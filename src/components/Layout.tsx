@@ -689,7 +689,7 @@ const Layout = () => {
                                 {tenant === 'portugal' && (
                                     <li className="flex items-start gap-3 text-gray-400 text-sm">
                                         <MapPin className="text-[#9ACD32] mt-0.5" size={16} />
-                                        <span>Lisboa, Portugal</span>
+                                        <span>Portugal</span>
                                     </li>
                                 )}
                             </ul>

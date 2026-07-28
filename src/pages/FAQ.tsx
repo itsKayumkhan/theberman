@@ -16,6 +16,17 @@ interface FaqItem {
     sort_order: number;
 }
 
+const DEFAULT_PORTUGAL_FAQS: FaqItem[] = [
+    { id: 'sce-1', slug: 'o-que-e-o-sce', title: 'O que é o SCE (Sistema de Certificação Energética)?', content: '<p>O SCE é o Sistema de Certificação Energética dos Edifícios, que regula a emissão dos Certificados Energéticos em Portugal. O certificado classifica o desempenho energético de um imóvel numa escala de A+ (mais eficiente) a F (menos eficiente).</p>', category: 'SCE / ADENE', sort_order: 1 },
+    { id: 'sce-2', slug: 'certificado-energetico-obrigatorio', title: 'O Certificado Energético é obrigatório?', content: '<p>Sim, é obrigatório em Portugal para a venda ou arrendamento de imóveis, bem como na publicação de anúncios imobiliários. Sem certificado válido, o proprietário pode estar sujeito a coimas.</p>', category: 'SCE / ADENE', sort_order: 2 },
+    { id: 'sce-3', slug: 'quem-emitir', title: 'Quem pode emitir o Certificado Energético?', content: '<p>Apenas peritos qualificados e registados na ADENE — Agência para a Energia — podem emitir certificados energéticos válidos em Portugal.</p>', category: 'SCE / ADENE', sort_order: 3 },
+    { id: 'sce-4', slug: 'quanto-custa', title: 'Quanto custa um Certificado Energético?', content: '<p>O preço varia consoante o tipo e dimensão do imóvel. Na Certificado Energia pode comparar orçamentos grátis de vários peritos qualificados e escolher a melhor opção.</p>', category: 'SCE / ADENE', sort_order: 4 },
+    { id: 'sce-5', slug: 'duracao-avaliacao', title: 'Quanto tempo dura a avaliação?', content: '<p>A visita ao imóvel costuma durar entre 30 minutos e 2 horas, dependendo do tamanho e complexidade do edifício. O certificado é emitido após a análise documental.</p>', category: 'SCE / ADENE', sort_order: 5 },
+    { id: 'sce-6', slug: 'validade-certificado', title: 'Qual a validade do Certificado Energético?', content: '<p>De acordo com o SCE, o Certificado Energético tem validade de 10 anos, exceto se forem efetuadas obras que alterem significativamente o desempenho energético do imóvel.</p>', category: 'SCE / ADENE', sort_order: 6 },
+    { id: 'sce-7', slug: 'classificacao-baixa', title: 'O que acontece se o imóvel tiver uma classificação baixa?', content: '<p>Uma classificação baixa não impede a venda ou arrendamento, mas pode reduzir o valor de mercado. O certificado inclui recomendações de melhoria para aumentar a eficiência energética.</p>', category: 'SCE / ADENE', sort_order: 7 },
+    { id: 'sce-8', slug: 'como-reservar', title: 'Como reservo um perito qualificado?', content: '<p>Peça um orçamento grátis na Certificado Energia, compare propostas de peritos qualificados registados na ADENE e reserve online a data e hora que mais lhe convier.</p>', category: 'SCE / ADENE', sort_order: 8 },
+];
+
 const FAQ = () => {
     const [faqItems, setFaqItems] = useState<FaqItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -110,11 +121,12 @@ const FAQ = () => {
                     .eq('tenant', tenant)
                     .order('sort_order');
                 if (error) throw error;
-                setFaqItems(data || []);
-                if (data && data.length > 0) {
+                const items = data && data.length > 0 ? data : (tenant === 'portugal' ? DEFAULT_PORTUGAL_FAQS : []);
+                setFaqItems(items);
+                if (items.length > 0) {
                     const hash = location.hash.replace('#', '');
-                    const found = data.find(item => item.slug === hash);
-                    setActiveId(found ? found.slug : data[0].slug);
+                    const found = items.find(item => item.slug === hash);
+                    setActiveId(found ? found.slug : items[0].slug);
                 }
             } catch (error) {
                 console.error('Error fetching FAQ:', error);
@@ -161,14 +173,14 @@ const FAQ = () => {
             <SEOHead
                 title={tr.seoTitle}
                 description={tr.seoDesc}
-                canonical={isEngland ? '/epc-faq' : isSpanish ? '/faq' : '/ber-faqs/'}
+                canonical={isEngland ? '/epc-faq' : isSpanish || isPortugal ? '/faq' : '/ber-faqs/'}
                 jsonLd={[
                     {
                         '@context': 'https://schema.org',
                         '@type': 'BreadcrumbList',
                         itemListElement: [
                             { '@type': 'ListItem', position: 1, name: 'Home', item: `${baseUrl}/` },
-                            { '@type': 'ListItem', position: 2, name: isEngland ? 'EPC Certificate FAQs' : isSpanish ? 'Preguntas Frecuentes' : 'BER Certificate FAQs', item: `${baseUrl}${isEngland ? '/epc-faq' : isSpanish ? '/faq' : '/ber-faqs/'}` },
+                            { '@type': 'ListItem', position: 2, name: isEngland ? 'EPC Certificate FAQs' : isSpanish ? 'Preguntas Frecuentes' : isPortugal ? 'Perguntas Frequentes' : 'BER Certificate FAQs', item: `${baseUrl}${isEngland ? '/epc-faq' : isSpanish || isPortugal ? '/faq' : '/ber-faqs/'}` },
                         ],
                     },
                     {
@@ -211,10 +223,10 @@ const FAQ = () => {
                     <div className="lg:col-span-8 order-2 lg:order-1 animate-in fade-in slide-in-from-bottom-4 duration-500 min-w-0 overflow-hidden">
                         <div className="max-w-3xl">
                             <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-4 leading-tight uppercase tracking-tight">
-                                {isSpanish ? 'Preguntas Frecuentes' : isEngland ? 'Frequently Asked Questions About EPC Certificates' : 'BER Certificate FAQs'}
+                                {isSpanish ? 'Preguntas Frecuentes' : isEngland ? 'Frequently Asked Questions About EPC Certificates' : isPortugal ? 'Perguntas Frequentes' : 'BER Certificate FAQs'}
                             </h1>
                             <h2 className="text-xl md:text-2xl font-black text-[#007F00] mb-8 leading-tight uppercase tracking-tight">
-                                {isSpanish ? 'Preguntas Frecuentes sobre Certificados Energéticos' : isEngland ? 'Frequently Asked Questions About EPC Certificates' : 'Frequently Asked Questions About BER Certificates'}
+                                {isSpanish ? 'Preguntas Frecuentes sobre Certificados Energéticos' : isEngland ? 'Frequently Asked Questions About EPC Certificates' : isPortugal ? 'Perguntas Frequentes sobre Certificados Energéticos' : 'Frequently Asked Questions About BER Certificates'}
                             </h2>
                             <h3 className="text-2xl md:text-3xl font-black text-[#007F00] mb-6 leading-tight uppercase tracking-tight">
                                 {activeItem.title.charAt(0).toUpperCase() + activeItem.title.slice(1)}

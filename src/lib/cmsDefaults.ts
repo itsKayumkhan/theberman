@@ -782,7 +782,7 @@ export const CMS_PAGES: PageDefinition[] = [
                     spain: { seo_title: 'Técnicos Certificados en Madrid | Certificado Energético', seo_description: 'Encuentra técnicos certificados en Madrid. Compara presupuestos y reserva online.', meta_keywords: 'certificado energético Madrid, técnico Madrid', is_active: true },
                     england: { seo_title: 'EPC Assessors in London | EPC Cert', seo_description: 'Find certified EPC assessors in London. Compare quotes and book online instantly.', meta_keywords: 'EPC assessor London, energy cert London', is_active: true },
                     france: { seo_title: 'Diagnostiqueurs DPE à Paris | DPE France', seo_description: 'Trouvez des diagnostiqueurs DPE certifiés à Paris. Comparez les devis et réservez en ligne.', meta_keywords: 'DPE Paris, diagnostiqueur Paris', is_active: true },
-                    portugal: { seo_title: 'Peritos Certificados em Lisboa | Certificado Energético', seo_description: 'Encontre peritos certificados em Lisboa. Compare orçamentos e reserve online.', meta_keywords: 'certificado energético Lisboa, perito Lisboa', is_active: true },
+                    portugal: { seo_title: 'Peritos Qualificados em Portugal | Certificado Energético', seo_description: 'Encontre peritos qualificados em Portugal. Compare orçamentos e reserve online.', meta_keywords: 'certificado energético Portugal, perito Portugal', is_active: true },
                 },
             },
         ],

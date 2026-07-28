@@ -454,12 +454,12 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
     auth: 'Autenticação',
     // Hero / Home
     hero_title: 'Obtenha o seu Certificado Energético Rapidamente',
-    hero_subtitle: 'Ligue-se a peritos certificados na sua zona. Orçamentos grátis, processo rápido.',
+    hero_subtitle: 'Ligue-se a peritos qualificados na sua zona. Orçamentos grátis, processo rápido.',
     how_it_works: 'Como Funciona',
     step_1_title: '1. Envie os seus Dados',
     step_1_desc: 'Preencha o nosso formulário simples com os dados do seu imóvel.',
     step_2_title: '2. Receba Orçamentos',
-    step_2_desc: 'Receba orçamentos competitivos de peritos certificados.',
+    step_2_desc: 'Receba orçamentos competitivos de peritos qualificados.',
     step_3_title: '3. Certifique-se',
     step_3_desc: 'Escolha o seu perito e obtenha o seu certificado energético.',
     // Auth
