@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Plus, Home, Briefcase } from 'lucide-react';
+import { X, Plus, Home, Briefcase, Loader2, CheckCircle2, AlertTriangle, UserPlus } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import toast from 'react-hot-toast';
 import { getCountiesForTenant } from '../../../lib/tenantData';
@@ -65,6 +65,12 @@ export const CreateJobModal = ({ onClose, onJobCreated, selectedTenant = 'irelan
     const [preferredTime, setPreferredTime] = useState('');
     const [notes, setNotes] = useState('');
 
+    // Homeowner profile check/create
+    const [homeownerUserId, setHomeownerUserId] = useState<string | null>(null);
+    const [homeownerStatus, setHomeownerStatus] = useState<'idle' | 'checking' | 'found' | 'not_found' | 'created' | 'error'>('idle');
+    const [homeownerMessage, setHomeownerMessage] = useState('');
+    const [isCreatingHomeowner, setIsCreatingHomeowner] = useState(false);
+
     const resetForm = () => {
         setJobType('');
         setStep(1);
@@ -75,6 +81,71 @@ export const CreateJobModal = ({ onClose, onJobCreated, selectedTenant = 'irelan
         setBuildingType(''); setFloorArea(''); setBuildingComplexity('');
         setExistingDocs([]); setAssessmentPurpose(''); setHeatingCooling([]);
         setPreferredDate(''); setPreferredTime(''); setNotes('');
+        setHomeownerUserId(null); setHomeownerStatus('idle'); setHomeownerMessage('');
+    };
+
+    const checkHomeowner = async () => {
+        if (!contactEmail) return;
+        setHomeownerStatus('checking');
+        setHomeownerMessage('');
+        setHomeownerUserId(null);
+        try {
+            const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('id, email, full_name, role')
+                .eq('email', contactEmail.toLowerCase())
+                .maybeSingle();
+            if (error) throw error;
+            if (profile) {
+                setHomeownerUserId(profile.id);
+                setHomeownerStatus('found');
+                setHomeownerMessage(`Profile found: ${profile.full_name || profile.email} (${profile.role || 'user'})`);
+            } else {
+                setHomeownerStatus('not_found');
+                setHomeownerMessage('No homeowner profile found for this email. Create one to continue.');
+            }
+        } catch (err: any) {
+            setHomeownerStatus('error');
+            setHomeownerMessage(err?.message || 'Error checking profile');
+        }
+    };
+
+    const createHomeowner = async () => {
+        if (!contactEmail || !contactName) return;
+        setIsCreatingHomeowner(true);
+        setHomeownerStatus('checking');
+        setHomeownerMessage('');
+        try {
+            const { data, error } = await supabase.functions.invoke('create-homeowner-account', {
+                body: { email: contactEmail, fullName: contactName, phone: contactPhone, tenant: selectedTenant }
+            });
+            if (error || !data?.success) {
+                const msg = data?.error || error?.message || 'Failed to create homeowner';
+                setHomeownerStatus('error');
+                setHomeownerMessage(msg);
+                toast.error(msg);
+            } else {
+                setHomeownerUserId(data.userId);
+                setHomeownerStatus(data.created ? 'created' : 'found');
+                setHomeownerMessage(data.created ? `Homeowner account created for ${contactEmail}` : `Existing profile linked: ${data.message || ''}`);
+                toast.success(data.created ? `Homeowner account created for ${contactEmail}` : `Existing profile found for ${contactEmail}`);
+            }
+        } catch (err: any) {
+            setHomeownerStatus('error');
+            setHomeownerMessage(err?.message || 'Failed to create homeowner');
+            toast.error('Failed to create homeowner profile');
+        } finally {
+            setIsCreatingHomeowner(false);
+        }
+    };
+
+    const handleEmailChange = (value: string) => {
+        setContactEmail(value);
+        if (homeownerStatus !== 'idle') {
+            setHomeownerStatus('idle');
+            setHomeownerMessage('');
+            setHomeownerUserId(null);
+        }
     };
 
     const toggleFeature = (feature: string, current: string[], setter: (v: string[]) => void) => {
@@ -96,25 +167,14 @@ export const CreateJobModal = ({ onClose, onJobCreated, selectedTenant = 'irelan
             toast.error('Please fill in all required fields');
             return;
         }
+        if (!homeownerUserId) {
+            toast.error('Please verify or create the homeowner profile before posting the job');
+            setStep(2);
+            return;
+        }
         setIsSubmitting(true);
         try {
             const tenant = selectedTenant;
-
-            // Auto-link or create homeowner account from contact email
-            let homeownerUserId: string | null = null;
-            try {
-                const { data: accountData, error: accountError } = await supabase.functions.invoke('create-homeowner-account', {
-                    body: { email: contactEmail, fullName: contactName, phone: contactPhone, tenant }
-                });
-                if (!accountError && accountData?.success && accountData?.userId) {
-                    homeownerUserId = accountData.userId;
-                    if (accountData.created) {
-                        toast.success(`Homeowner account created for ${contactEmail}`);
-                    }
-                }
-            } catch (accountErr) {
-                console.error('Failed to create/link homeowner account:', accountErr);
-            }
 
             const basePayload: any = {
                 property_address: `${town}, ${county}`,
@@ -198,7 +258,7 @@ export const CreateJobModal = ({ onClose, onJobCreated, selectedTenant = 'irelan
 
     const isStepValid = () => {
         if (step === 1) return !!jobType;
-        if (step === 2) return !!contactName && !!contactEmail && !!contactPhone;
+        if (step === 2) return !!contactName && !!contactEmail && !!contactPhone && (homeownerStatus === 'found' || homeownerStatus === 'created');
         if (step === 3) return !!county && !!town;
         if (jobType === 'domestic') {
             if (step === 4) return !!propertyType && !!propertySize && !!bedrooms;
@@ -257,13 +317,77 @@ export const CreateJobModal = ({ onClose, onJobCreated, selectedTenant = 'irelan
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-                                    <input type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]" placeholder="john@example.com" />
+                                    <div className="flex gap-2">
+                                        <input type="email" value={contactEmail} onChange={e => handleEmailChange(e.target.value)} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]" placeholder="john@example.com" />
+                                        <button
+                                            type="button"
+                                            onClick={checkHomeowner}
+                                            disabled={!contactEmail || homeownerStatus === 'checking'}
+                                            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all whitespace-nowrap"
+                                        >
+                                            {homeownerStatus === 'checking' ? <Loader2 size={16} className="animate-spin" /> : 'Check'}
+                                        </button>
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
                                     <input value={contactPhone} onChange={e => setContactPhone(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]" placeholder="+353 85 123 4567" />
                                 </div>
                             </div>
+
+                            {/* Homeowner Profile Status */}
+                            {homeownerStatus === 'found' && (
+                                <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-xl">
+                                    <CheckCircle2 size={18} className="text-green-600 flex-shrink-0" />
+                                    <p className="text-sm text-green-800 font-medium">{homeownerMessage}</p>
+                                </div>
+                            )}
+                            {homeownerStatus === 'created' && (
+                                <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-xl">
+                                    <CheckCircle2 size={18} className="text-green-600 flex-shrink-0" />
+                                    <p className="text-sm text-green-800 font-medium">{homeownerMessage}</p>
+                                </div>
+                            )}
+                            {homeownerStatus === 'not_found' && (
+                                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-3">
+                                    <div className="flex items-start gap-2">
+                                        <AlertTriangle size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                                        <p className="text-sm text-amber-800 font-medium">{homeownerMessage}</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={createHomeowner}
+                                        disabled={isCreatingHomeowner || !contactName}
+                                        className="flex items-center gap-2 px-4 py-2.5 bg-[#007F00] text-white rounded-lg text-sm font-bold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        {isCreatingHomeowner ? <Loader2 size={16} className="animate-spin" /> : <UserPlus size={16} />}
+                                        {isCreatingHomeowner ? 'Creating...' : 'Create Homeowner Profile'}
+                                    </button>
+                                </div>
+                            )}
+                            {homeownerStatus === 'error' && (
+                                <div className="p-3 bg-red-50 border border-red-200 rounded-xl space-y-3">
+                                    <div className="flex items-start gap-2">
+                                        <AlertTriangle size={18} className="text-red-600 flex-shrink-0 mt-0.5" />
+                                        <p className="text-sm text-red-800 font-medium">{homeownerMessage}</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={createHomeowner}
+                                        disabled={isCreatingHomeowner || !contactName}
+                                        className="flex items-center gap-2 px-4 py-2.5 bg-[#007F00] text-white rounded-lg text-sm font-bold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        {isCreatingHomeowner ? <Loader2 size={16} className="animate-spin" /> : <UserPlus size={16} />}
+                                        {isCreatingHomeowner ? 'Creating...' : 'Try Create Homeowner Profile'}
+                                    </button>
+                                </div>
+                            )}
+                            {homeownerStatus === 'idle' && contactEmail && (
+                                <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+                                    <AlertTriangle size={18} className="text-blue-600 flex-shrink-0" />
+                                    <p className="text-sm text-blue-800 font-medium">Click "Check" to verify if a homeowner profile exists for this email.</p>
+                                </div>
+                            )}
                         </div>
                     )}
 

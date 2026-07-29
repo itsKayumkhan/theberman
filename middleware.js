@@ -1,8 +1,9 @@
+import { NextResponse } from 'next/server';
 // Vercel Edge Middleware — Multi-tenant SEO Fix
 // Injects: canonical, title, meta description, OG tags, hreflang, JSON-LD schema
 // Zero changes to the React app needed.
 
-export const config = { matcher: '/((?!_next|assets|favicon|logo|robots|.*\\..*).*)' };
+export const config = { matcher: '/((?!_next|assets|favicon|logo|robots).*)' };
 
 // ─── Meta Conversions API (Server-Side) ───────────────────────────────────────
 const META_PIXEL_ID   = '1597842568530965';
@@ -253,7 +254,7 @@ const PAGE_META_EN = {
 const PAGE_META_ES = {
   '/': {
     title: "Certificado Energético en España | Precio desde 60€ | Técnicos Acreditados",
-    desc: "¿Necesitas tu certificado energético? Compara presupuestos de certificadores acreditados en toda España. Desde 60€, visita incluida, registro oficial. Entrega en 24–72h. ¡Solicita presupuesto gratis!"
+    desc: "¿Necesitas tu certificado energético? Compara presupuestos de técnicos acreditados en toda España. Desde 60€, visita incluida, registro oficial. Entrega en 24–72h. ¡Solicita presupuesto gratis!"
   },
   '/sobre-nosotros': {
     title: "Quiénes Somos | Plataforma Certificado Energético España | CertificadoEnergético.eu",
@@ -343,7 +344,7 @@ function getMeta(pathname, tenant) {
       
       return {
         title: `Certificado Energético ${displayCity} | Desde 60€ | Técnicos Acreditados`,
-        desc: `Solicita tu certificado energético en ${displayCity}. Técnicos colegiados, visita presencial obligatoria incluida y entrega rápida en 24–48h. Compara presupuestos gratis.` 
+        desc: `Solicita tu certificado energético en ${displayCity}. Técnicos colegiados, visita presencial obligatoria incluida y entrega rápida en 24–48h. Compara presupuestos gratis.`
       };
     }
     return PAGE_META_ES['/'];
@@ -359,7 +360,7 @@ function getMeta(pathname, tenant) {
       const displayCity = toTitle(citySlug);
       return {
         title: `EPC Certificate ${displayCity} | Domestic & Commercial EPC`,
-        desc: `Need an EPC certificate in ${displayCity}? Compare quotes from local accredited assessors. Book your EPC assessment online with EPC Cert.` 
+        desc: `Need an EPC certificate in ${displayCity}? Compare quotes from local accredited assessors. Book your EPC assessment online with EPC Cert.`
       };
     }
     return PAGE_META_EN['/'];
@@ -867,7 +868,7 @@ function hreflangTags(pathname, tenant) {
     { lang:'x-default', base:'https://theberman.eu' },
   ];
   return domains.map(d =>
-    `<link rel="alternate" hreflang="${d.lang}" href="${d.base}${cleanPath}" />` 
+    `<link rel="alternate" hreflang="${d.lang}" href="${d.base}${cleanPath}" />`
   ).join('\n  ');
 }
 
@@ -881,16 +882,6 @@ export default async function middleware(req) {
   const isEsp = /certificado|xn--/.test(hostname);
   const isEng = /epccert/.test(hostname);
   const tenant = isEsp ? 'spain' : (isEng ? 'england' : 'ireland');
-
-  // Skip middleware injection for admin / auth / API / asset routes — they are SPA/client-only
-  const skipPaths = ['/secure-admin-portal', '/api/', '/auth/', '/assets/', '/_next/', '/favicon', '/logo', '/robots', '/sitemap', '/.well-known', '/vite.svg', '/llms.txt'];
-  if (skipPaths.some(p => path.startsWith(p))) {
-    try {
-      return await fetch(req);
-    } catch (_e) {
-      return new Response(null, { status: 500 });
-    }
-  }
 
   // Handle SPA Conversions API bridge
   if (path === '/api/track-capi') {
@@ -910,17 +901,17 @@ export default async function middleware(req) {
 
   // Handle redirects
   if (tenant === 'spain') {
-    if (path === '/about') return new Response(null, { status: 301, headers: { Location: `${url.protocol}//${hostname}/sobre-nosotros` } });
-    if (path === '/faq') return new Response(null, { status: 301, headers: { Location: `${url.protocol}//${hostname}/preguntas-frecuentes` } });
-    if (path === '/catalogue') return new Response(null, { status: 301, headers: { Location: `${url.protocol}//${hostname}/directorio` } });
-    if (path === '/hire-agent') return new Response(null, { status: 301, headers: { Location: `${url.protocol}//${hostname}/asesor-energetico` } });
-    if (path === '/contact-us') return new Response(null, { status: 301, headers: { Location: `${url.protocol}//${hostname}/contacto` } });
+    if (path === '/about') return NextResponse.redirect(`${url.protocol}//${hostname}/sobre-nosotros`, 301);
+    if (path === '/faq') return NextResponse.redirect(`${url.protocol}//${hostname}/preguntas-frecuentes`, 301);
+    if (path === '/catalogue') return NextResponse.redirect(`${url.protocol}//${hostname}/directorio`, 301);
+    if (path === '/hire-agent') return NextResponse.redirect(`${url.protocol}//${hostname}/asesor-energetico`, 301);
+    if (path === '/contact-us') return NextResponse.redirect(`${url.protocol}//${hostname}/contacto`, 301);
   } else if (tenant === 'ireland') {
-    if (path === '/about') return new Response(null, { status: 301, headers: { Location: `${url.protocol}//${hostname}/about-us` } });
-    if (path === '/faq') return new Response(null, { status: 301, headers: { Location: `${url.protocol}//${hostname}/ber-faqs/` } });
+    if (path === '/about') return NextResponse.redirect(`${url.protocol}//${hostname}/about-us`, 301);
+    if (path === '/faq') return NextResponse.redirect(`${url.protocol}//${hostname}/ber-faqs/`, 301);
   } else if (tenant === 'england') {
-    if (path === '/about') return new Response(null, { status: 301, headers: { Location: `${url.protocol}//${hostname}/about-us` } });
-    if (path === '/faq') return new Response(null, { status: 301, headers: { Location: `${url.protocol}//${hostname}/epc-faq` } });
+    if (path === '/about') return NextResponse.redirect(`${url.protocol}//${hostname}/about-us`, 301);
+    if (path === '/faq') return NextResponse.redirect(`${url.protocol}//${hostname}/epc-faq`, 301);
   }
 
   // Dynamic Sitemap Interception
@@ -946,7 +937,7 @@ export default async function middleware(req) {
     }
     xml += `</urlset>`;
 
-    return new Response(xml, {
+    return new NextResponse(xml, {
       status: 200,
       headers: { 'Content-Type': 'application/xml', 'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400' }
     });
@@ -958,21 +949,15 @@ export default async function middleware(req) {
     res  = await fetch(req);
     html = await res.text();
   } catch (_fetchErr) {
-    // Local dev: no upstream to proxy → pass through without injecting tags
-    return new Response(null, { status: 200 });
+    // Local dev or fetch failure → pass through without injecting tags
+    return NextResponse.next();
   }
 
-  // Only inject meta tags into HTML responses — skip SVG, PDF, JSON, etc.
-  const contentType = res.headers.get('content-type') || '';
-  if (!contentType.includes('text/html') || !html || !html.includes('</head>')) {
-    return new Response(html, {
-      status: res.status,
-      headers: Object.fromEntries(res.headers),
-    });
+  // Safety: if not HTML (e.g. API, binary) skip processing entirely
+  if (!html || !html.includes('</head>')) {
+    return new Response(html, { status: res.status, headers: Object.fromEntries(res.headers) });
   }
 
-  // Wrap all meta injection in try/catch — never crash a page load due to SEO injection
-  try {
   const { title, desc } = getMeta(path, tenant);
   
   let canonicalBase = 'https://www.theberman.eu';
@@ -1106,9 +1091,9 @@ export default async function middleware(req) {
 
   // ── Browser Meta Pixel — Ireland only, all events with deduplication ─────
   const metaBrowserEvent = metaEventName === 'Lead'
-    ? `fbq('track', 'Lead', ${JSON.stringify(metaEventValue || {})}, {eventID: '${metaEventId}'${testEventCode ? `, test_event_code: '${testEventCode}'` : ''}});` 
+    ? `fbq('track', 'Lead', ${JSON.stringify(metaEventValue || {})}, {eventID: '${metaEventId}'${testEventCode ? `, test_event_code: '${testEventCode}'` : ''}});`
     : metaEventName === 'ViewContent'
-    ? `fbq('track', 'ViewContent', {content_name: '${title.replace(/'/g, "\\'")}', content_type: 'website'}, {eventID: '${metaEventId}'${testEventCode ? `, test_event_code: '${testEventCode}'` : ''}});` 
+    ? `fbq('track', 'ViewContent', {content_name: '${title.replace(/'/g, "\\\'")}', content_type: 'website'}, {eventID: '${metaEventId}'${testEventCode ? `, test_event_code: '${testEventCode}'` : ''}});`
     : `fbq('track', 'PageView', {}, {eventID: '${metaEventId}'${testEventCode ? `, test_event_code: '${testEventCode}'` : ''}});`;
 
   const metaPixelSnippet = tenant === 'ireland' ? `
@@ -1120,7 +1105,7 @@ n.callMethod.apply(n,arguments):n.queue.push(arguments)};
 if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
 n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
-t.parentNode.insertBefore(t,s)}(window, document,'script',
+s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
 // Automatic Advanced Matching — Meta auto-detects & hashes email/phone from forms
 fbq('init', '${META_PIXEL_ID}', {}, {autoConfig: true});
@@ -1217,49 +1202,49 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   const injected = cleanHtml.replace(
     /<title>[^<]*<\/title>/,
-    `<title>${title}</title>` 
+    `<title>${title}</title>`
   ).replace(
     /<meta name="description" content="[^"]*" \/>/,
-    `<meta name="description" content="${desc}" />` 
+    `<meta name="description" content="${desc}" />`
   ).replace(
     /<link rel="canonical" href="[^"]*" \/>/,
-    `<link rel="canonical" href="${canonical}" />` 
+    `<link rel="canonical" href="${canonical}" />`
   ).replace(
     /<meta property="og:title" content="[^"]*" \/>/,
-    `<meta property="og:title" content="${title}" />` 
+    `<meta property="og:title" content="${title}" />`
   ).replace(
     /<meta property="og:description" content="[^"]*" \/>/,
-    `<meta property="og:description" content="${desc}" />` 
+    `<meta property="og:description" content="${desc}" />`
   ).replace(
     /<meta property="og:url" content="[^"]*" \/>/,
-    `<meta property="og:url" content="${canonical}" />` 
+    `<meta property="og:url" content="${canonical}" />`
   ).replace(
     /<meta property="og:image" content="[^"]*" \/>/,
-    `<meta property="og:image" content="${ogImage}" />` 
+    `<meta property="og:image" content="${ogImage}" />`
   ).replace(
     /<meta property="og:locale" content="[^"]*" \/>/,
-    `<meta property="og:locale" content="${locale}" />` 
+    `<meta property="og:locale" content="${locale}" />`
   ).replace(
     /<meta property="og:site_name" content="[^"]*" \/>/,
-    `<meta property="og:site_name" content="${siteName}" />` 
+    `<meta property="og:site_name" content="${siteName}" />`
   ).replace(
     /<meta name="twitter:title" content="[^"]*" \/>/,
-    `<meta name="twitter:title" content="${title}" />` 
+    `<meta name="twitter:title" content="${title}" />`
   ).replace(
     /<meta name="twitter:description" content="[^"]*" \/>/,
-    `<meta name="twitter:description" content="${desc}" />` 
+    `<meta name="twitter:description" content="${desc}" />`
   ).replace(
     /<meta name="twitter:image" content="[^"]*" \/>/,
-    `<meta name="twitter:image" content="${ogImage}" />` 
+    `<meta name="twitter:image" content="${ogImage}" />`
   ).replace(
     /<meta name="author" content="[^"]*" \/>/,
-    `<meta name="author" content="${siteName}" />` 
+    `<meta name="author" content="${siteName}" />`
   ).replace(
     '</head>',
-    `  <meta name="description" content="${desc}" />\n  <link rel="canonical" href="${canonical}" />\n  <meta property="og:title" content="${title}" />\n  <meta property="og:description" content="${desc}" />\n  <meta property="og:url" content="${canonical}" />\n  <meta property="og:image" content="${ogImage}" />\n  <meta property="og:locale" content="${locale}" />\n  <meta property="og:site_name" content="${siteName}" />\n  <meta property="og:type" content="website" />\n  <meta name="twitter:card" content="summary_large_image" />\n  <meta name="twitter:title" content="${title}" />\n  <meta name="twitter:description" content="${desc}" />\n  <meta name="twitter:image" content="${ogImage}" />\n  ${gscMeta}\n  ${fbMeta}\n  ${hreflangTags(path, tenant)}\n  ${schemaBlock}\n  ${gtmHead}\n  ${metaPixelSnippet}\n</head>` 
+    `  <meta name="description" content="${desc}" />\n  <link rel="canonical" href="${canonical}" />\n  <meta property="og:title" content="${title}" />\n  <meta property="og:description" content="${desc}" />\n  <meta property="og:url" content="${canonical}" />\n  <meta property="og:image" content="${ogImage}" />\n  <meta property="og:locale" content="${locale}" />\n  <meta property="og:site_name" content="${siteName}" />\n  <meta property="og:type" content="website" />\n  <meta name="twitter:card" content="summary_large_image" />\n  <meta name="twitter:title" content="${title}" />\n  <meta name="twitter:description" content="${desc}" />\n  <meta name="twitter:image" content="${ogImage}" />\n  ${gscMeta}\n  ${fbMeta}\n  ${hreflangTags(path, tenant)}\n  ${schemaBlock}\n  ${gtmHead}\n  ${metaPixelSnippet}\n</head>`
   ).replace(
     /<body([^>]*)>/i,
-    `<body$1>${gtmBody}` 
+    `<body$1>${gtmBody}`
   );
 
   return new Response(injected, {
@@ -1270,16 +1255,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       'cache-control': 'public, max-age=3600, stale-while-revalidate=86400',
     },
   });
-  } catch (_injectErr) {
-    // If meta injection fails for any reason, return the original HTML unmodified
-    return new Response(html, {
-      status: res.status,
-      headers: {
-        ...Object.fromEntries(res.headers),
-        'content-type': 'text/html; charset=utf-8',
-      },
-    });
-  }
 }
 const SITEMAP_IE = [
   '/',
