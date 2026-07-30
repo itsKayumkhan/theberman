@@ -873,6 +873,18 @@ function hreflangTags(pathname, tenant) {
 
 // ─── Main handler ─────────────────────────────────────────────────────────────
 export default async function middleware(req) {
+  try {
+    return await handleRequest(req);
+  } catch (_err) {
+    // Any unhandled error → pass through to origin, never 500
+    return undefined;
+  }
+}
+
+async function handleRequest(req) {
+  // Recursion guard: skip if this request originated from our own proxy fetch
+  if (req.headers.get('x-seo-middleware') === '1') return undefined;
+
   const url  = new URL(req.url);
   const path = url.pathname;
   const testEventCode = url.searchParams.get('test_event_code') || '';
@@ -945,16 +957,18 @@ export default async function middleware(req) {
   // Fetch original response (proxy pattern — works on Vercel; falls back gracefully on local dev)
   let res, html;
   try {
-    res  = await fetch(req);
+    const proxyHeaders = new Headers(req.headers);
+    proxyHeaders.set('x-seo-middleware', '1');
+    res  = await fetch(url.toString(), { headers: proxyHeaders, redirect: 'manual' });
     html = await res.text();
   } catch (_fetchErr) {
     // Local dev or fetch failure → pass through without injecting tags
-    return new Response(null, { status: 200, headers: { 'x-middleware-next': '1' } });
+    return undefined;
   }
 
-  // Safety: if not HTML (e.g. API, binary) skip processing entirely
+  // Safety: if not HTML (e.g. API, binary, redirect) let origin serve it directly
   if (!html || !html.includes('</head>')) {
-    return new Response(html, { status: res.status, headers: Object.fromEntries(res.headers) });
+    return undefined;
   }
 
   const { title, desc } = getMeta(path, tenant);
@@ -1118,7 +1132,7 @@ function handleSPA() {
   let eventName = 'PageView';
   let eventData = {};
 
-  if (isContactPage || isViewContent) {
+  if (${isContactPage || isViewContent}) {
     eventName = 'ViewContent';
     eventData = { content_type: 'website' };
   }
@@ -1246,10 +1260,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     `<body$1>${gtmBody}`
   );
 
+  const outHeaders = Object.fromEntries(res.headers);
+  delete outHeaders['content-encoding'];
+  delete outHeaders['content-length'];
+  delete outHeaders['transfer-encoding'];
+
   return new Response(injected, {
     status:  res.status,
     headers: {
-      ...Object.fromEntries(res.headers),
+      ...outHeaders,
       'content-type': 'text/html; charset=utf-8',
       'cache-control': 'public, max-age=3600, stale-while-revalidate=86400',
     },
