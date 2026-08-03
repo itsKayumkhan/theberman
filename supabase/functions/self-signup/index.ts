@@ -184,6 +184,7 @@ Deno.serve(async (req: Request) => {
                 const isSpanish = resolvedTenant === 'spain';
                 const isPortuguese = resolvedTenant === 'portugal';
                 const isEngland = resolvedTenant === 'england';
+                const isFrench = resolvedTenant === 'france';
 
                 // Use the action_link from generateLink — it contains the token Supabase will verify
                 const confirmationUrl = linkData.properties.action_link;
@@ -192,9 +193,11 @@ Deno.serve(async (req: Request) => {
                     ? `Confirma tu cuenta – ${brandName}`
                     : isPortuguese
                         ? `Confirme a sua conta – ${brandName}`
-                        : `Confirm your account – ${brandName}`;
+                        : isFrench
+                            ? `Confirmez votre compte – ${brandName}`
+                            : `Confirm your account – ${brandName}`;
 
-                const html = buildConfirmationEmail(normalizedEmail, confirmationUrl, `${websiteUrl}/login`, websiteUrl, brandName, isSpanish, isEngland, isPortuguese, logoUrl);
+                const html = buildConfirmationEmail(normalizedEmail, confirmationUrl, `${websiteUrl}/login`, websiteUrl, brandName, isSpanish, isEngland, isPortuguese, isFrench, logoUrl);
 
                 const client = new CustomSmtpClient(config.domain);
                 await client.connect(config.smtp_hostname, config.smtp_port);
@@ -234,8 +237,32 @@ function buildConfirmationEmail(
     isSpanish: boolean,
     isEngland: boolean,
     isPortuguese: boolean = false,
+    isFrench: boolean = false,
     logoUrl: string = `${websiteUrl}/logo.svg`
 ): string {
+    if (isFrench) {
+        return `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 1rem;">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <img src="${logoUrl}" alt="${brandName}" style="height: 40px;">
+            </div>
+            <h1 style="color: #007F00; text-align: center; font-size: 24px;">Confirmez votre compte</h1>
+            <p style="font-size: 16px; color: #333;">Bonjour,</p>
+            <p style="font-size: 15px; color: #555; line-height: 1.6;">
+                Merci de vous inscrire sur <strong>${brandName}</strong>. Cliquez sur le bouton ci-dessous pour confirmer votre compte et commencer.
+            </p>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${confirmationUrl}" style="display: inline-block; background: #007F00; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Confirmer mon compte</a>
+            </div>
+            <p style="color: #6b7280; font-size: 0.9rem;">Si le bouton ne fonctionne pas, copiez et collez ce lien :</p>
+            <p style="word-break: break-all; color: #007F00; font-size: 0.85rem;">${confirmationUrl}</p>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+            <p style="font-size: 12px; color: #999; text-align: center;">
+                &copy; ${new Date().getFullYear()} ${brandName}.<br>
+                Soutenir des objectifs énergétiques durables grâce à des certifications professionnelles.
+            </p>
+        </div>`;
+    }
     if (isPortuguese) {
         return `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 1rem;">

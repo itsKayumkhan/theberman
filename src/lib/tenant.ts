@@ -27,6 +27,10 @@ const DOMAIN_TO_TENANT: Record<string, string> = {
   'epccert.be': 'england',
   'www.epccert.be': 'england',
   // France
+  'dpecert.fr': 'france',
+  'www.dpecert.fr': 'france',
+  'dpecert.com': 'france',
+  'www.dpecert.com': 'france',
   'dpefrance.eu': 'france',
   'www.dpefrance.eu': 'france',
   'diagnostic-france.eu': 'france',
@@ -84,7 +88,7 @@ export function getTenantDisplayName(tenant: string): string {
     'ireland': 'The BER Man',
     'spain': 'Certificado Energético',
     'england': 'EPC Cert',
-    'france': 'DPE France',
+    'france': 'DPE Cert France',
     'portugal': 'Certificado Energia',
   };
   return map[tenant] || tenant;
@@ -127,8 +131,8 @@ export function getTenantWebsiteUrl(tenant: string): string {
   }
   if (tenant === 'france') {
     const host = getCurrentHostname();
-    if (host && host.includes('france')) return `https://${host}`;
-    return 'https://dpefrance.eu';
+    if (host && (host.includes('france') || host.includes('dpecert'))) return `https://${host}`;
+    return 'https://dpecert.fr';
   }
   if (tenant === 'portugal') {
     const host = getCurrentHostname();
@@ -146,7 +150,7 @@ export function getTenantEmail(tenant: string): string {
     return 'hello@epccert.com';
   }
   if (tenant === 'france') {
-    return 'contact@dpefrance.eu';
+    return 'info@dpecert.fr';
   }
   if (tenant === 'portugal') {
     return 'hello@certificadoenergia.com';
@@ -167,8 +171,8 @@ export function getTenantDomain(tenant: string): string {
   }
   if (tenant === 'france') {
     const host = getCurrentHostname();
-    if (host && host.includes('france')) return host.replace(/^www\./, '');
-    return 'dpefrance.eu';
+    if (host && (host.includes('france') || host.includes('dpecert'))) return host.replace(/^www\./, '');
+    return 'dpecert.fr';
   }
   if (tenant === 'portugal') {
     const host = getCurrentHostname();
