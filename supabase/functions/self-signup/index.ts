@@ -91,7 +91,6 @@ Deno.serve(async (req: Request) => {
                 phone: phone || null,
                 seai_number: seaiNumber || null,
                 tenant: resolvedTenant,
-                registration_status: (role === 'business' || role === 'contractor') ? 'pending' : 'active',
             },
         });
 
@@ -120,7 +119,9 @@ Deno.serve(async (req: Request) => {
             role: role,
             phone: phone || null,
             tenant: resolvedTenant,
-            registration_status: (role === 'business' || role === 'contractor') ? 'pending' : 'active',
+            // NULL for contractor/business = onboarding not yet completed (ProtectedRoute forces onboarding).
+            // 'pending' is only set AFTER they submit the onboarding form, which is what the admin verifies.
+            registration_status: (role === 'business' || role === 'contractor') ? null : 'active',
             is_active: true,
         };
 

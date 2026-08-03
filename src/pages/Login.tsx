@@ -119,7 +119,11 @@ const Login = () => {
                 const errorMessage = error.message.toLowerCase();
                 if (errorMessage.includes('email not confirmed')) {
                     setUnconfirmedEmail(email);
-                    throw new Error(isSpanish ? 'Por favor, confirma tu dirección de correo antes de iniciar sesión. Revisa tu bandeja de entrada y la carpeta de spam.' : isPortuguese ? 'Por favor, confirme o seu endereço de email antes de iniciar sessão. Verifique a sua caixa de entrada e pasta de spam.' : 'Please confirm your email address before logging in. Check your inbox and spam folder.');
+                    toast(isSpanish ? 'Te hemos enviado un correo de confirmación. Por favor, verifica tu bandeja de entrada (y la carpeta de spam) antes de iniciar sesión.' : isPortuguese ? 'Enviámos-lhe um email de confirmação. Por favor, verifique a sua caixa de entrada (e a pasta de spam) antes de iniciar sessão.' : 'We\'ve sent you a confirmation email. Please verify your inbox (and spam folder) before logging in.', {
+                        icon: '📧',
+                        duration: 6000,
+                    });
+                    return;
                 }
                 if (error.status === 400 || errorMessage.includes('invalid credentials')) {
                     throw new Error(isSpanish ? 'Debido a una actualización técnica reciente, puede que necesites restablecer tu contraseña. Haz clic en "¿Olvidaste tu Contraseña?" para crear una nueva e inténtalo de nuevo.' : isPortuguese ? 'Devido a uma atualização técnica recente, poderá ser necessário redefinir a sua palavra-passe. Clique em "Esqueceu-se da palavra-passe?" para criar uma nova e tente novamente.' : 'Due to a recent technical update, your password may need to be reset. Please click "Forgot Password" to create a new password and try again.');
