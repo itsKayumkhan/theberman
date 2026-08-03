@@ -119,10 +119,6 @@ const Login = () => {
                 const errorMessage = error.message.toLowerCase();
                 if (errorMessage.includes('email not confirmed')) {
                     setUnconfirmedEmail(email);
-                    toast(isSpanish ? 'Te hemos enviado un correo de confirmación. Por favor, verifica tu bandeja de entrada (y la carpeta de spam) antes de iniciar sesión.' : isPortuguese ? 'Enviámos-lhe um email de confirmação. Por favor, verifique a sua caixa de entrada (e a pasta de spam) antes de iniciar sessão.' : 'We\'ve sent you a confirmation email. Please verify your inbox (and spam folder) before logging in.', {
-                        icon: '📧',
-                        duration: 6000,
-                    });
                     return;
                 }
                 if (error.status === 400 || errorMessage.includes('invalid credentials')) {
