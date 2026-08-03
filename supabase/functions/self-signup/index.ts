@@ -148,10 +148,21 @@ Deno.serve(async (req: Request) => {
         }
 
         // 5. Generate a verification link via admin API (does NOT send Supabase email)
+        // Redirect after confirmation: contractors/businesses go to onboarding to complete their profile
+        const tenantConfigForRedirect = await getTenantConfig(supabaseAdmin, resolvedTenant);
+        const tenantWebsiteUrl = (tenantConfigForRedirect.website_url || `https://${tenantConfigForRedirect.domain}`).replace(/\/$/, '');
+        const postConfirmPath = role === 'contractor'
+            ? '/assessor-onboarding'
+            : role === 'business'
+                ? '/business-onboarding'
+                : '/dashboard/user';
+        const redirectTo = `${tenantWebsiteUrl}${postConfirmPath}`;
+
         const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
             type: 'signup',
             email: normalizedEmail,
             password: password,
+            options: { redirectTo },
         });
 
         if (linkError || !linkData?.properties?.action_link) {
@@ -164,7 +175,7 @@ Deno.serve(async (req: Request) => {
 
         // 6. Send confirmation email via tenant SMTP with the verification link
         try {
-            const config = await getTenantConfig(supabaseAdmin, resolvedTenant);
+            const config = tenantConfigForRedirect;
             if (config.smtp_hostname && config.smtp_username && config.smtp_password) {
                 const websiteUrl = (config.website_url || `https://${config.domain}`).replace(/\/$/, '');
                 const logoUrl = config.logo_url || `${websiteUrl}/logo.svg`;
