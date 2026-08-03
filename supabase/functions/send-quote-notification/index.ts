@@ -71,12 +71,13 @@ Deno.serve(async (req: Request) => {
 
             const isSpanish = tenant === 'spain';
             const isPortuguese = tenant === 'portugal';
+            const isFrench = tenant === 'france';
 
             // 3. Generate Email HTML for homeowner
             const emailHtml = generateHomeownerQuoteEmail(assessment.contact_name, websiteUrl, promoHtml, tenant, config.display_name, logoUrl);
 
             // 4. Send Email to homeowner
-            await client.send(smtpFrom, assessment.contact_email, isSpanish ? 'Has recibido un presupuesto.' : isPortuguese ? 'Recebeu um orçamento.' : 'BER quote received.', emailHtml);
+            await client.send(smtpFrom, assessment.contact_email, isSpanish ? 'Has recibido un presupuesto.' : isPortuguese ? 'Recebeu um orçamento.' : isFrench ? 'Vous avez reçu un devis.' : 'BER quote received.', emailHtml);
 
             // 4b. Send email to job poster (business or admin) if not posted by homeowner
             if (assessment.posted_by && assessment.posted_by !== 'homeowner') {
@@ -101,13 +102,13 @@ Deno.serve(async (req: Request) => {
                             .maybeSingle();
                         if (appSetting?.support_email) {
                             posterEmail = appSetting.support_email;
-                            posterName = isSpanish ? 'Administrador' : isPortuguese ? 'Administrador' : 'Admin';
+                            posterName = isSpanish ? 'Administrador' : isPortuguese ? 'Administrador' : isFrench ? 'Administrateur' : 'Admin';
                         }
                     }
 
                     if (posterEmail) {
                         const posterHtml = generatePosterQuoteEmail(posterName, websiteUrl, promoHtml, tenant, config.display_name, logoUrl);
-                        await client.send(smtpFrom, posterEmail, isSpanish ? 'Nuevo presupuesto en tu trabajo publicado.' : isPortuguese ? 'Novo orçamento no seu trabalho publicado.' : 'New quote on your posted job.', posterHtml);
+                        await client.send(smtpFrom, posterEmail, isSpanish ? 'Nuevo presupuesto en tu trabajo publicado.' : isPortuguese ? 'Novo orçamento no seu trabalho publicado.' : isFrench ? 'Nouveau devis sur votre mission publiée.' : 'New quote on your posted job.', posterHtml);
                         console.log(`[send-quote-notification] Copied poster (${assessment.posted_by}): ${posterEmail} (tenant: ${tenant})`);
                     }
                 } catch (posterErr) {
@@ -120,7 +121,9 @@ Deno.serve(async (req: Request) => {
                 ? `Hola ${assessment.contact_name}, ¡buenas noticias! Has recibido un nuevo presupuesto en ${websiteUrl.replace('https://', '')}. Inicia sesión para revisarlo y comparar precios: ${websiteUrl}`
                 : isPortuguese
                     ? `Olá ${assessment.contact_name}, boas notícias! Recebeu um novo orçamento em ${websiteUrl.replace('https://', '')}. Inicie sessão para rever e comparar preços: ${websiteUrl}`
-                    : `Hi ${assessment.contact_name}, great news! You've received a new BER quote on ${websiteUrl.replace('https://', '')}. Log in to review and compare prices: ${websiteUrl}`, config.phone_country_code, config.twilio_account_sid, config.twilio_auth_token, config.twilio_messaging_service_sid);
+                    : isFrench
+                        ? `Bonjour ${assessment.contact_name}, bonnes nouvelles ! Vous avez reçu un nouveau devis sur ${websiteUrl.replace('https://', '')}. Connectez-vous pour le consulter et comparer les prix : ${websiteUrl}`
+                        : `Hi ${assessment.contact_name}, great news! You've received a new BER quote on ${websiteUrl.replace('https://', '')}. Log in to review and compare prices: ${websiteUrl}`, config.phone_country_code, config.twilio_account_sid, config.twilio_auth_token, config.twilio_messaging_service_sid);
 
             await client.close();
 

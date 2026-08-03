@@ -166,7 +166,7 @@ interface QuoteFormModuleProps {
 const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
     const { user } = useAuth();
     const { t, o, isSpanish, tenant } = useTranslation();
-    const certName = isSpanish ? 'CEE' : (tenant === 'england' ? 'EPC' : tenant === 'portugal' ? 'CE' : 'BER');
+    const certName = isSpanish ? 'CEE' : (tenant === 'england' ? 'EPC' : tenant === 'france' ? 'DPE' : tenant === 'portugal' ? 'CE' : 'BER');
     const [currentStep, setCurrentStep] = useState(0); // Start at step 0 (Job Type)
     const [sizeUnit, setSizeUnit] = useState<'ft' | 'm'>('m'); // Default to m²
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -238,7 +238,7 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
     const updateField = (field: keyof FormData, value: string | string[]) => {
         setFormData((prev: FormData) => {
             const newData = { ...prev, [field]: value };
-            if (field === 'county' && typeof value === 'string' && !prev.eircode && !isSpanish) {
+            if (field === 'county' && typeof value === 'string' && !prev.eircode && !isSpanish && tenant !== 'france' && tenant !== 'portugal') {
                 newData.eircode = (ROUTING_KEYS[value] || '').replace(/\s/g, '');
             }
             return newData;
@@ -248,7 +248,7 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
     const updateFieldAndAdvance = (field: keyof FormData, value: string | string[]) => {
         setFormData((prev: FormData) => {
             const newData = { ...prev, [field]: value };
-            if (field === 'county' && typeof value === 'string' && !prev.eircode && !isSpanish) {
+            if (field === 'county' && typeof value === 'string' && !prev.eircode && !isSpanish && tenant !== 'france' && tenant !== 'portugal') {
                 newData.eircode = (ROUTING_KEYS[value] || '').replace(/\s/g, '');
             }
             return newData;
@@ -331,7 +331,9 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                             ? cleanEircode.length >= 5
                             : tenant === 'portugal'
                                 ? cleanEircode.length >= 4
-                                : cleanEircode.length >= 7 && (!key || cleanEircode.startsWith(key));
+                                : tenant === 'france'
+                                    ? cleanEircode.length >= 5
+                                    : cleanEircode.length >= 7 && (!key || cleanEircode.startsWith(key));
                     return !!formData.fullName && !!formData.email && !!formData.phone && eircodeValid;
                 }
                 case 12: return true;
@@ -361,7 +363,9 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                             ? cleanEircode.length >= 5
                             : tenant === 'portugal'
                                 ? cleanEircode.length >= 4
-                                : cleanEircode.length >= 7 && (!key || cleanEircode.startsWith(key));
+                                : tenant === 'france'
+                                    ? cleanEircode.length >= 5
+                                    : cleanEircode.length >= 7 && (!key || cleanEircode.startsWith(key));
                     return !!formData.fullName && !!formData.email && !!formData.phone && eircodeValid;
                 }
                 case 12: return true;
@@ -391,7 +395,9 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                             ? cleanEircode.length >= 5
                             : tenant === 'portugal'
                                 ? cleanEircode.length >= 4
-                                : cleanEircode.length >= 7 && (!key || cleanEircode.startsWith(key));
+                                : tenant === 'france'
+                                    ? cleanEircode.length >= 5
+                                    : cleanEircode.length >= 7 && (!key || cleanEircode.startsWith(key));
                     return !!formData.fullName && !!formData.email && !!formData.phone && eircodeValid;
                 }
                 case 12: return true;
@@ -594,6 +600,11 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
             const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
             return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]}`;
         }
+        if (tenant === 'france') {
+            const days = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+            const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
+            return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]}`;
+        }
         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const day = date.getDate();
@@ -643,7 +654,7 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
         </div>
     );
 
-    const locationLabel = isSpanish ? 'Comunidad Autónoma' : (tenant === 'england' ? 'Location' : tenant === 'portugal' ? 'Distrito' : 'County');
+    const locationLabel = isSpanish ? 'Comunidad Autónoma' : (tenant === 'england' ? 'Location' : tenant === 'portugal' ? 'Distrito' : tenant === 'france' ? 'Région' : 'County');
     const COUNTIES = getCountiesForTenant(tenant);
 
     const renderCountyStep = () => (
@@ -660,15 +671,15 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                     </button>
                 ))}
             </div>
-            <p className="text-center text-gray-400 text-sm mt-4">{t('scroll_counties', isSpanish ? 'Desplaza para ver más' : (tenant === 'england' ? 'Scroll to see more locations' : tenant === 'portugal' ? 'Deslize para ver mais distritos' : 'Scroll to see more counties'))}</p>
+            <p className="text-center text-gray-400 text-sm mt-4">{t('scroll_counties', isSpanish ? 'Desplaza para ver más' : (tenant === 'england' ? 'Scroll to see more locations' : tenant === 'portugal' ? 'Deslize para ver mais distritos' : tenant === 'france' ? 'Faites défiler pour voir plus de régions' : 'Scroll to see more counties'))}</p>
         </div>
     );
 
-    const postcodeLabel = isSpanish ? 'Código Postal' : (tenant === 'england' ? 'Postcode' : tenant === 'portugal' ? 'Código Postal' : 'Eircode');
+    const postcodeLabel = isSpanish ? 'Código Postal' : (tenant === 'england' ? 'Postcode' : tenant === 'portugal' ? 'Código Postal' : tenant === 'france' ? 'Code Postal' : 'Eircode');
 
     const renderTownStep = () => (
         <div className="space-y-6">
-            <h2 className="text-3xl md:text-4xl font-light text-gray-800 text-center">{isSpanish ? 'Municipio' : (tenant === 'england' ? 'Area / Town' : tenant === 'portugal' ? 'Concelho' : 'Town')} / {postcodeLabel}?</h2>
+            <h2 className="text-3xl md:text-4xl font-light text-gray-800 text-center">{isSpanish ? 'Municipio' : (tenant === 'england' ? 'Area / Town' : tenant === 'portugal' ? 'Concelho' : tenant === 'france' ? 'Ville' : 'Town')} / {postcodeLabel}?</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-w-4xl mx-auto max-h-[60vh] overflow-y-auto p-2 custom-scrollbar">
                 {(getTownsForTenant(tenant)[formData.county] || []).map((town) => (
                     <button
@@ -680,7 +691,7 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                     </button>
                 ))}
             </div>
-            <p className="text-center text-gray-400 text-sm mt-4">{t('scroll_towns', isSpanish ? 'Desplaza para ver más municipios' : tenant === 'portugal' ? 'Deslize para ver mais concelhos' : 'Scroll to see more towns')}</p>
+            <p className="text-center text-gray-400 text-sm mt-4">{t('scroll_towns', isSpanish ? 'Desplaza para ver más municipios' : tenant === 'portugal' ? 'Deslize para ver mais concelhos' : tenant === 'france' ? 'Faites défiler pour voir plus de villes' : 'Scroll to see more towns')}</p>
         </div>
     );
 
@@ -693,7 +704,7 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                 <div className="grid grid-cols-2 gap-4">
                     <div className="flex">
                         <span className="flex items-center px-3 border-2 border-r-0 border-gray-200 rounded-l-xl text-sm font-bold text-gray-500 bg-gray-50 whitespace-nowrap">
-                            {isSpanish ? '+34' : (tenant === 'england' ? '+44' : tenant === 'portugal' ? '+351' : '+353')}
+                            {isSpanish ? '+34' : (tenant === 'england' ? '+44' : tenant === 'portugal' ? '+351' : tenant === 'france' ? '+33' : '+353')}
                         </span>
                         <input type="tel" value={formData.phone} onChange={(e) => updateField('phone', e.target.value)} placeholder={`${t('phone_number')}*`} className="flex-1 p-4 border-2 border-l-0 border-gray-200 rounded-r-xl focus:border-green-500 focus:outline-none" />
                     </div>
@@ -893,7 +904,7 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                             />
                             {onClose && (
                                 <button onClick={onClose} className="mt-8 w-full bg-gray-900 text-white font-bold py-4 rounded-xl">
-                                    {isSpanish ? 'Cerrar e Ir al Panel' : tenant === 'portugal' ? 'Fechar e Ir para o Painel' : 'Close & Go to Dashboard'}
+                                    {isSpanish ? 'Cerrar e Ir al Panel' : tenant === 'portugal' ? 'Fechar e Ir para o Painel' : tenant === 'france' ? 'Fermer et Aller au Tableau de Bord' : 'Close & Go to Dashboard'}
                                 </button>
                             )}
                         </div>
@@ -1040,7 +1051,7 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                             />
                             {onClose && (
                                 <button onClick={onClose} className="mt-8 w-full bg-gray-900 text-white font-bold py-4 rounded-xl">
-                                    {isSpanish ? 'Cerrar e Ir al Panel' : tenant === 'portugal' ? 'Fechar e Ir para o Painel' : 'Close & Go to Dashboard'}
+                                    {isSpanish ? 'Cerrar e Ir al Panel' : tenant === 'portugal' ? 'Fechar e Ir para o Painel' : tenant === 'france' ? 'Fermer et Aller au Tableau de Bord' : 'Close & Go to Dashboard'}
                                 </button>
                             )}
                         </div>
@@ -1200,7 +1211,7 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                             />
                             {onClose && (
                                 <button onClick={onClose} className="mt-8 w-full bg-gray-900 text-white font-bold py-4 rounded-xl">
-                                    {isSpanish ? 'Cerrar e Ir al Panel' : tenant === 'portugal' ? 'Fechar e Ir para o Painel' : 'Close & Go to Dashboard'}
+                                    {isSpanish ? 'Cerrar e Ir al Panel' : tenant === 'portugal' ? 'Fechar e Ir para o Painel' : tenant === 'france' ? 'Fermer et Aller au Tableau de Bord' : 'Close & Go to Dashboard'}
                                 </button>
                             )}
                         </div>

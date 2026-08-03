@@ -67,15 +67,28 @@ const UserDashboard = () => {
     const tenant = getTenantFromDomain();
     const isEngland = tenant === 'england';
     const isPortuguese = tenant === 'portugal';
-    const brandName = isEngland ? 'EPC Cert' : isSpanish ? 'Certificado Energético' : isPortuguese ? 'Certificado Energia' : 'The Berman';
+    const isFrench = tenant === 'france';
+    const brandName = isEngland ? 'EPC Cert' : isSpanish ? 'Certificado Energético' : isPortuguese ? 'Certificado Energia' : isFrench ? 'DPE Cert France' : 'The Berman';
     const logoUrl = isPortuguese ? '/certificado-energia-logo.png' : tenant === 'france' ? '/dpecert-logo.png' : '/logo.svg';
-    const assessmentLabel = isEngland ? 'EPC' : isSpanish ? 'Certificación Energética' : isPortuguese ? 'Certificado Energético' : 'BER';
+    const assessmentLabel = isEngland ? 'EPC' : isSpanish ? 'Certificación Energética' : isPortuguese ? 'Certificado Energético' : isFrench ? 'DPE' : 'BER';
     const { user, signOut, profile } = useAuth();
     const navigate = useNavigate();
     const [assessments, setAssessments] = useState<Assessment[]>([]);
 
     const getStatusLabel = (status: string, isExpired?: boolean) => {
-        if (isExpired) return isSpanish ? 'Caducado' : isPortuguese ? 'Expirado' : 'Expired';
+        if (isExpired) return isSpanish ? 'Caducado' : isPortuguese ? 'Expirado' : isFrench ? 'Expiré' : 'Expired';
+        if (isFrench) {
+            const map: Record<string, string> = {
+                draft: 'Brouillon',
+                submitted: 'Envoyé',
+                pending_quote: 'Devis en Attente',
+                quote_accepted: 'Devis Accepté',
+                scheduled: 'Planifié',
+                completed: 'Terminé',
+                live: 'Actif',
+            };
+            return map[status] || status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
         if (isPortuguese) {
             const map: Record<string, string> = {
                 draft: 'Rascunho',
@@ -102,6 +115,10 @@ const UserDashboard = () => {
     };
 
     const getQuoteStatusLabel = (status: string) => {
+        if (isFrench) {
+            const map: Record<string, string> = { pending: 'En attente', accepted: 'Accepté', rejected: 'Refusé' };
+            return map[status] || status.charAt(0).toUpperCase() + status.slice(1);
+        }
         if (isPortuguese) {
             const map: Record<string, string> = { pending: 'Pendente', accepted: 'Aceite', rejected: 'Rejeitado' };
             return map[status] || status.charAt(0).toUpperCase() + status.slice(1);
@@ -490,7 +507,7 @@ const UserDashboard = () => {
                 {loading ? (
                     <div className="flex flex-col items-center justify-center py-20">
                         <div className="w-12 h-12 border-4 border-gray-100 border-t-[#007F00] rounded-full animate-spin mb-4"></div>
-                        <p className="text-gray-500 font-medium">{isSpanish ? 'Cargando tus certificaciones...' : isPortuguese ? 'A carregar os seus certificados...' : 'Loading your assessments...'}</p>
+                        <p className="text-gray-500 font-medium">{isSpanish ? 'Cargando tus certificaciones...' : isPortuguese ? 'A carregar os seus certificados...' : isFrench ? 'Chargement de vos diagnostics...' : 'Loading your assessments...'}</p>
                     </div>
                 ) : assessments.length === 0 ? (
                     /* Empty State Dashboard */
@@ -499,9 +516,9 @@ const UserDashboard = () => {
                             <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-8 text-[#007F00]">
                                 <User size={48} strokeWidth={1.5} />
                             </div>
-                            <h2 className="text-3xl font-bold text-gray-900 mb-3">{isSpanish ? '¡Bienvenido de Nuevo!' : isPortuguese ? 'Bem-vindo de Volta!' : 'Welcome Back!'}</h2>
+                            <h2 className="text-3xl font-bold text-gray-900 mb-3">{isSpanish ? '¡Bienvenido de Nuevo!' : isPortuguese ? 'Bem-vindo de Volta!' : isFrench ? 'Bon Retour !' : 'Welcome Back!'}</h2>
                             <p className="text-gray-500 text-lg mb-10 max-w-lg mx-auto leading-relaxed">
-                                {isSpanish ? 'Este es tu panel personal. El seguimiento de tus certificaciones energéticas aparecerá aquí pronto.' : isPortuguese ? 'Este é o seu painel pessoal. O acompanhamento dos seus certificados energéticos aparecerá aqui em breve.' : 'This is your personal dashboard. Tracking of your BER assessments will appear here soon.'}
+                                {isSpanish ? 'Este es tu panel personal. El seguimiento de tus certificaciones energéticas aparecerá aquí pronto.' : isPortuguese ? 'Este é o seu painel pessoal. O acompanhamento dos seus certificados energéticos aparecerá aqui em breve.' : isFrench ? 'Ceci est votre tableau de bord personnel. Le suivi de vos diagnostics apparaîtra ici prochainement.' : 'This is your personal dashboard. Tracking of your BER assessments will appear here soon.'}
                             </p>
 
                             <div className="bg-[#F8FAFC] border border-gray-100 rounded-2xl p-8 text-left flex flex-col md:flex-row gap-6 items-center">
@@ -509,9 +526,9 @@ const UserDashboard = () => {
                                     <FileText size={32} strokeWidth={1.5} />
                                 </div>
                                 <div className="flex-1 text-center md:text-left">
-                                    <h4 className="text-xl font-bold text-gray-900 mb-2">{isSpanish ? 'No Hay Certificaciones Activas' : isPortuguese ? 'Sem Certificados Ativos' : 'No Active Assessments'}</h4>
+                                    <h4 className="text-xl font-bold text-gray-900 mb-2">{isSpanish ? 'No Hay Certificaciones Activas' : isPortuguese ? 'Sem Certificados Ativos' : isFrench ? 'Aucun Diagnostic Actif' : 'No Active Assessments'}</h4>
                                     <p className="text-gray-500 leading-relaxed">
-                                        {isSpanish ? 'No tienes certificaciones energéticas pendientes. Contáctanos para solicitar una y mejorar la eficiencia energética de tu hogar.' : isPortuguese ? 'Não tem certificados energéticos pendentes. Contacte-nos para solicitar um e melhorar a eficiência energética da sua casa.' : "You don't have any pending BER assessments. Contact us to schedule one and improve your home's energy efficiency."}
+                                        {isSpanish ? 'No tienes certificaciones energéticas pendientes. Contáctanos para solicitar una y mejorar la eficiencia energética de tu hogar.' : isPortuguese ? 'Não tem certificados energéticos pendentes. Contacte-nos para solicitar um e melhorar a eficiência energética da sua casa.' : isFrench ? "Vous n'avez aucun diagnostic en attente. Contactez-nous pour en planifier un et améliorer l'efficacité énergétique de votre maison." : "You don't have any pending BER assessments. Contact us to schedule one and improve your home's energy efficiency."}
                                     </p>
                                 </div>
                             </div>
@@ -520,7 +537,7 @@ const UserDashboard = () => {
                                 onClick={() => navigate('/get-quote')}
                                 className="mt-12 inline-flex items-center gap-2 bg-[#007F00] text-white px-8 py-4 rounded-full font-bold hover:bg-[#006600] transition-all shadow-lg shadow-green-100 hover:shadow-green-200 hover:-translate-y-0.5 active:translate-y-0"
                             >
-                                {isSpanish ? 'Solicitar una Certificación Energética' : isPortuguese ? 'Solicitar um Certificado Energético' : `Schedule a ${assessmentLabel} Assessment`}
+                                {isSpanish ? 'Solicitar una Certificación Energética' : isPortuguese ? 'Solicitar um Certificado Energético' : isFrench ? `Planifier un Diagnostic ${assessmentLabel}` : `Schedule a ${assessmentLabel} Assessment`}
                             </button>
                         </div>
                     </div>
@@ -532,10 +549,10 @@ const UserDashboard = () => {
                                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                                     <div className="flex-1">
                                         <h2 className="text-3xl font-black text-gray-900 mb-2">
-                                            {view === 'assessments' ? (isSpanish ? 'Mis Certificaciones Energéticas' : isPortuguese ? 'Os Meus Certificados Energéticos' : `My ${assessmentLabel} Assessments`) : (isSpanish ? 'Presupuestos Recibidos' : isPortuguese ? 'Orçamentos Recebidos' : 'Received Quotes')}
+                                            {view === 'assessments' ? (isSpanish ? 'Mis Certificaciones Energéticas' : isPortuguese ? 'Os Meus Certificados Energéticos' : isFrench ? `Mes Diagnostics ${assessmentLabel}` : `My ${assessmentLabel} Assessments`) : (isSpanish ? 'Presupuestos Recibidos' : isPortuguese ? 'Orçamentos Recebidos' : isFrench ? 'Devis Reçus' : 'Received Quotes')}
                                         </h2>
                                         <p className="text-gray-500 font-medium max-w-2xl">
-                                            {view === 'assessments' ? (isSpanish ? 'Sigue el progreso de tu certificación energética y consulta las evaluaciones programadas.' : isPortuguese ? 'Acompanhe o progresso da sua certificação energética e veja as avaliações agendadas.' : `Track the progress of your property certification and view scheduled ${assessmentLabel.toLowerCase()} assessments.`) : (isSpanish ? 'Revisa y gestiona presupuestos de nuestros certificadores energéticos verificados.' : isPortuguese ? 'Revise e gerencie orçamentos dos nossos peritos qualificados verificados.' : `Review and manage quotes from our verified professional ${assessmentLabel} Assessors.`)}
+                                            {view === 'assessments' ? (isSpanish ? 'Sigue el progreso de tu certificación energética y consulta las evaluaciones programadas.' : isPortuguese ? 'Acompanhe o progresso da sua certificação energética e veja as avaliações agendadas.' : isFrench ? `Suivez le progrès de votre diagnostic et consultez les évaluations planifiées.` : `Track the progress of your property certification and view scheduled ${assessmentLabel.toLowerCase()} assessments.`) : (isSpanish ? 'Revisa y gestiona presupuestos de nuestros certificadores energéticos verificados.' : isPortuguese ? 'Revise e gerencie orçamentos dos nossos peritos qualificados verificados.' : isFrench ? `Examinez et gérez les devis de nos diagnostiqueurs certifiés.` : `Review and manage quotes from our verified professional ${assessmentLabel} Assessors.`)}
                                         </p>
                                     </div>
                                     <button
@@ -543,7 +560,7 @@ const UserDashboard = () => {
                                         className="bg-[#007F00] text-white px-8 py-4 rounded-full font-bold hover:bg-[#006600] transition-all shadow-lg shadow-green-100 hover:shadow-green-200 hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2"
                                     >
                                         <Home size={20} />
-                                        {isSpanish ? 'Nueva Certificación' : isPortuguese ? 'Novo Certificado' : `New ${assessmentLabel}`}
+                                        {isSpanish ? 'Nueva Certificación' : isPortuguese ? 'Novo Certificado' : isFrench ? `Nouveau ${assessmentLabel}` : `New ${assessmentLabel}`}
                                     </button>
                                 </div>
                             </div>
@@ -556,7 +573,7 @@ const UserDashboard = () => {
                                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                     <input
                                         type="text"
-                                        placeholder={isSpanish ? 'Buscar por ciudad, comunidad autónoma, tipo o dirección...' : isPortuguese ? 'Pesquisar por cidade, região, tipo ou morada...' : 'Search by town, county, type, or address...'}
+                                        placeholder={isSpanish ? 'Buscar por ciudad, comunidad autónoma, tipo o dirección...' : isPortuguese ? 'Pesquisar por cidade, região, tipo ou morada...' : isFrench ? 'Rechercher par ville, région, type ou adresse...' : 'Search by town, county, type, or address...'}
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         className="w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-2xl text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00] transition-all shadow-sm"

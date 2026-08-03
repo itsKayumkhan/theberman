@@ -93,6 +93,7 @@ Deno.serve(async (req: Request) => {
         const isSpanish = tenant === 'spain';
         const isEngland = tenant === 'england';
         const isPortuguese = tenant === 'portugal';
+        const isFrench = tenant === 'france';
         const brandName = config.display_name;
 
         // Build the confirmation URL that Supabase will verify
@@ -109,33 +110,41 @@ Deno.serve(async (req: Request) => {
                 ? `Confirma tu cuenta – ${brandName}`
                 : isPortuguese
                     ? `Confirme a sua conta – ${brandName}`
-                    : `Confirm your account – ${brandName}`;
-            html = buildConfirmationEmail(userEmail, confirmationUrl, effectiveRedirect, websiteUrl, brandName, isSpanish, isEngland, isPortuguese, logoUrl);
+                    : isFrench
+                        ? `Confirmez votre compte – ${brandName}`
+                        : `Confirm your account – ${brandName}`;
+            html = buildConfirmationEmail(userEmail, confirmationUrl, effectiveRedirect, websiteUrl, brandName, isSpanish, isEngland, isPortuguese, logoUrl, isFrench);
         } else if (actionType === 'recovery') {
             subject = isSpanish
                 ? `Restablece tu contraseña – ${brandName}`
                 : isPortuguese
                     ? `Redefina a sua palavra-passe – ${brandName}`
-                    : `Reset your password – ${brandName}`;
-            html = buildRecoveryEmail(userEmail, confirmationUrl, effectiveRedirect, websiteUrl, brandName, isSpanish, isEngland, isPortuguese, logoUrl);
+                    : isFrench
+                        ? `Réinitialisez votre mot de passe – ${brandName}`
+                        : `Reset your password – ${brandName}`;
+            html = buildRecoveryEmail(userEmail, confirmationUrl, effectiveRedirect, websiteUrl, brandName, isSpanish, isEngland, isPortuguese, logoUrl, isFrench);
         } else if (actionType === 'magiclink') {
             subject = isSpanish
                 ? `Tu enlace de acceso – ${brandName}`
                 : isPortuguese
                     ? `O seu link de acesso – ${brandName}`
-                    : `Your sign-in link – ${brandName}`;
-            html = buildMagicLinkEmail(userEmail, confirmationUrl, effectiveRedirect, websiteUrl, brandName, isSpanish, isEngland, isPortuguese, logoUrl);
+                    : isFrench
+                        ? `Votre lien de connexion – ${brandName}`
+                        : `Your sign-in link – ${brandName}`;
+            html = buildMagicLinkEmail(userEmail, confirmationUrl, effectiveRedirect, websiteUrl, brandName, isSpanish, isEngland, isPortuguese, logoUrl, isFrench);
         } else if (actionType === 'email_change') {
             subject = isSpanish
                 ? `Confirma tu nuevo email – ${brandName}`
                 : isPortuguese
                     ? `Confirme o seu novo email – ${brandName}`
-                    : `Confirm your new email – ${brandName}`;
-            html = buildConfirmationEmail(userEmail, confirmationUrl, effectiveRedirect, websiteUrl, brandName, isSpanish, isEngland, isPortuguese, logoUrl);
+                    : isFrench
+                        ? `Confirmez votre nouvel e-mail – ${brandName}`
+                        : `Confirm your new email – ${brandName}`;
+            html = buildConfirmationEmail(userEmail, confirmationUrl, effectiveRedirect, websiteUrl, brandName, isSpanish, isEngland, isPortuguese, logoUrl, isFrench);
         } else {
             // Generic fallback
             subject = `${brandName} – Verification`;
-            html = buildConfirmationEmail(userEmail, confirmationUrl, effectiveRedirect, websiteUrl, brandName, isSpanish, isEngland, isPortuguese, logoUrl);
+            html = buildConfirmationEmail(userEmail, confirmationUrl, effectiveRedirect, websiteUrl, brandName, isSpanish, isEngland, isPortuguese, logoUrl, isFrench);
         }
 
         // Send via custom SMTP
@@ -171,8 +180,32 @@ function buildConfirmationEmail(
     isSpanish: boolean,
     isEngland: boolean,
     isPortuguese: boolean = false,
-    logoUrl: string = `${websiteUrl}/logo.svg`
+    logoUrl: string = `${websiteUrl}/logo.svg`,
+    isFrench: boolean = false,
 ): string {
+    if (isFrench) {
+        return `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 1rem;">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <img src="${logoUrl}" alt="${brandName}" style="height: 40px;">
+            </div>
+            <h1 style="color: #007F00; text-align: center; font-size: 24px;">Confirmez votre compte</h1>
+            <p style="font-size: 16px; color: #333;">Bonjour,</p>
+            <p style="font-size: 15px; color: #555; line-height: 1.6;">
+                Merci de vous être inscrit sur <strong>${brandName}</strong>. Cliquez sur le bouton ci-dessous pour confirmer votre compte et commencer.
+            </p>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${confirmationUrl}" style="display: inline-block; background: #007F00; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Confirmer mon compte</a>
+            </div>
+            <p style="color: #6b7280; font-size: 0.9rem;">Si le bouton ne fonctionne pas, copiez et collez ce lien :</p>
+            <p style="word-break: break-all; color: #007F00; font-size: 0.85rem;">${confirmationUrl}</p>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+            <p style="font-size: 12px; color: #999; text-align: center;">
+                &copy; ${new Date().getFullYear()} ${brandName}.<br>
+                Soutenant des objectifs d'énergie durable grâce à des certifications professionnelles.
+            </p>
+        </div>`;
+    }
     if (isPortuguese) {
         return `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 1rem;">
@@ -252,8 +285,35 @@ function buildRecoveryEmail(
     isSpanish: boolean,
     isEngland: boolean,
     isPortuguese: boolean = false,
-    logoUrl: string = `${websiteUrl}/logo.svg`
+    logoUrl: string = `${websiteUrl}/logo.svg`,
+    isFrench: boolean = false,
 ): string {
+    if (isFrench) {
+        return `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 1rem;">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <img src="${logoUrl}" alt="${brandName}" style="height: 40px;">
+            </div>
+            <h1 style="color: #007F00; text-align: center; font-size: 24px;">Réinitialisez votre mot de passe</h1>
+            <p style="font-size: 16px; color: #333;">Bonjour,</p>
+            <p style="font-size: 15px; color: #555; line-height: 1.6;">
+                Nous avons reçu une demande de réinitialisation du mot de passe de votre compte <strong>${brandName}</strong>.
+            </p>
+            <p style="font-size: 15px; color: #555; line-height: 1.6;">
+                Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe. Ce lien expirera dans 1 heure.
+            </p>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${confirmationUrl}" style="display: inline-block; background: #007F00; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Réinitialiser mon mot de passe</a>
+            </div>
+            <p style="color: #6b7280; font-size: 0.9rem;">Si vous n'avez pas fait cette demande, vous pouvez ignorer cet e-mail en toute sécurité.</p>
+            <p style="color: #6b7280; font-size: 0.9rem;">Si le bouton ne fonctionne pas, copiez et collez ce lien :</p>
+            <p style="word-break: break-all; color: #007F00; font-size: 0.85rem;">${confirmationUrl}</p>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+            <p style="font-size: 12px; color: #999; text-align: center;">
+                &copy; ${new Date().getFullYear()} ${brandName}.
+            </p>
+        </div>`;
+    }
     if (isPortuguese) {
         return `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 1rem;">
@@ -342,8 +402,29 @@ function buildMagicLinkEmail(
     isSpanish: boolean,
     isEngland: boolean,
     isPortuguese: boolean = false,
-    logoUrl: string = `${websiteUrl}/logo.svg`
+    logoUrl: string = `${websiteUrl}/logo.svg`,
+    isFrench: boolean = false,
 ): string {
+    if (isFrench) {
+        return `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 1rem;">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <img src="${logoUrl}" alt="${brandName}" style="height: 40px;">
+            </div>
+            <h1 style="color: #007F00; text-align: center; font-size: 24px;">Votre lien de connexion</h1>
+            <p style="font-size: 16px; color: #333;">Bonjour,</p>
+            <p style="font-size: 15px; color: #555; line-height: 1.6;">
+                Cliquez sur le bouton ci-dessous pour vous connecter à <strong>${brandName}</strong>.
+            </p>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${confirmationUrl}" style="display: inline-block; background: #007F00; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Se connecter</a>
+            </div>
+            <p style="color: #6b7280; font-size: 0.9rem;">Si vous n'avez pas demandé ce lien, vous pouvez ignorer cet e-mail en toute sécurité.</p>
+            <p style="word-break: break-all; color: #007F00; font-size: 0.85rem;">${confirmationUrl}</p>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+            <p style="font-size: 12px; color: #999; text-align: center;">&copy; ${new Date().getFullYear()} ${brandName}.</p>
+        </div>`;
+    }
     if (isPortuguese) {
         return `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 1rem;">

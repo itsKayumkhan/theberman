@@ -84,7 +84,8 @@ Deno.serve(async (req: Request) => {
             const { smtp_hostname: smtpHostname, smtp_port: smtpPort, smtp_username: smtpUsername, smtp_password: smtpPassword, smtp_from: smtpFrom, website_url: websiteUrl } = config;
             const isSpanish = tenant === 'spain';
             const isPortuguese = tenant === 'portugal';
-            const lang: 'en' | 'es' | 'pt' = isPortuguese ? 'pt' : isSpanish ? 'es' : 'en';
+            const isFrench = tenant === 'france';
+            const lang: 'en' | 'es' | 'pt' | 'fr' = isFrench ? 'fr' : isPortuguese ? 'pt' : isSpanish ? 'es' : 'en';
 
             if (!smtpHostname || !smtpUsername || !smtpPassword) {
                 console.error(`[send-job-reminder-cron] SMTP not configured for tenant ${tenant}, skipping.`);
@@ -276,7 +277,7 @@ Deno.serve(async (req: Request) => {
                     await client.send(
                         smtpFrom,
                         contractor.email,
-                        isSpanish ? `${matchingJobs.length} trabajos disponibles para presupuestar` : isPortuguese ? `${matchingJobs.length} trabalhos disponíveis para orçamentar` : `${matchingJobs.length}x Jobs Still Available to Quote`,
+                        isSpanish ? `${matchingJobs.length} trabajos disponibles para presupuestar` : isPortuguese ? `${matchingJobs.length} trabalhos disponíveis para orçamentar` : isFrench ? `${matchingJobs.length} missions disponibles pour devis` : `${matchingJobs.length}x Jobs Still Available to Quote`,
                         emailHtml,
                     );
                     perTenantResults[tenant].sent++;

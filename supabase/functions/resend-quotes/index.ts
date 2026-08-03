@@ -22,6 +22,7 @@ function generateQuotesSummaryEmail(
 ) {
     const isSpanish = tenant === 'spain';
     const isPortuguese = tenant === 'portugal';
+    const isFrench = tenant === 'france';
     const brandName = displayName;
     const dashboardUrl = `${websiteUrl}/dashboard/user`;
     const currency = tenant === 'england' ? '£' : '€';
@@ -60,18 +61,19 @@ function generateQuotesSummaryEmail(
         <div style="background-color: #007F00; color: white; padding: 40px 20px; text-align: center;">
             <img src="${logoUrl}" alt="${brandName}" style="height: 35px; margin-bottom: 15px; filter: brightness(0) invert(1);">
             <h1 style="margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">
-                ${isSpanish ? 'Tus Presupuestos' : isPortuguese ? 'Os Seus Orçamentos' : 'Your BER Quotes'}
+                ${isSpanish ? 'Tus Presupuestos' : isPortuguese ? 'Os Seus Orçamentos' : isFrench ? 'Vos Devis DPE' : 'Your BER Quotes'}
             </h1>
             <p style="margin: 10px 0 0 0; font-size: 14px; opacity: 0.9;">${propertyAddress}</p>
         </div>
 
         <div style="padding: 40px 30px;">
             <p style="font-size: 18px; font-weight: 600; margin-bottom: 20px; color: #1a1a1a;">
-                ${isSpanish ? 'Hola' : isPortuguese ? 'Olá' : 'Hi'} ${customerName},
+                ${isSpanish ? 'Hola' : isPortuguese ? 'Olá' : isFrench ? 'Bonjour' : 'Hi'} ${customerName},
             </p>
             <p style="font-size: 16px; color: #444; margin-bottom: 25px;">
                 ${isSpanish ? `Has recibido ${quotes.length} presupuestos para tu propiedad. Compáralos a continuación y elige el que mejor se adapte a tus necesidades.`
                 : isPortuguese ? `Recebeu ${quotes.length} orçamentos para o seu imóvel. Compare-os abaixo e escolha o que melhor se adapta às suas necessidades.`
+                : isFrench ? `Vous avez reçu ${quotes.length} devis pour votre propriété. Comparez-les ci-dessous et choisissez celui qui correspond le mieux à vos besoins.`
                 : `You've received ${quotes.length} quotes for your property. Compare them below and choose the one that best suits your needs.`}
             </p>
 
@@ -79,13 +81,14 @@ function generateQuotesSummaryEmail(
 
             <div style="text-align: center; margin: 40px 0;">
                 <a href="${dashboardUrl}" style="background-color: #007F00; color: #ffffff !important; padding: 18px 40px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 18px; display: inline-block; box-shadow: 0 4px 12px rgba(0,127,0,0.2);">
-                    ${isSpanish ? 'Revisar y Aceptar Presupuesto' : isPortuguese ? 'Rever e Aceitar Orçamento' : 'Review & Accept Quote'}
+                    ${isSpanish ? 'Revisar y Aceptar Presupuesto' : isPortuguese ? 'Rever e Aceitar Orçamento' : isFrench ? 'Réviser et Accepter le Devis' : 'Review & Accept Quote'}
                 </a>
             </div>
 
             <p style="font-size: 15px; color: #555; margin-bottom: 25px;">
                 ${isSpanish ? 'Puedes confirmar tu reserva al instante aceptando el presupuesto online. Un pequeño depósito asegura tu plaza.'
                 : isPortuguese ? 'Pode confirmar a sua reserva instantaneamente aceitando o orçamento online. Um pequeno depósito garante o seu lugar.'
+                : isFrench ? 'Vous pouvez confirmer votre réservation instantanément en acceptant le devis en ligne. Un petit dépôt garantit votre place.'
                 : 'You can instantly confirm your booking by accepting the quote online. A small deposit secures your spot.'}
             </p>
         </div>
@@ -167,6 +170,7 @@ Deno.serve(async (req: Request) => {
 
         const isSpanish = tenant === 'spain';
         const isPortuguese = tenant === 'portugal';
+        const isFrench = tenant === 'france';
         const propertyAddress = assessment.property_address || `${assessment.town || ''}, ${assessment.county || ''}`;
 
         const emailHtml = generateQuotesSummaryEmail(
@@ -189,7 +193,9 @@ Deno.serve(async (req: Request) => {
                 ? `Tus ${quotes.length} presupuestos para ${propertyAddress}`
                 : isPortuguese
                     ? `Os seus ${quotes.length} orçamentos para ${propertyAddress}`
-                    : `Your ${quotes.length} BER quotes for ${propertyAddress}`;
+                    : isFrench
+                        ? `Vos ${quotes.length} devis pour ${propertyAddress}`
+                        : `Your ${quotes.length} BER quotes for ${propertyAddress}`;
 
             await client.send(smtpFrom, assessment.contact_email, subject, emailHtml);
             await client.close();

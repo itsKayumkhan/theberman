@@ -69,6 +69,7 @@ Deno.serve(async (req: Request) => {
 
             const isSpanish = tenant === 'spain';
             const isPortuguese = tenant === 'portugal';
+            const isFrench = tenant === 'france';
 
             // Generate Email HTML
             const emailHtml = generateStatusEmail(
@@ -82,8 +83,8 @@ Deno.serve(async (req: Request) => {
             );
 
             const isEngland = tenant === 'england';
-            const certificateName = isSpanish ? 'Certificación Energética' : (isPortuguese ? 'Certificado Energético' : (isEngland ? 'EPC' : 'BER'));
-            const inspectionName = isSpanish ? 'Visita' : (isPortuguese ? 'Visita' : (isEngland ? 'Assessment' : 'Inspection'));
+            const certificateName = isSpanish ? 'Certificación Energética' : (isPortuguese ? 'Certificado Energético' : (isEngland ? 'EPC' : (isFrench ? 'DPE' : 'BER')));
+            const inspectionName = isSpanish ? 'Visita' : (isPortuguese ? 'Visita' : (isEngland ? 'Assessment' : (isFrench ? 'Visite' : 'Inspection')));
             const subjectMap = isSpanish ? {
                 'scheduled': `Tu ${inspectionName} de ${certificateName} está Programada`,
                 'rescheduled': `La Fecha de tu ${inspectionName} de ${certificateName} ha Cambiado`,
@@ -92,6 +93,10 @@ Deno.serve(async (req: Request) => {
                 'scheduled': `A sua ${inspectionName} de ${certificateName} está Agendada`,
                 'rescheduled': `A Data da sua ${inspectionName} de ${certificateName} foi Alterada`,
                 'completed': 'O seu Certificado Energético está Pronto'
+            } : isFrench ? {
+                'scheduled': `Votre ${inspectionName} ${certificateName} est Programmée`,
+                'rescheduled': `La Date de votre ${inspectionName} ${certificateName} a Changé`,
+                'completed': `Votre ${certificateName} est Prêt`
             } : {
                 'scheduled': `Your ${certificateName} ${inspectionName} is Scheduled`,
                 'rescheduled': `Your ${certificateName} ${inspectionName} Date has Changed`,
@@ -99,7 +104,7 @@ Deno.serve(async (req: Request) => {
             };
 
             // Send Email
-            await client.send(smtpFrom, assessment.contact_email, subjectMap[status] || (isSpanish ? 'Actualización de tu Certificado Energético' : isPortuguese ? `Atualização do seu ${certificateName}` : `Update on your ${certificateName} Assessment`), emailHtml);
+            await client.send(smtpFrom, assessment.contact_email, subjectMap[status] || (isSpanish ? 'Actualización de tu Certificado Energético' : isPortuguese ? `Atualização do seu ${certificateName}` : isFrench ? `Mise à jour de votre ${certificateName}` : `Update on your ${certificateName} Assessment`), emailHtml);
 
             // SMS to homeowner
             const displayDomain = websiteUrl.replace('https://', '');
@@ -111,12 +116,16 @@ Deno.serve(async (req: Request) => {
                 'scheduled': `Olá ${assessment.contact_name}, a sua visita de certificado energético em ${assessment.town || assessment.county} foi agendada${details?.date ? ' para ' + details.date : ''}. Verifique o seu email para mais detalhes. - ${displayDomain}`,
                 'rescheduled': `Olá ${assessment.contact_name}, a data da sua visita de certificado energético foi alterada${details?.date ? ' para ' + details.date : ''}. Verifique o seu email para detalhes atualizados. - ${displayDomain}`,
                 'completed': `Olá ${assessment.contact_name}, o seu certificado energético está pronto! Inicie sessão em ${displayDomain} para ver os resultados.`,
+            } : isFrench ? {
+                'scheduled': `Bonjour ${assessment.contact_name}, votre visite DPE à ${assessment.town || assessment.county} a été programmée${details?.date ? ' pour le ' + details.date : ''}. Vérifiez votre e-mail pour plus de détails. - ${displayDomain}`,
+                'rescheduled': `Bonjour ${assessment.contact_name}, la date de votre visite DPE a été modifiée${details?.date ? ' au ' + details.date : ''}. Vérifiez votre e-mail pour les détails mis à jour. - ${displayDomain}`,
+                'completed': `Bonjour ${assessment.contact_name}, votre DPE est prêt ! Connectez-vous sur ${displayDomain} pour voir les résultats.`,
             } : {
                 'scheduled': `Hi ${assessment.contact_name}, your ${certificateName} ${inspectionName.toLowerCase()} in ${assessment.town || assessment.county} has been scheduled${details?.date ? ' for ' + details.date : ''}. Check your email for details. - ${displayDomain}`,
                 'rescheduled': `Hi ${assessment.contact_name}, your ${certificateName} ${inspectionName.toLowerCase()} date has changed${details?.date ? ' to ' + details.date : ''}. Check your email for updated details. - ${displayDomain}`,
                 'completed': `Hi ${assessment.contact_name}, your ${certificateName} assessment is complete! Log in to ${displayDomain} to view your results.`,
             };
-            await trySendSms(assessment.contact_phone, smsMessages[status] || (isSpanish ? `Hola ${assessment.contact_name}, hay una actualización sobre tu certificado energético. Consulta ${displayDomain} para más detalles.` : isPortuguese ? `Olá ${assessment.contact_name}, há uma atualização sobre o seu certificado energético. Consulte ${displayDomain} para mais detalhes.` : `Hi ${assessment.contact_name}, there's an update on your ${certificateName} assessment. Check ${displayDomain} for details.`), config.phone_country_code, config.twilio_account_sid, config.twilio_auth_token, config.twilio_messaging_service_sid);
+            await trySendSms(assessment.contact_phone, smsMessages[status] || (isSpanish ? `Hola ${assessment.contact_name}, hay una actualización sobre tu certificado energético. Consulta ${displayDomain} para más detalles.` : isPortuguese ? `Olá ${assessment.contact_name}, há uma atualização sobre o seu certificado energético. Consulte ${displayDomain} para mais detalhes.` : isFrench ? `Bonjour ${assessment.contact_name}, une mise à jour concernant votre DPE est disponible. Consultez ${displayDomain} pour plus de détails.` : `Hi ${assessment.contact_name}, there's an update on your ${certificateName} assessment. Check ${displayDomain} for details.`), config.phone_country_code, config.twilio_account_sid, config.twilio_auth_token, config.twilio_messaging_service_sid);
 
             await client.close();
             console.log(`[send-job-status-notification] SUCCESS: Notification (${status}) sent to ${assessment.contact_email} (tenant: ${tenant})`);

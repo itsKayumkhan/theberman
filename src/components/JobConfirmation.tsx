@@ -15,14 +15,16 @@ const JobConfirmation = ({ customerName, county, email, emailError, hideNavigati
     const tenant = getTenantFromDomain();
     const isEngland = tenant === 'england';
     const isSpanish = tenant === 'spain';
-    const brandDomain = isEngland ? 'epccert.com' : isSpanish ? 'certificadoenergético.eu' : 'theberman.eu';
-    const ratingName = isEngland ? 'EPC' : isSpanish ? 'CEE' : 'BER';
-    const country = isEngland ? 'England' : isSpanish ? 'Spain' : 'Ireland';
-    const countryLocalized = isEngland ? 'England' : isSpanish ? 'España' : 'Ireland';
+    const isFrench = tenant === 'france';
+    const isPortuguese = tenant === 'portugal';
+    const brandDomain = isEngland ? 'epccert.com' : isSpanish ? 'certificadoenergético.eu' : isFrench ? 'dpecert.fr' : isPortuguese ? 'certificadoenergia.com' : 'theberman.eu';
+    const ratingName = isEngland ? 'EPC' : isSpanish ? 'CEE' : isFrench ? 'DPE' : isPortuguese ? 'CE' : 'BER';
+    const country = isEngland ? 'England' : isSpanish ? 'Spain' : isFrench ? 'France' : isPortuguese ? 'Portugal' : 'Ireland';
+    const countryLocalized = isEngland ? 'England' : isSpanish ? 'España' : isFrench ? 'France' : isPortuguese ? 'Portugal' : 'Ireland';
     const isSolar = jobType === 'Solar';
-    const professionalTitle = isSolar ? 'Solar Installers' : (isEngland ? 'EPC Assessors' : (isSpanish ? 'Certificadores' : 'BER Assessors'));
-    const professionalSingular = isSolar ? 'Installer' : (isEngland ? 'EPC Assessor' : (isSpanish ? 'Certificador' : 'Assessor'));
-    const jobTitle = isSolar ? 'Solar quote request' : `${ratingName} assessment request`;
+    const professionalTitle = isSolar ? (isSpanish ? 'Instaladores Solares' : isFrench ? 'Installateurs Solaires' : isPortuguese ? 'Instaladores Solares' : 'Solar Installers') : (isEngland ? 'EPC Assessors' : (isSpanish ? 'Certificadores' : isFrench ? 'Diagnostiqueurs' : isPortuguese ? 'Peritos' : 'BER Assessors'));
+    const professionalSingular = isSolar ? (isSpanish ? 'Instalador' : isFrench ? 'Installateur' : isPortuguese ? 'Instalador' : 'Installer') : (isEngland ? 'EPC Assessor' : (isSpanish ? 'Certificador' : isFrench ? 'Diagnostiqueur' : isPortuguese ? 'Perito' : 'Assessor'));
+    const jobTitle = isSolar ? (isSpanish ? 'Solicitud de presupuesto solar' : isFrench ? 'Demande de devis solaire' : isPortuguese ? 'Pedido de orçamento solar' : 'Solar quote request') : (isSpanish ? `Solicitud de ${ratingName}` : isFrench ? `Demande de ${ratingName}` : isPortuguese ? `Pedido de ${ratingName}` : `${ratingName} assessment request`);
 
     return (
         <div className="space-y-8 text-center">
@@ -36,10 +38,10 @@ const JobConfirmation = ({ customerName, county, email, emailError, hideNavigati
             {/* Main Heading */}
             <div>
                 <h1 className="text-4xl md:text-5xl font-light text-gray-800 mb-4">
-                    {isSpanish ? '¡Tu Trabajo está Publicado!' : 'Your Job is Live!'}
+                    {isSpanish ? '¡Tu Trabajo está Publicado!' : isFrench ? 'Votre Mission est en Ligne !' : isPortuguese ? 'O seu Trabalho está Publicado!' : 'Your Job is Live!'}
                 </h1>
                 <p className="text-xl text-gray-600 max-w-lg mx-auto">
-                    {isSpanish ? `Hola ${customerName}, tu ${jobTitle} ya está publicado en ${brandDomain}` : `Hi ${customerName}, your ${jobTitle} is now live on ${brandDomain}`}
+                    {isSpanish ? `Hola ${customerName}, tu ${jobTitle} ya está publicado en ${brandDomain}` : isFrench ? `Bonjour ${customerName}, votre ${jobTitle} est maintenant en ligne sur ${brandDomain}` : isPortuguese ? `Olá ${customerName}, o seu ${jobTitle} está agora publicado em ${brandDomain}` : `Hi ${customerName}, your ${jobTitle} is now live on ${brandDomain}`}
                 </p>
             </div>
 
@@ -50,9 +52,9 @@ const JobConfirmation = ({ customerName, county, email, emailError, hideNavigati
                         <AlertCircle size={20} className="text-amber-600" />
                     </div>
                     <div>
-                        <h4 className="font-semibold text-amber-800">{isSpanish ? 'Notificación por Correo Pendiente' : 'Email Notification Pending'}</h4>
+                        <h4 className="font-semibold text-amber-800">{isSpanish ? 'Notificación por Correo Pendiente' : isFrench ? 'Notification par Email en Attente' : isPortuguese ? 'Notificação por Email Pendente' : 'Email Notification Pending'}</h4>
                         <p className="text-amber-700 text-sm">
-                            {isSpanish ? `No hemos podido enviar el correo de confirmación ahora: ${emailError}. No te preocupes, tu trabajo está activo y los ${professionalTitle.toLowerCase()} aún pueden verlo.` : `We couldn't send the confirmation email right now: ${emailError}. Don't worry, your job is active and ${professionalTitle.toLowerCase()} can still see it.`}
+                            {isSpanish ? `No hemos podido enviar el correo de confirmación ahora: ${emailError}. No te preocupes, tu trabajo está activo y los ${professionalTitle.toLowerCase()} aún pueden verlo.` : isFrench ? `Nous n'avons pas pu envoyer l'email de confirmation : ${emailError}. Ne vous inquiétez pas, votre mission est active et les ${professionalTitle.toLowerCase()} peuvent toujours la voir.` : isPortuguese ? `Não conseguimos enviar o email de confirmação: ${emailError}. Não se preocupe, o seu trabalho está ativo e os ${professionalTitle.toLowerCase()} ainda podem vê-lo.` : `We couldn't send the confirmation email right now: ${emailError}. Don't worry, your job is active and ${professionalTitle.toLowerCase()} can still see it.`}
                         </p>
                     </div>
                 </div>
@@ -65,9 +67,9 @@ const JobConfirmation = ({ customerName, county, email, emailError, hideNavigati
                     <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
                         <Mail size={24} className="text-blue-600" />
                     </div>
-                    <h3 className="font-semibold text-gray-800 mb-2">{isSolar ? (isSpanish ? 'Instaladores Notificados' : 'Installers Notified') : (isSpanish ? 'Certificadores Notificados' : 'Assessors Notified')}</h3>
+                    <h3 className="font-semibold text-gray-800 mb-2">{isSolar ? (isSpanish ? 'Instaladores Notificados' : isFrench ? 'Installateurs Notifiés' : isPortuguese ? 'Instaladores Notificados' : 'Installers Notified') : (isSpanish ? 'Certificadores Notificados' : isFrench ? 'Diagnostiqueurs Notifiés' : isPortuguese ? 'Peritos Notificados' : 'Assessors Notified')}</h3>
                     <p className="text-gray-500 text-sm">
-                        {isSpanish ? `Hemos notificado a todos los ${professionalTitle} registrados en ${county}` : `We've notified all registered ${professionalTitle} in ${county}`}
+                        {isSpanish ? `Hemos notificado a todos los ${professionalTitle} registrados en ${county}` : isFrench ? `Nous avons notifié tous les ${professionalTitle} inscrits dans ${county}` : isPortuguese ? `Notificámos todos os ${professionalTitle} registados em ${county}` : `We've notified all registered ${professionalTitle} in ${county}`}
                     </p>
                 </div>
 
@@ -76,9 +78,9 @@ const JobConfirmation = ({ customerName, county, email, emailError, hideNavigati
                     <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
                         <Clock size={24} className="text-green-600" />
                     </div>
-                    <h3 className="font-semibold text-gray-800 mb-2">{isSpanish ? 'Presupuestos en Camino' : 'Quotes Incoming'}</h3>
+                    <h3 className="font-semibold text-gray-800 mb-2">{isSpanish ? 'Presupuestos en Camino' : isFrench ? 'Devis à Venir' : isPortuguese ? 'Orçamentos a Chegar' : 'Quotes Incoming'}</h3>
                     <p className="text-gray-500 text-sm">
-                        {isSpanish ? `Los ${professionalTitle} ya pueden enviar presupuestos. Te avisaremos por correo cuando lleguen.` : `${professionalTitle} can now submit quotes. We'll email you when quotes arrive.`}
+                        {isSpanish ? `Los ${professionalTitle} ya pueden enviar presupuestos. Te avisaremos por correo cuando lleguen.` : isFrench ? `Les ${professionalTitle} peuvent maintenant envoyer des devis. Nous vous informerons par email quand les devis arriveront.` : isPortuguese ? `Os ${professionalTitle} já podem enviar orçamentos. Avisá-lo-emos por email quando chegarem.` : `${professionalTitle} can now submit quotes. We'll email you when quotes arrive.`}
                     </p>
                 </div>
 
@@ -88,13 +90,13 @@ const JobConfirmation = ({ customerName, county, email, emailError, hideNavigati
                         <Mail size={24} className={emailError ? 'text-amber-600' : 'text-purple-600'} />
                     </div>
                     <h3 className="font-semibold text-gray-800 mb-2">
-                        {emailError ? (isSpanish ? 'Problemas con el Correo' : 'Email Issues') : (isSpanish ? 'Revisa tu Correo' : 'Check Your Email')}
+                        {emailError ? (isSpanish ? 'Problemas con el Correo' : isFrench ? 'Problèmes d\'Email' : isPortuguese ? 'Problemas com o Email' : 'Email Issues') : (isSpanish ? 'Revisa tu Correo' : isFrench ? 'Vérifiez vos Emails' : isPortuguese ? 'Verifique o seu Email' : 'Check Your Email')}
                     </h3>
                     <p className="text-gray-500 text-sm">
                         {emailError ? (
-                            isSpanish ? `No se pudo enviar a ${email}` : `Failed to send to ${email}`
+                            isSpanish ? `No se pudo enviar a ${email}` : isFrench ? `Échec d\'envoi à ${email}` : isPortuguese ? `Falha ao enviar para ${email}` : `Failed to send to ${email}`
                         ) : (
-                            <>{isSpanish ? 'Confirmación enviada a' : 'Confirmation sent to'} <span className="font-semibold text-gray-700">{email}</span></>
+                            <>{isSpanish ? 'Confirmación enviada a' : isFrench ? 'Confirmation envoyée à' : isPortuguese ? 'Confirmação enviada para' : 'Confirmation sent to'} <span className="font-semibold text-gray-700">{email}</span></>
                         )}
                     </p>
                 </div>
@@ -102,19 +104,19 @@ const JobConfirmation = ({ customerName, county, email, emailError, hideNavigati
 
             {/* What Happens Next */}
             <div className="bg-green-50 rounded-xl p-8 max-w-2xl mx-auto">
-                <h3 className="font-semibold text-green-800 text-lg mb-4">{isSpanish ? '¿Qué Sigue?' : 'What Happens Next?'}</h3>
+                <h3 className="font-semibold text-green-800 text-lg mb-4">{isSpanish ? '¿Qué Sigue?' : isFrench ? 'Qu\'est-ce qui se Passe Ensuite ?' : isPortuguese ? 'O que se Segue?' : 'What Happens Next?'}</h3>
                 <ol className="text-left text-green-700 space-y-3">
                     <li className="flex gap-3">
                         <span className="flex-shrink-0 w-6 h-6 rounded-full bg-green-200 text-green-800 flex items-center justify-center text-sm font-bold">1</span>
-                        <span>{isSpanish ? `Los ${professionalTitle} de tu zona revisarán tu trabajo y enviarán presupuestos` : `${professionalTitle} in your area will review your job and submit quotes`}</span>
+                        <span>{isSpanish ? `Los ${professionalTitle} de tu zona revisarán tu trabajo y enviarán presupuestos` : isFrench ? `Les ${professionalTitle} de votre région examinereront votre mission et enverront des devis` : isPortuguese ? `Os ${professionalTitle} da sua zona vão rever o seu trabalho e enviar orçamentos` : `${professionalTitle} in your area will review your job and submit quotes`}</span>
                     </li>
                     <li className="flex gap-3">
                         <span className="flex-shrink-0 w-6 h-6 rounded-full bg-green-200 text-green-800 flex items-center justify-center text-sm font-bold">2</span>
-                        <span>{isSpanish ? 'Recibirás un correo cuando llegue cada presupuesto' : 'You\'ll receive an email when each quote arrives'}</span>
+                        <span>{isSpanish ? 'Recibirás un correo cuando llegue cada presupuesto' : isFrench ? 'Vous recevrez un email à chaque devis reçu' : isPortuguese ? 'Receberá um email quando cada orçamento chegar' : 'You\'ll receive an email when each quote arrives'}</span>
                     </li>
                     <li className="flex gap-3">
                         <span className="flex-shrink-0 w-6 h-6 rounded-full bg-green-200 text-green-800 flex items-center justify-center text-sm font-bold">3</span>
-                        <span>{isSpanish ? `Compara los presupuestos y elige el mejor ${professionalSingular.toLowerCase()} para ti en 5 días. Pasados 5 días, el trabajo caducará.` : `Compare quotes and choose the best ${professionalSingular.toLowerCase()} for you within 5 days. After 5 days, the job will expire.`}</span>
+                        <span>{isSpanish ? `Compara los presupuestos y elige el mejor ${professionalSingular.toLowerCase()} para ti en 5 días. Pasados 5 días, el trabajo caducará.` : isFrench ? `Comparez les devis et choisissez le meilleur ${professionalSingular.toLowerCase()} pour vous sous 5 jours. Passé ce délai, la mission expirera.` : isPortuguese ? `Compare os orçamentos e escolha o melhor ${professionalSingular.toLowerCase()} para si em 5 dias. Após 5 dias, o trabalho expirará.` : `Compare quotes and choose the best ${professionalSingular.toLowerCase()} for you within 5 days. After 5 days, the job will expire.`}</span>
                     </li>
                 </ol>
             </div>
@@ -126,14 +128,14 @@ const JobConfirmation = ({ customerName, county, email, emailError, hideNavigati
                         <Link to="/dashboard/user">
                             <button className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold px-8 py-4 rounded-lg transition-all shadow-lg hover:shadow-xl">
                                 <Home size={20} />
-                                {isSpanish ? 'Volver al Panel' : 'Return to Dashboard'}
+                                {isSpanish ? 'Volver al Panel' : isFrench ? 'Retour au Tableau de Bord' : isPortuguese ? 'Voltar ao Painel' : 'Return to Dashboard'}
                             </button>
                         </Link>
                     </div>
 
                     {/* Footer Note */}
                     <p className="text-gray-400 text-sm">
-                        {isSpanish ? `Gracias por usar ${brandDomain} — el mayor portal de ${ratingName} de ${countryLocalized}` : `Thanks for using ${brandDomain} — ${country}'s largest ${ratingName} website`}
+                        {isSpanish ? `Gracias por usar ${brandDomain} — el mayor portal de ${ratingName} de ${countryLocalized}` : isFrench ? `Merci d\'utiliser ${brandDomain} — le plus grand portail ${ratingName} de ${countryLocalized}` : isPortuguese ? `Obrigado por usar ${brandDomain} — o maior portal de ${ratingName} de ${countryLocalized}` : `Thanks for using ${brandDomain} — ${country}'s largest ${ratingName} website`}
                     </p>
                 </>
             )}

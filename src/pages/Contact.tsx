@@ -15,14 +15,14 @@ import { getTenantFromDomain, getTenantEmail, getTenantDomain } from '../lib/ten
 import { getPhonePlaceholder } from '../lib/phoneFormats';
 import { usePageContent, cmsValue } from '../hooks/usePageContent';
 
-const getContactSchema = (isSpanish: boolean, isPortuguese: boolean) => z.object({
-    name: z.string().min(2, isSpanish ? 'El nombre debe tener al menos 2 caracteres' : isPortuguese ? 'O nome deve ter pelo menos 2 caracteres' : 'Name must be at least 2 characters'),
-    email: z.string().email(isSpanish ? 'Por favor, introduce una dirección de correo válida' : isPortuguese ? 'Por favor, introduza um email válido' : 'Please enter a valid email address'),
-    phone: z.string().regex(/^\+?[0-9\s-]{9,15}$/, isSpanish ? 'Por favor, introduce un número de teléfono válido' : isPortuguese ? 'Por favor, introduza um número de telefone válido' : 'Please enter a valid phone number'),
-    county: z.string().min(1, isSpanish ? 'Por favor, selecciona una comunidad autónoma' : isPortuguese ? 'Por favor, selecione uma região' : 'Please select a county'),
-    town: z.string().min(2, isSpanish ? 'La ciudad es obligatoria' : isPortuguese ? 'A cidade é obrigatória' : 'Town/City is required'),
-    property_type: z.string().min(1, isSpanish ? 'Por favor, selecciona un tipo de propiedad' : isPortuguese ? 'Por favor, selecione um tipo de imóvel' : 'Please select a property type'),
-    purpose: z.string().min(1, isSpanish ? 'Por favor, selecciona un propósito' : isPortuguese ? 'Por favor, selecione uma finalidade' : 'Please select a purpose'),
+const getContactSchema = (isSpanish: boolean, isPortuguese: boolean, isFrench: boolean) => z.object({
+    name: z.string().min(2, isSpanish ? 'El nombre debe tener al menos 2 caracteres' : isPortuguese ? 'O nome deve ter pelo menos 2 caracteres' : isFrench ? 'Le nom doit comporter au moins 2 caractères' : 'Name must be at least 2 characters'),
+    email: z.string().email(isSpanish ? 'Por favor, introduce una dirección de correo válida' : isPortuguese ? 'Por favor, introduza um email válido' : isFrench ? 'Veuillez saisir une adresse e-mail valide' : 'Please enter a valid email address'),
+    phone: z.string().regex(/^\+?[0-9\s-]{9,15}$/, isSpanish ? 'Por favor, introduce un número de teléfono válido' : isPortuguese ? 'Por favor, introduza um número de telefone válido' : isFrench ? 'Veuillez saisir un numéro de téléphone valide' : 'Please enter a valid phone number'),
+    county: z.string().min(1, isSpanish ? 'Por favor, selecciona una comunidad autónoma' : isPortuguese ? 'Por favor, selecione uma região' : isFrench ? 'Veuillez sélectionner une région' : 'Please select a county'),
+    town: z.string().min(2, isSpanish ? 'La ciudad es obligatoria' : isPortuguese ? 'A cidade é obrigatória' : isFrench ? 'La ville est obligatoire' : 'Town/City is required'),
+    property_type: z.string().min(1, isSpanish ? 'Por favor, selecciona un tipo de propiedad' : isPortuguese ? 'Por favor, selecione um tipo de imóvel' : isFrench ? 'Veuillez sélectionner un type de bien' : 'Please select a property type'),
+    purpose: z.string().min(1, isSpanish ? 'Por favor, selecciona un propósito' : isPortuguese ? 'Por favor, selecione uma finalidade' : isFrench ? 'Veuillez sélectionner un objectif' : 'Please select a purpose'),
     preferred_date: z.string().optional(),
     preferred_time: z.string().optional(),
     property_size: z.string().optional(),
@@ -30,7 +30,7 @@ const getContactSchema = (isSpanish: boolean, isPortuguese: boolean) => z.object
     additional_features: z.string().optional(),
     heat_pump: z.string().optional(),
     eircode: z.string().optional(),
-    message: z.string().min(10, isSpanish ? 'El mensaje es demasiado corto (mínimo 10 caracteres)' : isPortuguese ? 'A mensagem é demasiado curta (mínimo 10 caracteres)' : 'Message is too short (min 10 chars)'),
+    message: z.string().min(10, isSpanish ? 'El mensaje es demasiado corto (mínimo 10 caracteres)' : isPortuguese ? 'A mensagem é demasiado curta (mínimo 10 caracteres)' : isFrench ? 'Le message est trop court (minimum 10 caractères)' : 'Message is too short (min 10 chars)'),
     bot_check: z.string().optional(), // Honeypot field
 });
 
@@ -42,6 +42,7 @@ const Contact = () => {
     const isSpanish = tenant === 'spain';
     const isEngland = tenant === 'england';
     const isPortuguese = tenant === 'portugal';
+    const isFrench = tenant === 'france';
 
     const {
         register,
@@ -51,7 +52,7 @@ const Contact = () => {
         setValue,
         formState: { errors, isSubmitting },
     } = useForm<ContactFormData>({
-        resolver: zodResolver(getContactSchema(isSpanish, isPortuguese)),
+        resolver: zodResolver(getContactSchema(isSpanish, isPortuguese, isFrench)),
     });
     const selectedCounty = watch('county');
     const townsByCounty = getTownsForTenant(tenant);
@@ -60,75 +61,79 @@ const Contact = () => {
     const { content: cms, loading: cmsLoading } = usePageContent('contact');
     const c = (section: string, key: string, fallback: string) => cmsValue(cms, section, key, fallback);
     const tr = {
-        seoTitle: isSpanish ? 'Contacto' : isEngland ? 'Book EPC Assessment England | Contact EPC Cert' : isPortuguese ? 'Contacto | Certificado Energia Portugal' : 'Book a BER Assessment in Ireland | Contact The BER Man',
+        seoTitle: isSpanish ? 'Contacto' : isEngland ? 'Book EPC Assessment England | Contact EPC Cert' : isPortuguese ? 'Contacto | Certificado Energia Portugal' : isFrench ? 'Contact | DPE Cert France' : 'Book a BER Assessment in Ireland | Contact The BER Man',
         seoDesc: isSpanish
             ? 'Contacta con Certificado Energético para tus certificados energéticos, calificaciones y mejoras en toda España.'
             : isEngland
                 ? 'Book an EPC assessment in England with accredited assessors. Contact EPC Cert to compare quotes and arrange your EPC today'
                 : isPortuguese
                     ? 'Contacte a Certificado Energia para certificação energética em Portugal. Peritos qualificados e orçamentos competitivos.'
-                    : 'Book a BER Assessment in Ireland or Contact the BER Man for Support. Connect with Qualified BER Assessors and Get Assistance with Your Enquiry',
-        badge: isSpanish ? 'Ponte en Contacto' : isPortuguese ? 'Contacto' : 'Get In Touch',
-        title1: isSpanish ? '¿En qué podemos' : isEngland ? 'Book an EPC Assessment' : isPortuguese ? 'Como podemos' : 'Book a BER',
-        title2: isSpanish ? 'ayudarte?' : isEngland ? 'in England' : isPortuguese ? 'ajudar?' : 'Assessment in Ireland',
+                    : isFrench
+                        ? 'Contactez DPE Cert France pour vos diagnostics de performance énergétique. Diagnostiqueurs qualifiés et devis compétitifs.'
+                        : 'Book a BER Assessment in Ireland or Contact the BER Man for Support. Connect with Qualified BER Assessors and Get Assistance with Your Enquiry',
+        badge: isSpanish ? 'Ponte en Contacto' : isPortuguese ? 'Contacto' : isFrench ? 'Contactez-nous' : 'Get In Touch',
+        title1: isSpanish ? '¿En qué podemos' : isEngland ? 'Book an EPC Assessment' : isPortuguese ? 'Como podemos' : isFrench ? 'Planifier un' : 'Book a BER',
+        title2: isSpanish ? 'ayudarte?' : isEngland ? 'in England' : isPortuguese ? 'ajudar?' : isFrench ? 'Diagnostic DPE' : 'Assessment in Ireland',
         subtitle: isSpanish
             ? '¿Tienes alguna pregunta sobre certificaciones energéticas? Nuestro equipo está aquí para ayudarte.'
             : isEngland
                 ? 'Compare quotes from accredited EPC assessors across England and arrange your EPC assessment with confidence.'
                 : isPortuguese
                     ? 'Tem alguma dúvida sobre certificados energéticos? A nossa equipa está aqui para o ajudar.'
-                    : 'Contact The BER Man to book a BER assessment, connect with qualified BER assessors, or get support with your enquiry.',
-        trustStrip: isEngland ? '' : isPortuguese ? '1.000+ Avaliações Concluídas • 100+ Peritos Qualificados • Cobertura Nacional' : '1,000+ Assessments Completed • 100+ Qualified Assessors • Nationwide Coverage',
-        ourDetails: isSpanish ? 'Nuestros Datos' : isEngland ? 'Our details' : isPortuguese ? 'Os Nossos Detalhes' : 'Contact Information',
-        emailUs: isSpanish ? 'Escríbenos' : isPortuguese ? 'Email' : 'Email Us',
-        website: isSpanish ? 'Sitio Web' : isPortuguese ? 'Website' : 'Website',
-        sendDetailed: isSpanish ? 'Envíanos un mensaje detallado' : isEngland ? 'Request an EPC Assessment' : isPortuguese ? 'Pedir uma Avaliação Energética' : 'Request a BER Assessment',
-        fullName: isSpanish ? 'Nombre Completo' : isPortuguese ? 'Nome Completo' : 'Full Name',
-        fullNamePlaceholder: isSpanish ? 'Nombre completo' : isPortuguese ? 'Nome completo' : 'Full name',
-        phoneNumber: isSpanish ? 'Número de Teléfono' : isPortuguese ? 'Telefone' : 'Phone Number',
+                    : isFrench
+                        ? 'Une question sur les diagnostics de performance énergétique ? Notre équipe est là pour vous aider.'
+                        : 'Contact The BER Man to book a BER assessment, connect with qualified BER assessors, or get support with your enquiry.',
+        trustStrip: isEngland ? '' : isPortuguese ? '1.000+ Avaliações Concluídas • 100+ Peritos Qualificados • Cobertura Nacional' : isFrench ? '1 000+ Diagnostics Réalisés • 100+ Diagnostiqueurs Qualifiés • Couverture Nationale' : '1,000+ Assessments Completed • 100+ Qualified Assessors • Nationwide Coverage',
+        ourDetails: isSpanish ? 'Nuestros Datos' : isEngland ? 'Our details' : isPortuguese ? 'Os Nossos Detalhes' : isFrench ? 'Nos Coordonnées' : 'Contact Information',
+        emailUs: isSpanish ? 'Escríbenos' : isPortuguese ? 'Email' : isFrench ? 'E-mail' : 'Email Us',
+        website: isSpanish ? 'Sitio Web' : isPortuguese ? 'Website' : isFrench ? 'Site Web' : 'Website',
+        sendDetailed: isSpanish ? 'Envíanos un mensaje detallado' : isEngland ? 'Request an EPC Assessment' : isPortuguese ? 'Pedir uma Avaliação Energética' : isFrench ? 'Demander un Diagnostic DPE' : 'Request a BER Assessment',
+        fullName: isSpanish ? 'Nombre Completo' : isPortuguese ? 'Nome Completo' : isFrench ? 'Nom Complet' : 'Full Name',
+        fullNamePlaceholder: isSpanish ? 'Nombre completo' : isPortuguese ? 'Nome completo' : isFrench ? 'Nom complet' : 'Full name',
+        phoneNumber: isSpanish ? 'Número de Teléfono' : isPortuguese ? 'Telefone' : isFrench ? 'Téléphone' : 'Phone Number',
         phonePlaceholder: isSpanish ? 'número de teléfono' : getPhonePlaceholder(tenant),
-        emailAddress: isSpanish ? 'Correo Electrónico' : isPortuguese ? 'Email' : 'Email Address',
-        emailPlaceholder: isSpanish ? 'correo electrónico' : isPortuguese ? 'email' : 'email',
-        county: isSpanish ? 'Comunidad Autónoma' : isPortuguese ? 'Região' : 'County',
-        selectCounty: isSpanish ? 'Seleccionar Comunidad Autónoma' : isPortuguese ? 'Selecionar Região' : 'Select County',
-        town: isSpanish ? 'Ciudad / Localidad' : isPortuguese ? 'Cidade / Localidade' : 'Town / City',
-        selectTown: isSpanish ? 'Seleccionar Ciudad' : isPortuguese ? 'Selecionar Cidade' : 'Select Town',
-        selectCountyFirst: isSpanish ? 'Selecciona Comunidad Autónoma Primero' : isPortuguese ? 'Selecione a Região Primeiro' : 'Select County First',
-        propertyType: isSpanish ? 'Tipo de Propiedad' : isPortuguese ? 'Tipo de Imóvel' : 'Property Type',
-        selectType: isSpanish ? 'Seleccionar Tipo' : isPortuguese ? 'Selecionar Tipo' : 'Select Type',
-        apartment: isSpanish ? 'Apartamento' : isPortuguese ? 'Apartamento' : 'Apartment',
-        midTerrace: isSpanish ? 'Casa Adosada (Interior)' : isPortuguese ? 'Moradia em Banda (Meio)' : 'Mid-Terrace',
-        endTerrace: isSpanish ? 'Casa Adosada (Esquina)' : isPortuguese ? 'Moradia em Banda (Extremo)' : 'End-Terrace',
-        semiDetached: isSpanish ? 'Casa Pareada' : isPortuguese ? 'Moradia Geminada' : 'Semi-Detached',
-        detached: isSpanish ? 'Casa Independiente' : isPortuguese ? 'Moradia Isolada' : 'Detached',
-        bungalow: isSpanish ? 'Chalet' : isPortuguese ? 'Bungalow' : 'Bungalow',
-        purposeLabel: isSpanish ? 'Propósito del Certificado' : isEngland ? 'Purpose of EPC' : isPortuguese ? 'Finalidade do Certificado' : 'Purpose of BER',
-        selectPurpose: isSpanish ? 'Seleccionar Propósito' : isPortuguese ? 'Selecionar Finalidade' : 'Select Purpose',
-        mortgage: isSpanish ? 'Hipoteca/Banco' : isPortuguese ? 'Crédito Habitação/Banco' : 'Mortgage/Bank',
-        selling: isSpanish ? 'Venta' : isPortuguese ? 'Venda' : 'Selling',
-        renting: isSpanish ? 'Alquiler' : isPortuguese ? 'Arrendamento' : 'Renting',
-        grant: isSpanish ? 'Subvención' : isPortuguese ? 'Subvenção' : 'Govt Grant',
-        other: isSpanish ? 'Otro' : isPortuguese ? 'Outro' : 'Other',
-        preferredDate: isSpanish ? 'Fecha Preferida' : isPortuguese ? 'Data Preferida' : 'Preferred Date',
-        preferredTime: isSpanish ? 'Hora Preferida' : isPortuguese ? 'Hora Preferida' : 'Preferred Time',
-        propertySize: isSpanish ? 'Tamaño de la Propiedad' : isPortuguese ? 'Tamanho do Imóvel' : 'Property Size',
-        bedrooms: isSpanish ? 'Número de Dormitorios' : isPortuguese ? 'N.º de Quartos' : 'Number of Bedrooms',
-        additionalFeatures: isSpanish ? 'Características Adicionales' : isPortuguese ? 'Características Adicionais' : 'Any Additional Features',
-        heatPump: isSpanish ? 'Bomba de Calor Instalada' : isPortuguese ? 'Bomba de Calor Instalada' : 'Heat Pump Installed',
-        eircodeLabel: isSpanish ? 'Código Postal' : isPortuguese ? 'Código Postal' : isEngland ? 'Postcode' : 'Eircode',
-        eircodePlaceholder: isSpanish ? '28001' : isPortuguese ? '1000-001' : isEngland ? 'SW1A 1AA' : 'A65 F123',
-        selectOption: isSpanish ? 'Seleccionar' : isPortuguese ? 'Selecionar' : 'Select...',
-        morning: isSpanish ? 'Mañana' : isPortuguese ? 'Manhã' : 'Morning',
-        afternoon: isSpanish ? 'Tarde' : isPortuguese ? 'Tarde' : 'Afternoon',
-        evening: isSpanish ? 'Noche' : isPortuguese ? 'Fim de Tarde' : 'Evening',
-        yes: isSpanish ? 'Sí' : isPortuguese ? 'Sim' : 'Yes',
-        no: isSpanish ? 'No' : isPortuguese ? 'Não' : 'No',
-        message: isSpanish ? 'Mensaje' : isEngland ? 'Message' : isPortuguese ? 'Mensagem' : 'Message',
-        messagePlaceholder: isSpanish ? 'Cuéntanos más sobre tu solicitud...' : isEngland ? 'Tell us about your property or EPC assessment requirements.' : isPortuguese ? 'Fale-nos sobre o seu imóvel ou necessidade de certificação energética.' : 'Tell us about your property or BER assessment requirements.',
-        sending: isSpanish ? 'Enviando...' : isEngland ? 'Sending...' : isPortuguese ? 'A enviar...' : 'Submitting...',
-        sendMessage: isSpanish ? 'Enviar Mensaje' : isEngland ? 'Submit Enquiry' : isPortuguese ? 'Enviar Mensagem' : 'Submit Enquiry',
-        toastSuccess: isSpanish ? '¡Mensaje enviado correctamente! Nos pondremos en contacto en breve.' : isPortuguese ? 'Mensagem enviada com sucesso! Entraremos em contacto em breve.' : 'Message sent successfully! We will be in touch shortly.',
-        toastError: isSpanish ? 'Error al enviar el mensaje. Por favor, inténtalo de nuevo.' : isPortuguese ? 'Erro ao enviar a mensagem. Por favor, tente novamente.' : 'Failed to send message. Please try again.',
+        emailAddress: isSpanish ? 'Correo Electrónico' : isPortuguese ? 'Email' : isFrench ? 'Adresse E-mail' : 'Email Address',
+        emailPlaceholder: isSpanish ? 'correo electrónico' : isPortuguese ? 'email' : isFrench ? 'e-mail' : 'email',
+        county: isSpanish ? 'Comunidad Autónoma' : isPortuguese ? 'Região' : isFrench ? 'Région' : 'County',
+        selectCounty: isSpanish ? 'Seleccionar Comunidad Autónoma' : isPortuguese ? 'Selecionar Região' : isFrench ? 'Sélectionner une Région' : 'Select County',
+        town: isSpanish ? 'Ciudad / Localidad' : isPortuguese ? 'Cidade / Localidade' : isFrench ? 'Ville / Localité' : 'Town / City',
+        selectTown: isSpanish ? 'Seleccionar Ciudad' : isPortuguese ? 'Selecionar Cidade' : isFrench ? 'Sélectionner une Ville' : 'Select Town',
+        selectCountyFirst: isSpanish ? 'Selecciona Comunidad Autónoma Primero' : isPortuguese ? 'Selecione a Região Primeiro' : isFrench ? 'Sélectionnez d\'abord une Région' : 'Select County First',
+        propertyType: isSpanish ? 'Tipo de Propiedad' : isPortuguese ? 'Tipo de Imóvel' : isFrench ? 'Type de Bien' : 'Property Type',
+        selectType: isSpanish ? 'Seleccionar Tipo' : isPortuguese ? 'Selecionar Tipo' : isFrench ? 'Sélectionner un Type' : 'Select Type',
+        apartment: isSpanish ? 'Apartamento' : isPortuguese ? 'Apartamento' : isFrench ? 'Appartement' : 'Apartment',
+        midTerrace: isSpanish ? 'Casa Adosada (Interior)' : isPortuguese ? 'Moradia em Banda (Meio)' : isFrench ? 'Maison Mitoyenne (Centre)' : 'Mid-Terrace',
+        endTerrace: isSpanish ? 'Casa Adosada (Esquina)' : isPortuguese ? 'Moradia em Banda (Extremo)' : isFrench ? 'Maison Mitoyenne (Extrémité)' : 'End-Terrace',
+        semiDetached: isSpanish ? 'Casa Pareada' : isPortuguese ? 'Moradia Geminada' : isFrench ? 'Maison Jumelée' : 'Semi-Detached',
+        detached: isSpanish ? 'Casa Independiente' : isPortuguese ? 'Moradia Isolada' : isFrench ? 'Maison Individuelle' : 'Detached',
+        bungalow: isSpanish ? 'Chalet' : isPortuguese ? 'Bungalow' : isFrench ? 'Bungalow' : 'Bungalow',
+        purposeLabel: isSpanish ? 'Propósito del Certificado' : isEngland ? 'Purpose of EPC' : isPortuguese ? 'Finalidade do Certificado' : isFrench ? 'Objetif du Diagnostic' : 'Purpose of BER',
+        selectPurpose: isSpanish ? 'Seleccionar Propósito' : isPortuguese ? 'Selecionar Finalidade' : isFrench ? 'Sélectionner un Objectif' : 'Select Purpose',
+        mortgage: isSpanish ? 'Hipoteca/Banco' : isPortuguese ? 'Crédito Habitação/Banco' : isFrench ? 'Hypothèque/Banque' : 'Mortgage/Bank',
+        selling: isSpanish ? 'Venta' : isPortuguese ? 'Venda' : isFrench ? 'Vente' : 'Selling',
+        renting: isSpanish ? 'Alquiler' : isPortuguese ? 'Arrendamento' : isFrench ? 'Location' : 'Renting',
+        grant: isSpanish ? 'Subvención' : isPortuguese ? 'Subvenção' : isFrench ? 'Aide Publique' : 'Govt Grant',
+        other: isSpanish ? 'Otro' : isPortuguese ? 'Outro' : isFrench ? 'Autre' : 'Other',
+        preferredDate: isSpanish ? 'Fecha Preferida' : isPortuguese ? 'Data Preferida' : isFrench ? 'Date Souhaitée' : 'Preferred Date',
+        preferredTime: isSpanish ? 'Hora Preferida' : isPortuguese ? 'Hora Preferida' : isFrench ? 'Heure Souhaitée' : 'Preferred Time',
+        propertySize: isSpanish ? 'Tamaño de la Propiedad' : isPortuguese ? 'Tamanho do Imóvel' : isFrench ? 'Surface du Bien' : 'Property Size',
+        bedrooms: isSpanish ? 'Número de Dormitorios' : isPortuguese ? 'N.º de Quartos' : isFrench ? 'Nombre de Chambres' : 'Number of Bedrooms',
+        additionalFeatures: isSpanish ? 'Características Adicionales' : isPortuguese ? 'Características Adicionais' : isFrench ? 'Caractéristiques Supplémentaires' : 'Any Additional Features',
+        heatPump: isSpanish ? 'Bomba de Calor Instalada' : isPortuguese ? 'Bomba de Calor Instalada' : isFrench ? 'Pompe à Chaleur Installée' : 'Heat Pump Installed',
+        eircodeLabel: isSpanish ? 'Código Postal' : isPortuguese ? 'Código Postal' : isEngland ? 'Postcode' : isFrench ? 'Code Postal' : 'Eircode',
+        eircodePlaceholder: isSpanish ? '28001' : isPortuguese ? '1000-001' : isEngland ? 'SW1A 1AA' : isFrench ? '75001' : 'A65 F123',
+        selectOption: isSpanish ? 'Seleccionar' : isPortuguese ? 'Selecionar' : isFrench ? 'Sélectionner...' : 'Select...',
+        morning: isSpanish ? 'Mañana' : isPortuguese ? 'Manhã' : isFrench ? 'Matin' : 'Morning',
+        afternoon: isSpanish ? 'Tarde' : isPortuguese ? 'Tarde' : isFrench ? 'Après-midi' : 'Afternoon',
+        evening: isSpanish ? 'Noche' : isPortuguese ? 'Fim de Tarde' : isFrench ? 'Soir' : 'Evening',
+        yes: isSpanish ? 'Sí' : isPortuguese ? 'Sim' : isFrench ? 'Oui' : 'Yes',
+        no: isSpanish ? 'No' : isPortuguese ? 'Não' : isFrench ? 'Non' : 'No',
+        message: isSpanish ? 'Mensaje' : isEngland ? 'Message' : isPortuguese ? 'Mensagem' : isFrench ? 'Message' : 'Message',
+        messagePlaceholder: isSpanish ? 'Cuéntanos más sobre tu solicitud...' : isEngland ? 'Tell us about your property or EPC assessment requirements.' : isPortuguese ? 'Fale-nos sobre o seu imóvel ou necessidade de certificação energética.' : isFrench ? 'Parlez-nous de votre bien ou de vos besoins en diagnostic de performance énergétique.' : 'Tell us about your property or BER assessment requirements.',
+        sending: isSpanish ? 'Enviando...' : isEngland ? 'Sending...' : isPortuguese ? 'A enviar...' : isFrench ? 'Envoi en cours...' : 'Submitting...',
+        sendMessage: isSpanish ? 'Enviar Mensaje' : isEngland ? 'Submit Enquiry' : isPortuguese ? 'Enviar Mensagem' : isFrench ? 'Envoyer la Demande' : 'Submit Enquiry',
+        toastSuccess: isSpanish ? '¡Mensaje enviado correctamente! Nos pondremos en contacto en breve.' : isPortuguese ? 'Mensagem enviada com sucesso! Entraremos em contacto em breve.' : isFrench ? 'Message envoyé avec succès ! Nous vous contacterons prochainement.' : 'Message sent successfully! We will be in touch shortly.',
+        toastError: isSpanish ? 'Error al enviar el mensaje. Por favor, inténtalo de nuevo.' : isPortuguese ? 'Erro ao enviar a mensagem. Por favor, tente novamente.' : isFrench ? 'Échec de l\'envoi du message. Veuillez réessayer.' : 'Failed to send message. Please try again.',
     };
 
     const onSubmit = async (data: ContactFormData) => {
@@ -428,7 +433,7 @@ const Contact = () => {
                                         label={tr.propertySize}
                                         register={register('property_size')}
                                         error={errors.property_size}
-                                        placeholder={isSpanish ? 'ej. 120 m²' : isPortuguese ? 'ex. 120 m²' : 'e.g. 120 sqm'}
+                                        placeholder={isSpanish ? 'ej. 120 m²' : isPortuguese ? 'ex. 120 m²' : isFrench ? 'ex. 120 m²' : 'e.g. 120 sqm'}
                                     />
                                     <div className="space-y-1">
                                         <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">{tr.bedrooms}</label>

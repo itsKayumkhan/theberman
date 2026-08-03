@@ -93,7 +93,8 @@ const BusinessDashboard = () => {
     const tenant = getTenantFromDomain();
     const isEngland = tenant === 'england';
     const isPortuguese = tenant === 'portugal';
-    const brandName = isEngland ? 'EPC Cert' : isSpanish ? 'Certificado Energético' : isPortuguese ? 'Certificado Energia' : 'The Berman';
+    const isFrench = tenant === 'france';
+    const brandName = isEngland ? 'EPC Cert' : isSpanish ? 'Certificado Energético' : isPortuguese ? 'Certificado Energia' : isFrench ? 'DPE Cert France' : 'The Berman';
     const logoUrl = isPortuguese ? '/certificado-energia-logo.png' : tenant === 'france' ? '/dpecert-logo.png' : '/logo.svg';
     const navigate = useNavigate();
     const [listing, setListing] = useState<CatalogueListing | null>(null);

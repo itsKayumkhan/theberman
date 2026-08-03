@@ -46,18 +46,19 @@ Deno.serve(async (req: Request) => {
 
         const isSpanish = tenant === 'spain';
         const isPortuguese = tenant === 'portugal';
+        const isFrench = tenant === 'france';
         const websiteUrl = (config.website_url || 'https://theberman.eu').replace(/\/$/, '');
         const logoUrl = config.logo_url;
         const brandName = config.display_name;
 
         // 1. Send notification to the business
         const businessHtml = generateBusinessEmail(record, businessName || 'Service Provider', tenant, websiteUrl, brandName, logoUrl)
-        await client.send(smtpFrom!, businessEmail, isSpanish ? `Nueva Consulta: ${record.name}` : isPortuguese ? `Novo Pedido de Informação: ${record.name}` : `New Enquiry: ${record.name}`, businessHtml)
+        await client.send(smtpFrom!, businessEmail, isSpanish ? `Nueva Consulta: ${record.name}` : isPortuguese ? `Novo Pedido de Informação: ${record.name}` : isFrench ? `Nouvelle Demande : ${record.name}` : `New Enquiry: ${record.name}`, businessHtml)
         console.log(`[send-catalogue-enquiry] Notified business: ${businessEmail}`);
 
         // 2. Send confirmation to the customer
         const customerHtml = generateCustomerConfirmationEmail(record, businessName || 'Service Provider', tenant, websiteUrl, brandName, logoUrl)
-        await client.send(smtpFrom!, record.email, isSpanish ? `Confirmación de Consulta: ${businessName || 'Service Provider'}` : isPortuguese ? `Confirmação de Pedido de Informação: ${businessName || 'Service Provider'}` : `Enquiry Confirmation: ${businessName || 'Service Provider'}`, customerHtml)
+        await client.send(smtpFrom!, record.email, isSpanish ? `Confirmación de Consulta: ${businessName || 'Service Provider'}` : isPortuguese ? `Confirmação de Pedido de Informação: ${businessName || 'Service Provider'}` : isFrench ? `Confirmation de Demande : ${businessName || 'Service Provider'}` : `Enquiry Confirmation: ${businessName || 'Service Provider'}`, customerHtml)
         console.log(`[send-catalogue-enquiry] Notified customer: ${record.email}`);
 
         await client.close()

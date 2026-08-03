@@ -34,6 +34,12 @@ const REGISTRATION_NUMBER_LABELS: Record<string, { label: string; placeholder: s
         placeholder: 'ex. 12345',
         sinceLabel: 'Perito desde',
         validationError: 'O número de registo ADENE é obrigatório'
+    },
+    france: {
+        label: 'N° de Certification DPE',
+        placeholder: 'ex. 12345',
+        sinceLabel: 'Diagnostiqueur depuis',
+        validationError: 'Le numéro de certification DPE est obligatoire'
     }
 };
 
@@ -104,6 +110,28 @@ const ONBOARDING_LABELS: Record<string, Record<string, string>> = {
         registrationSubmitted: 'Registo enviado! A sua conta está pendente de aprovação pelo administrador.',
         failedToProcess: 'Erro ao processar a informação. Por favor, tente novamente.',
     },
+    fr: {
+        firstName: 'Prénom', lastName: 'Nom', emailAddress: 'Adresse E-mail',
+        mobilePhone: 'Téléphone Portable', optional: '(optionnel)',
+        assessorType: 'Type de Diagnostiqueur (sélectionnez un ou plusieurs)',
+        domesticAssessor: 'Diagnostiqueur Résidentiel', commercialAssessor: 'Diagnostiqueur Commercial', technicalAssessor: 'Diagnostiqueur Technique',
+        businessDetails: 'Détails de l\'Entreprise', companyName: 'Nom de l\'Entreprise',
+        companyPlaceholder: 'Ex. Diagnostics DPE SARL',
+        website: 'Site Web', websitePlaceholder: 'https://www.exemple.com',
+        socialMedia: 'Réseaux Sociaux', facebook: 'Facebook', instagram: 'Instagram', linkedin: 'LinkedIn',
+        featuresServices: 'Services / Caractéristiques',
+        featuresDesc: 'Ajoutez des services clés à mettre en surbrillance sur votre profil (ex. "Délai Rapide", "Certificats 24h").',
+        featurePlaceholder: 'Tapez un service et appuyez sur Entrée', add: 'Ajouter',
+        insuranceHolder: 'Titulaire d\'une assurance professionnelle',
+        insuranceDesc: 'Avez-vous une assurance responsabilité civile professionnelle valide ?',
+        vatRegistered: 'Entreprise / Auto-entrepreneur Inscrit', yes: 'Oui', no: 'Non',
+        proceed: 'Continuer', savingProfile: 'Sauvegarde du Profil...',
+        requiredFields: 'Veuillez remplir tous les champs obligatoires, y compris le Type de Diagnostiqueur et le Numéro de Certification',
+        serviceAreaRequired: 'Veuillez sélectionner au moins une zone d\'intervention',
+        regNumberRequired: 'Veuillez saisir votre numéro de certification',
+        registrationSubmitted: 'Inscription envoyée ! Votre compte est en attente d\'approbation par l\'administrateur.',
+        failedToProcess: 'Échec du traitement des informations. Veuillez réessayer.',
+    },
 };
 
 // Tenant-specific page titles and labels
@@ -131,6 +159,12 @@ const TENANT_LABELS: Record<string, { title: string; subtitle: string; catalogue
         subtitle: 'Complete o seu perfil para receber mais trabalhos de certificação energética na sua zona.',
         catalogueLabel: 'Gostaria de aparecer no nosso Catálogo de Melhoria Energética como "PERITO CERTIFICADO"?',
         catalogueDesc: 'Isso ajudará os proprietários a encontrá-lo diretamente para avaliações energéticas na sua zona.'
+    },
+    france: {
+        title: 'Inscription Diagnostiqueur DPE',
+        subtitle: 'Complétez votre profil pour recevoir plus de missions DPE dans votre région.',
+        catalogueLabel: 'Souhaitez-vous apparaître dans notre catalogue comme "DIAGNOSTIQUEUR DPE" ?',
+        catalogueDesc: 'Cela aidera les propriétaires à vous trouver directement pour des diagnostics DPE dans votre région.'
     }
 };
 
@@ -142,7 +176,7 @@ const ContractorOnboarding = () => {
     const isSpanish = tenant === 'spain';
     const regLabels = REGISTRATION_NUMBER_LABELS[tenant] || REGISTRATION_NUMBER_LABELS.ireland;
     const tenantLabels = TENANT_LABELS[tenant] || TENANT_LABELS.ireland;
-    const lbl = ONBOARDING_LABELS[isSpanish ? 'es' : tenant === 'portugal' ? 'pt' : 'en'];
+    const lbl = ONBOARDING_LABELS[isSpanish ? 'es' : tenant === 'portugal' ? 'pt' : tenant === 'france' ? 'fr' : 'en'];
     const COUNTIES = getCountiesForTenant(tenant);
     const TOWNS_DATA = getTownsForTenant(tenant);
     const areaPrefix = isSpanish ? '' : '';
@@ -294,7 +328,9 @@ const ContractorOnboarding = () => {
                     ? 'Este número de teléfono ya está asociado a otra cuenta. Por favor usa un número diferente.'
                     : tenant === 'portugal'
                         ? 'Este número de telefone já está associado a outra conta. Por favor, utilize um número diferente.'
-                        : 'This phone number is already associated with another account. Please use a different number.');
+                        : tenant === 'france'
+                            ? 'Ce numéro de téléphone est déjà associé à un autre compte. Veuillez utiliser un numéro différent.'
+                            : 'This phone number is already associated with another account. Please use a different number.');
                 return;
             }
         }
@@ -305,7 +341,7 @@ const ContractorOnboarding = () => {
             let latitude = null;
             let longitude = null;
 
-            const fullAddress = tenant === 'portugal'
+            const fullAddress = (tenant === 'portugal' || tenant === 'france')
                 ? `${formData.homeTown}, ${formData.homeCounty}`
                 : `${formData.homeTown}, Co. ${formData.homeCounty}`;
             const coords = await geocodeAddress(fullAddress);
@@ -362,7 +398,7 @@ const ContractorOnboarding = () => {
             }
 
             toast.success(isAdminCreated
-                ? (isSpanish ? '¡Registro completado! Redirigiendo a tu panel...' : tenant === 'portugal' ? 'Registo concluído! A redirecionar para o painel...' : 'Registration completed! Redirecting to your dashboard...')
+                ? (isSpanish ? '¡Registro completado! Redirigiendo a tu panel...' : tenant === 'portugal' ? 'Registo concluído! A redirecionar para o painel...' : tenant === 'france' ? 'Inscription terminée ! Redirection vers votre tableau de bord...' : 'Registration completed! Redirecting to your dashboard...')
                 : lbl.registrationSubmitted
             );
             await refreshProfile();
@@ -427,7 +463,7 @@ const ContractorOnboarding = () => {
                             </div>
 
                             <div>
-                                <label htmlFor="homeCounty" className="block text-sm font-bold text-gray-700 mb-1">{isSpanish ? 'Comunidad Autónoma' : tenant === 'portugal' ? 'Região' : 'Home County'}</label>
+                                <label htmlFor="homeCounty" className="block text-sm font-bold text-gray-700 mb-1">{isSpanish ? 'Comunidad Autónoma' : tenant === 'portugal' ? 'Região' : tenant === 'france' ? 'Région' : 'Home County'}</label>
                                 <select
                                     id="homeCounty"
                                     name="homeCounty"
@@ -436,13 +472,13 @@ const ContractorOnboarding = () => {
                                     value={formData.homeCounty}
                                     onChange={(e) => setFormData({ ...formData, homeCounty: e.target.value, homeTown: '' })}
                                 >
-                                    <option value="">{isSpanish ? 'Seleccionar Comunidad' : tenant === 'portugal' ? 'Selecionar Região' : 'Select County'}</option>
+                                    <option value="">{isSpanish ? 'Seleccionar Comunidad' : tenant === 'portugal' ? 'Selecionar Região' : tenant === 'france' ? 'Sélectionner Région' : 'Select County'}</option>
                                     {COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
                                 </select>
                             </div>
 
                             <div>
-                                <label htmlFor="homeTown" className="block text-sm font-bold text-gray-700 mb-1">{isSpanish ? 'Ciudad' : tenant === 'portugal' ? 'Cidade' : 'Home Town'}</label>
+                                <label htmlFor="homeTown" className="block text-sm font-bold text-gray-700 mb-1">{isSpanish ? 'Ciudad' : tenant === 'portugal' ? 'Cidade' : tenant === 'france' ? 'Ville' : 'Home Town'}</label>
                                 <select
                                     id="homeTown"
                                     name="homeTown"
@@ -452,7 +488,7 @@ const ContractorOnboarding = () => {
                                     value={formData.homeTown}
                                     onChange={(e) => setFormData({ ...formData, homeTown: e.target.value })}
                                 >
-                                    <option value="">{formData.homeCounty ? (isSpanish ? 'Seleccionar Ciudad' : tenant === 'portugal' ? 'Selecionar Cidade' : 'Select Town') : (isSpanish ? 'Seleccionar Comunidad Primero' : tenant === 'portugal' ? 'Selecione a Região Primeiro' : 'Select County First')}</option>
+                                    <option value="">{formData.homeCounty ? (isSpanish ? 'Seleccionar Ciudad' : tenant === 'portugal' ? 'Selecionar Cidade' : tenant === 'france' ? 'Sélectionner Ville' : 'Select Town') : (isSpanish ? 'Seleccionar Comunidad Primero' : tenant === 'portugal' ? 'Selecione a Região Primeiro' : tenant === 'france' ? 'Sélectionner Région d\'abord' : 'Select County First')}</option>
                                     {formData.homeCounty && TOWNS_DATA[formData.homeCounty]?.map(town => (
                                         <option key={town} value={town}>{town}</option>
                                     ))}
@@ -698,9 +734,9 @@ const ContractorOnboarding = () => {
                         {/* Service Areas */}
                         <div className="pt-8">
                             <label className="block text-lg font-bold text-gray-900 mb-4">
-                                {isSpanish ? 'Zonas de Servicio / Comunidades' : tenant === 'portugal' ? 'Áreas de Serviço / Regiões' : 'Service Areas / Counties'} <span className="text-red-500">*</span>
+                                {isSpanish ? 'Zonas de Servicio / Comunidades' : tenant === 'portugal' ? 'Áreas de Serviço / Regiões' : tenant === 'france' ? 'Zones d\'Intervention / Régions' : 'Service Areas / Counties'} <span className="text-red-500">*</span>
                             </label>
-                            <p className="text-sm text-gray-500 mb-4">{isSpanish ? 'Selecciona tu ubicación preferida para recibir trabajos. Debes seleccionar al menos una.' : tenant === 'portugal' ? 'Selecione a sua localização preferida para receber trabalhos. Deve selecionar pelo menos uma.' : 'Select your Preference location to receive jobs in. You must select at least one.'}</p>
+                            <p className="text-sm text-gray-500 mb-4">{isSpanish ? 'Selecciona tu ubicación preferida para recibir trabajos. Debes seleccionar al menos una.' : tenant === 'portugal' ? 'Selecione a sua localização preferida para receber trabalhos. Deve selecionar pelo menos uma.' : tenant === 'france' ? 'Sélectionnez votre zone d\'intervention préférée pour recevoir des missions. Vous devez en sélectionner au moins une.' : 'Select your Preference location to receive jobs in. You must select at least one.'}</p>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                                 {COUNTIES.map(county => (
                                     <div
@@ -718,19 +754,19 @@ const ContractorOnboarding = () => {
                                     </div>
                                 ))}
                             </div>
-                            <p className="text-xs text-gray-500 mt-2 text-right">{formData.serviceAreas.length} {isSpanish ? 'comunidades seleccionadas' : tenant === 'portugal' ? 'regiões selecionadas' : 'counties selected'}</p>
+                            <p className="text-xs text-gray-500 mt-2 text-right">{formData.serviceAreas.length} {isSpanish ? 'comunidades seleccionadas' : tenant === 'portugal' ? 'regiões selecionadas' : tenant === 'france' ? 'régions sélectionnées' : 'counties selected'}</p>
                         </div>
 
                         {/* Preferred Towns (optional) */}
                         <div className="pt-6">
                             <label className="block text-lg font-bold text-gray-900 mb-4">
-                                {isSpanish ? 'Ciudades / Localidades Preferidas (Opcional)' : tenant === 'portugal' ? 'Cidades / Localidades Preferidas (Opcional)' : 'Preferred Towns / Localities (Optional)'}
+                                {isSpanish ? 'Ciudades / Localidades Preferidas (Opcional)' : tenant === 'portugal' ? 'Cidades / Localidades Preferidas (Opcional)' : tenant === 'france' ? 'Villes / Localités Préférées (Optionnel)' : 'Preferred Towns / Localities (Optional)'}
                             </label>
-                            <p className="text-sm text-gray-500 mb-4">{isSpanish ? 'Selecciona ciudades específicas dentro de tus comunidades para recibir trabajos más localizados.' : tenant === 'portugal' ? 'Selecione cidades específicas dentro das suas regiões para receber trabalhos mais direcionados.' : 'Select specific towns/localities within your counties to receive more targeted jobs.'}</p>
+                            <p className="text-sm text-gray-500 mb-4">{isSpanish ? 'Selecciona ciudades específicas dentro de tus comunidades para recibir trabajos más localizados.' : tenant === 'portugal' ? 'Selecione cidades específicas dentro das suas regiões para receber trabalhos mais direcionados.' : tenant === 'france' ? 'Sélectionnez des villes spécifiques dans vos régions pour recevoir des missions plus ciblées.' : 'Select specific towns/localities within your counties to receive more targeted jobs.'}</p>
 
                             {formData.serviceAreas.length === 0 && (
                                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
-                                    {isSpanish ? 'Selecciona al menos una comunidad arriba para ver sus ciudades y localidades.' : tenant === 'portugal' ? 'Selecione pelo menos uma região acima para ver as suas cidades e localidades.' : 'Select at least one county/region above to see its towns and localities.'}
+                                    {isSpanish ? 'Selecciona al menos una comunidad arriba para ver sus ciudades y localidades.' : tenant === 'portugal' ? 'Selecione pelo menos uma região acima para ver as suas cidades e localidades.' : tenant === 'france' ? 'Sélectionnez au moins une région ci-dessus pour voir ses villes et localités.' : 'Select at least one county/region above to see its towns and localities.'}
                                 </div>
                             )}
 
@@ -753,7 +789,7 @@ const ContractorOnboarding = () => {
                                                     }}
                                                     className="text-xs text-[#007F00] font-bold hover:underline"
                                                 >
-                                                    {selectedTowns.length === towns.length ? (isSpanish ? 'Quitar todas' : tenant === 'portugal' ? 'Limpar todas' : 'Clear all') : (isSpanish ? 'Seleccionar todas' : tenant === 'portugal' ? 'Selecionar todas' : 'Select all')}
+                                                    {selectedTowns.length === towns.length ? (isSpanish ? 'Quitar todas' : tenant === 'portugal' ? 'Limpar todas' : tenant === 'france' ? 'Tout désélectionner' : 'Clear all') : (isSpanish ? 'Seleccionar todas' : tenant === 'portugal' ? 'Selecionar todas' : tenant === 'france' ? 'Tout sélectionner' : 'Select all')}
                                                 </button>
                                             </div>
                                             <div className="flex flex-wrap gap-2">
@@ -774,7 +810,7 @@ const ContractorOnboarding = () => {
                                         </div>
                                     );
                                 })}
-                                <p className="text-xs text-gray-500 mt-2 text-right">{formData.preferredTowns.length} {isSpanish ? 'ciudades seleccionadas' : tenant === 'portugal' ? 'cidades selecionadas' : 'towns selected'}</p>
+                                <p className="text-xs text-gray-500 mt-2 text-right">{formData.preferredTowns.length} {isSpanish ? 'ciudades seleccionadas' : tenant === 'portugal' ? 'cidades selecionadas' : tenant === 'france' ? 'villes sélectionnées' : 'towns selected'}</p>
                             </div>
 
                         <div className="pt-8">

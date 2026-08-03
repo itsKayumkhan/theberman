@@ -14,9 +14,44 @@ const PROPERTY_SIZES = [
 const TIME_SLOTS = ['Any time', '8am - 10am', '10am - 2pm', '2pm - 6pm', '6pm - 8pm'];
 const BER_PURPOSES = ['Selling', 'Letting', 'Govt Grant', 'Mortgage', 'New Build', 'Personal Interest', 'Other'];
 
-const getDisplayLabel = (value: string, lang: 'es' | 'pt' | 'en') => {
+const getDisplayLabel = (value: string, lang: 'es' | 'pt' | 'fr' | 'en') => {
     if (lang === 'en') return value;
     const maps: Record<string, Record<string, string>> = {
+        fr: {
+            'Semi-Detached': 'Maison Jumelée',
+            'Mid-Terrace': 'Maison Mitoyenne (Intérieur)',
+            'End-Terrace': 'Maison Mitoyenne (Extérieur)',
+            'Apartment': 'Appartement',
+            'Duplex': 'Duplex',
+            'Detached': 'Maison Individuelle',
+            'Bungalow': 'Bungalow',
+            'Multi-Unit': 'Multi-Logements',
+            'Other': 'Autre',
+            'Under 70 m²': 'Moins de 70 m²',
+            '70 - 90 m²': '70 - 90 m²',
+            '90 - 110 m²': '90 - 110 m²',
+            '110 - 140 m²': '110 - 140 m²',
+            '140 - 160 m²': '140 - 160 m²',
+            '160 - 185 m²': '160 - 185 m²',
+            '185 - 230 m²': '185 - 230 m²',
+            '230 - 280 m²': '230 - 280 m²',
+            '280 - 370 m²': '280 - 370 m²',
+            'Over 370 m²': 'Plus de 370 m²',
+            'Any time': 'N\'importe quelle heure',
+            '8am - 10am': '8h00 - 10h00',
+            '10am - 2pm': '10h00 - 14h00',
+            '2pm - 6pm': '14h00 - 18h00',
+            '6pm - 8pm': '18h00 - 20h00',
+            'Selling': 'Vente',
+            'Letting': 'Location',
+            'Govt Grant': 'Aide Publique',
+            'Mortgage': 'Prêt/Banque',
+            'New Build': 'Construction Neuve',
+            'Personal Interest': 'Intérêt Personnel',
+            'Select': 'Sélectionner',
+            'Select town': 'Sélectionner une ville',
+            'Select county first': 'Sélectionnez une région d\'abord',
+        },
         es: {
             'Semi-Detached': 'Pareada',
             'Mid-Terrace': 'Adosada (Medio)',
@@ -103,7 +138,8 @@ interface Props {
 export const BusinessPostJob = ({ businessUserId, listingId, businessName, businessEmail, businessPhone, isSpanish }: Props) => {
     const tenant = getTenantFromDomain();
     const isPortuguese = tenant === 'portugal';
-    const lang = isSpanish ? 'es' : isPortuguese ? 'pt' : 'en';
+    const isFrench = tenant === 'france';
+    const lang = isSpanish ? 'es' : isPortuguese ? 'pt' : isFrench ? 'fr' : 'en';
     const COUNTIES = getCountiesForTenant(tenant);
     const TOWNS = getTownsForTenant(tenant);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -141,11 +177,11 @@ export const BusinessPostJob = ({ businessUserId, listingId, businessName, busin
     const handleSubmit = async () => {
         if (isSubmitting) return; // Prevent double submission
         if (!county || !town || !propertyType || !berPurpose) {
-            toast.error(isSpanish ? 'Por favor complete todos los campos obligatorios' : isPortuguese ? 'Por favor, preencha todos os campos obrigatórios' : 'Please fill in all required fields');
+            toast.error(isSpanish ? 'Por favor complete todos los campos obligatorios' : isPortuguese ? 'Por favor, preencha todos os campos obrigatórios' : isFrench ? 'Veuillez remplir tous les champs obligatoires' : 'Please fill in all required fields');
             return;
         }
         if (payerType === 'homeowner' && (!homeownerName || !homeownerEmail || !homeownerPhone)) {
-            toast.error(isSpanish ? 'Proporcione los datos del propietario' : isPortuguese ? 'Forneça os dados do proprietário' : 'Please provide homeowner details');
+            toast.error(isSpanish ? 'Proporcione los datos del propietario' : isPortuguese ? 'Forneça os dados do proprietário' : isFrench ? 'Veuillez fournir les informations du propriétaire' : 'Please provide homeowner details');
             return;
         }
 
@@ -207,11 +243,11 @@ export const BusinessPostJob = ({ businessUserId, listingId, businessName, busin
                 console.error('Failed to send notification:', emailErr);
             }
 
-            toast.success(isSpanish ? '¡Trabajo publicado y notificado a los evaluadores!' : isPortuguese ? 'Trabalho publicado e peritos notificados!' : 'Job posted and assessors notified!');
+            toast.success(isSpanish ? '¡Trabajo publicado y notificado a los evaluadores!' : isPortuguese ? 'Trabalho publicado e peritos notificados!' : isFrench ? 'Mission publiée et diagnostiqueurs notifiés !' : 'Job posted and assessors notified!');
             resetForm();
         } catch (error: any) {
             console.error('Error posting job:', error);
-            toast.error(error.message || (isSpanish ? 'Error al publicar el trabajo' : isPortuguese ? 'Erro ao publicar o trabalho' : 'Failed to post job'));
+            toast.error(error.message || (isSpanish ? 'Error al publicar el trabajo' : isPortuguese ? 'Erro ao publicar o trabalho' : isFrench ? 'Échec de la publication de la mission' : 'Failed to post job'));
         } finally {
             setIsSubmitting(false);
         }
@@ -222,22 +258,22 @@ export const BusinessPostJob = ({ businessUserId, listingId, businessName, busin
             {/* Payer Selection */}
             <div className="bg-amber-50 rounded-2xl p-6 border border-amber-100">
                 <h4 className="font-bold text-gray-800 mb-4">
-                    {isSpanish ? '¿Quién pagará la evaluación BER?' : isPortuguese ? 'Quem pagará a avaliação energética?' : 'Who will be paying for the BER assessment?'}
+                    {isSpanish ? '¿Quién pagará la evaluación BER?' : isPortuguese ? 'Quem pagará a avaliação energética?' : isFrench ? 'Qui paiera le diagnostic DPE ?' : 'Who will be paying for the BER assessment?'}
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <button
                         onClick={() => setPayerType('business')}
                         className={`p-4 rounded-xl border-2 text-left transition-all ${payerType === 'business' ? 'border-[#007F00] bg-green-50' : 'border-gray-200 hover:border-green-300'}`}
                     >
-                        <div className="font-bold text-gray-900">{isSpanish ? 'Mi empresa paga' : isPortuguese ? 'A minha empresa paga' : 'My business pays'}</div>
-                        <div className="text-xs text-gray-500">{isSpanish ? 'Usted cubre el costo de la evaluación' : isPortuguese ? 'A sua empresa cobre o custo da avaliação' : 'You cover the assessment cost'}</div>
+                        <div className="font-bold text-gray-900">{isSpanish ? 'Mi empresa paga' : isPortuguese ? 'A minha empresa paga' : isFrench ? 'Mon entreprise paie' : 'My business pays'}</div>
+                        <div className="text-xs text-gray-500">{isSpanish ? 'Usted cubre el costo de la evaluación' : isPortuguese ? 'A sua empresa cobre o custo da avaliação' : isFrench ? 'Votre entreprise couvre le coût du diagnostic' : 'You cover the assessment cost'}</div>
                     </button>
                     <button
                         onClick={() => setPayerType('homeowner')}
                         className={`p-4 rounded-xl border-2 text-left transition-all ${payerType === 'homeowner' ? 'border-[#007F00] bg-green-50' : 'border-gray-200 hover:border-green-300'}`}
                     >
-                        <div className="font-bold text-gray-900">{isSpanish ? 'El propietario paga' : isPortuguese ? 'O proprietário paga' : 'The homeowner pays'}</div>
-                        <div className="text-xs text-gray-500">{isSpanish ? 'El propietario cubre el costo' : isPortuguese ? 'O proprietário cobre o custo' : 'The homeowner covers the cost'}</div>
+                        <div className="font-bold text-gray-900">{isSpanish ? 'El propietario paga' : isPortuguese ? 'O proprietário paga' : isFrench ? 'Le propriétaire paie' : 'The homeowner pays'}</div>
+                        <div className="text-xs text-gray-500">{isSpanish ? 'El propietario cubre el costo' : isPortuguese ? 'O proprietário cobre o custo' : isFrench ? 'Le propriétaire couvre le coût' : 'The homeowner covers the cost'}</div>
                     </button>
                 </div>
             </div>
@@ -245,18 +281,18 @@ export const BusinessPostJob = ({ businessUserId, listingId, businessName, busin
             {/* Homeowner Details (when homeowner pays) */}
             {payerType === 'homeowner' && (
                 <div className="bg-blue-50 rounded-2xl p-6 border border-blue-100">
-                    <h4 className="font-bold text-gray-800 mb-4">{isSpanish ? 'Datos del Propietario' : isPortuguese ? 'Dados do Proprietário' : 'Homeowner Details'}</h4>
+                    <h4 className="font-bold text-gray-800 mb-4">{isSpanish ? 'Datos del Propietario' : isPortuguese ? 'Dados do Proprietário' : isFrench ? 'Informations du Propriétaire' : 'Homeowner Details'}</h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Nombre completo' : isPortuguese ? 'Nome completo' : 'Full Name'} *</label>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Nombre completo' : isPortuguese ? 'Nome completo' : isFrench ? 'Nom complet' : 'Full Name'} *</label>
                             <input value={homeownerName} onChange={e => setHomeownerName(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]" placeholder="John Smith" />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Correo' : isPortuguese ? 'Email' : 'Email'} *</label>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Correo' : isPortuguese ? 'Email' : isFrench ? 'E-mail' : 'Email'} *</label>
                             <input type="email" value={homeownerEmail} onChange={e => setHomeownerEmail(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]" placeholder="john@example.com" />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Teléfono' : isPortuguese ? 'Telefone' : 'Phone'} *</label>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Teléfono' : isPortuguese ? 'Telefone' : isFrench ? 'Téléphone' : 'Phone'} *</label>
                             <input value={homeownerPhone} onChange={e => setHomeownerPhone(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]" placeholder={getPhonePlaceholder(tenant)} />
                         </div>
                     </div>
@@ -265,13 +301,13 @@ export const BusinessPostJob = ({ businessUserId, listingId, businessName, busin
 
             {/* Job Type */}
             <div>
-                <h4 className="font-bold text-gray-800 mb-4">{isSpanish ? 'Tipo de Trabajo' : isPortuguese ? 'Tipo de Trabalho' : 'Job Type'}</h4>
+                <h4 className="font-bold text-gray-800 mb-4">{isSpanish ? 'Tipo de Trabajo' : isPortuguese ? 'Tipo de Trabalho' : isFrench ? 'Type de Mission' : 'Job Type'}</h4>
                 <div className="flex gap-3">
                     <button onClick={() => setJobType('domestic')} className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all ${jobType === 'domestic' ? 'border-[#007F00] bg-green-50 font-bold text-[#007F00]' : 'border-gray-200 text-gray-600'}`}>
-                        <Home size={18} /> {isSpanish ? 'Doméstico' : isPortuguese ? 'Doméstico' : 'Domestic'}
+                        <Home size={18} /> {isSpanish ? 'Doméstico' : isPortuguese ? 'Doméstico' : isFrench ? 'Résidentiel' : 'Domestic'}
                     </button>
                     <button onClick={() => setJobType('commercial')} className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all ${jobType === 'commercial' ? 'border-[#007F00] bg-green-50 font-bold text-[#007F00]' : 'border-gray-200 text-gray-600'}`}>
-                        <Building2 size={18} /> {isSpanish ? 'Comercial' : isPortuguese ? 'Comercial' : 'Commercial'}
+                        <Building2 size={18} /> {isSpanish ? 'Comercial' : isPortuguese ? 'Comercial' : isFrench ? 'Commercial' : 'Commercial'}
                     </button>
                 </div>
             </div>
@@ -279,57 +315,57 @@ export const BusinessPostJob = ({ businessUserId, listingId, businessName, busin
             {/* Property Details */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Comunidad Autónoma' : isPortuguese ? 'Região' : 'County'} *</label>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Comunidad Autónoma' : isPortuguese ? 'Região' : isFrench ? 'Région' : 'County'} *</label>
                     <select value={county} onChange={e => { setCounty(e.target.value); setTown(''); }} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]">
                         <option value="">{getDisplayLabel('Select', lang)}</option>
                         {COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                 </div>
                 <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Ciudad' : isPortuguese ? 'Cidade' : 'Town'} *</label>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Ciudad' : isPortuguese ? 'Cidade' : isFrench ? 'Ville' : 'Town'} *</label>
                     <select value={town} onChange={e => setTown(e.target.value)} disabled={!county} className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00] ${!county ? 'bg-gray-100 opacity-50 cursor-not-allowed' : ''}`}>
                         <option value="">{county ? getDisplayLabel('Select town', lang) : getDisplayLabel('Select county first', lang)}</option>
                         {county && TOWNS[county]?.map(t => <option key={t} value={t}>{t}</option>)}
                     </select>
                 </div>
                 <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Código Postal' : isPortuguese ? 'Código Postal' : 'Eircode / Postcode'}</label>
-                    <input value={eircode} onChange={e => setEircode(e.target.value.toUpperCase())} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]" placeholder={isSpanish ? 'Ej. 28001' : isPortuguese ? 'Ex. 1000-001' : 'D14 AB12'} />
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Código Postal' : isPortuguese ? 'Código Postal' : isFrench ? 'Code Postal' : 'Eircode / Postcode'}</label>
+                    <input value={eircode} onChange={e => setEircode(e.target.value.toUpperCase())} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]" placeholder={isSpanish ? 'Ej. 28001' : isPortuguese ? 'Ex. 1000-001' : isFrench ? 'Ex. 75001' : 'D14 AB12'} />
                 </div>
                 <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Tipo de Propiedad' : isPortuguese ? 'Tipo de Imóvel' : 'Property Type'} *</label>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Tipo de Propiedad' : isPortuguese ? 'Tipo de Imóvel' : isFrench ? 'Type de Propriété' : 'Property Type'} *</label>
                     <select value={propertyType} onChange={e => setPropertyType(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]">
                         <option value="">{getDisplayLabel('Select', lang)}</option>
                         {PROPERTY_TYPES.map(t => <option key={t} value={t}>{getDisplayLabel(t, lang)}</option>)}
                     </select>
                 </div>
                 <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Tamaño' : isPortuguese ? 'Área do Imóvel' : 'Property Size'}</label>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Tamaño' : isPortuguese ? 'Área do Imóvel' : isFrench ? 'Surface' : 'Property Size'}</label>
                     <select value={propertySize} onChange={e => setPropertySize(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]">
                         <option value="">{getDisplayLabel('Select', lang)}</option>
                         {PROPERTY_SIZES.map(s => <option key={s} value={s}>{getDisplayLabel(s, lang)}</option>)}
                     </select>
                 </div>
                 <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Habitaciones' : isPortuguese ? 'Quartos' : 'Bedrooms'}</label>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Habitaciones' : isPortuguese ? 'Quartos' : isFrench ? 'Chambres' : 'Bedrooms'}</label>
                     <select value={bedrooms} onChange={e => setBedrooms(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]">
                         <option value="">{getDisplayLabel('Select', lang)}</option>
                         {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n}</option>)}
                     </select>
                 </div>
                 <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Propósito BER' : isPortuguese ? 'Finalidade do Certificado' : 'BER Purpose'} *</label>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Propósito BER' : isPortuguese ? 'Finalidade do Certificado' : isFrench ? 'Objetif du DPE' : 'BER Purpose'} *</label>
                     <select value={berPurpose} onChange={e => setBerPurpose(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]">
                         <option value="">{getDisplayLabel('Select', lang)}</option>
                         {BER_PURPOSES.map(p => <option key={p} value={p}>{getDisplayLabel(p, lang)}</option>)}
                     </select>
                 </div>
                 <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Fecha Preferida' : isPortuguese ? 'Data Preferida' : 'Preferred Date'}</label>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Fecha Preferida' : isPortuguese ? 'Data Preferida' : isFrench ? 'Date Préférée' : 'Preferred Date'}</label>
                     <input type="date" value={preferredDate} onChange={e => setPreferredDate(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]" />
                 </div>
                 <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Hora Preferida' : isPortuguese ? 'Hora Preferida' : 'Preferred Time'}</label>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Hora Preferida' : isPortuguese ? 'Hora Preferida' : isFrench ? 'Heure Préférée' : 'Preferred Time'}</label>
                     <select value={preferredTime} onChange={e => setPreferredTime(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]">
                         <option value="">{getDisplayLabel('Select', lang)}</option>
                         {TIME_SLOTS.map(t => <option key={t} value={t}>{getDisplayLabel(t, lang)}</option>)}
@@ -339,8 +375,8 @@ export const BusinessPostJob = ({ businessUserId, listingId, businessName, busin
 
             {/* Notes */}
             <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Notas Adicionales' : isPortuguese ? 'Notas Adicionais' : 'Additional Notes'}</label>
-                <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]" placeholder={isSpanish ? 'Instrucciones especiales...' : isPortuguese ? 'Instruções especiais...' : 'Any special instructions...'} />
+                <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Notas Adicionales' : isPortuguese ? 'Notas Adicionais' : isFrench ? 'Notes Supplémentaires' : 'Additional Notes'}</label>
+                <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]" placeholder={isSpanish ? 'Instrucciones especiales...' : isPortuguese ? 'Instruções especiais...' : isFrench ? 'Instructions spéciales...' : 'Any special instructions...'} />
             </div>
 
             {/* Submit */}
@@ -352,8 +388,8 @@ export const BusinessPostJob = ({ businessUserId, listingId, businessName, busin
                 >
                     <Send size={18} />
                     {isSubmitting
-                        ? (isSpanish ? 'Publicando...' : isPortuguese ? 'A publicar...' : 'Posting...')
-                        : (isSpanish ? 'Publicar Trabajo Gratis' : isPortuguese ? 'Publicar Trabalho Grátis' : 'Post Job for Free')
+                        ? (isSpanish ? 'Publicando...' : isPortuguese ? 'A publicar...' : isFrench ? 'Publication...' : 'Posting...')
+                        : (isSpanish ? 'Publicar Trabajo Gratis' : isPortuguese ? 'Publicar Trabalho Grátis' : isFrench ? 'Publier une Mission Gratuitement' : 'Post Job for Free')
                     }
                 </button>
                 <p className="text-xs text-gray-400 mt-2">
@@ -361,7 +397,9 @@ export const BusinessPostJob = ({ businessUserId, listingId, businessName, busin
                         ? 'El trabajo se publicará inmediatamente y se notificará a los evaluadores coincidentes.'
                         : isPortuguese
                             ? 'O trabalho será publicado imediatamente e os peritos correspondentes serão notificados.'
-                            : 'The job will go live immediately and matching assessors will be notified.'}
+                            : isFrench
+                                ? 'La mission sera publiée immédiatement et les diagnostiqueurs correspondants seront notifiés.'
+                                : 'The job will go live immediately and matching assessors will be notified.'}
                 </p>
             </div>
         </div>

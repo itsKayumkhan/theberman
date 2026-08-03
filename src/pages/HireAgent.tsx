@@ -18,7 +18,8 @@ const tenant = getTenantFromDomain();
 const isSpanish = tenant === 'spain';
 const isEngland = tenant === 'england';
 const isPortuguese = tenant === 'portugal';
-const regAuthority = isSpanish ? 'CEE CAT' : isEngland ? 'accredited' : isPortuguese ? 'ADENE' : 'SEAI';
+const isFrench = tenant === 'france';
+const regAuthority = isSpanish ? 'CEE CAT' : isEngland ? 'accredited' : isPortuguese ? 'ADENE' : isFrench ? 'DPE' : 'SEAI';
 
 const getValidationMessages = () => {
     if (isSpanish) return {
@@ -40,6 +41,16 @@ const getValidationMessages = () => {
         propertyTypeRequired: 'Por favor, selecione um tipo de imóvel',
         purposeRequired: 'Por favor, selecione uma finalidade',
         messageMin: 'A mensagem é demasiado curta (mín. 10 caracteres)',
+    };
+    if (isFrench) return {
+        nameMin: 'Le nom doit comporter au moins 2 caractères',
+        emailInvalid: 'Veuillez saisir une adresse e-mail valide',
+        phoneInvalid: 'Veuillez saisir un numéro de téléphone valide',
+        countyRequired: 'Veuillez sélectionner une région',
+        townRequired: 'La ville/localité est obligatoire',
+        propertyTypeRequired: 'Veuillez sélectionner un type de propriété',
+        purposeRequired: 'Veuillez sélectionner un objectif',
+        messageMin: 'Le message est trop court (min. 10 caractères)',
     };
     return {
         nameMin: 'Name must be at least 2 characters',
@@ -87,6 +98,7 @@ const HireAgent = () => {
     const isSpanish = tenant === 'spain';
     const isEngland = tenant === 'england';
     const isPortuguese = tenant === 'portugal';
+    const isFrench = tenant === 'france';
     const townsByCounty = getTownsForTenant(tenant);
     const tenantEmail = getTenantEmail(tenant);
     const tenantDomain = getTenantDomain(tenant);
@@ -212,6 +224,67 @@ const HireAgent = () => {
         hireBtn: 'Contratar Consultor Energético',
         toastSuccess: 'A sua consulta foi enviada! Um Consultor Energético entrará em contacto consigo em breve.',
         toastError: 'Erro ao enviar a mensagem. Por favor, tente novamente.',
+    } : isFrench ? {
+        seoTitle: 'Conseiller Énergétique France | Conseil Énergétique Indépendant',
+        seoDesc: 'Recevez des conseils énergétiques indépendants, un accompagnement pour vos rénovations et un soutien technique pour améliorer les performances énergétiques de votre propriété',
+        badge: 'Conseil Expert DPE',
+        title1: 'Conseil Énergétique',
+        titleHighlight: 'Indépendant',
+        title2: ' pour les Propriétaires en France',
+        subtitle: 'Prenez des décisions éclairées pour vos rénovations énergétiques avec les conseils d\'experts DPE, des analyses techniques et un accompagnement adapté à votre propriété.',
+        speakH1: 'Parlez à un',
+        speakH2: 'Conseiller Énergétique',
+        speakP: 'Votre conseiller énergétique travaille aux côtés de diagnostiqueurs DPE accrédités pour vous aider à comprendre les options de rénovation, comparer les devis et prendre des décisions éclairées pour votre propriété.',
+        agentWillLabel: 'VOTRE CONSEILLER DPE PEUT VOUS AIDER À :',
+        benefits: [
+            'Comprendre votre classification DPE actuelle',
+            'Identifier des options de rénovation pratiques',
+            'Conseiller sur les améliorations énergétiques',
+            'Rechercher et comparer les devis de diagnostiqueurs et d\'entreprises',
+            'Naviguer parmi les aides financières disponibles',
+            'Planifier les rénovations dans un ordre logique et rentable',
+        ],
+        speakClose: 'L\'objectif est de fournir des conseils clairs, une expertise technique vérifiée et un accès à des prix compétitifs, garantissant que les rénovations sont réalisées de manière intelligente et économique.',
+        badge1: 'Indépendant des entreprises',
+        badge2: 'Expertise technique & certification',
+        ourDetails: 'Nos Coordonnées',
+        emailUs: 'Écrivez-nous',
+        website: 'Site Web',
+        requestH: 'Demander un Conseil DPE',
+        fullName: 'Nom Complet',
+        fullNamePh: 'Nom complet',
+        phoneNumber: 'Numéro de Téléphone',
+        phonePh: getPhonePlaceholder(tenant),
+        email: 'Adresse E-mail',
+        emailPh: 'email',
+        county: 'Région',
+        selectCounty: 'Sélectionner une Région',
+        town: 'Ville / Localité',
+        selectTown: 'Sélectionner une Ville',
+        selectCountyFirst: 'Sélectionnez une Région d\'abord',
+        propertyType: 'Type de Propriété',
+        selectType: 'Sélectionner un Type',
+        apartment: 'Appartement',
+        midTerrace: 'Maison Mitoyenne (Intérieur)',
+        endTerrace: 'Maison Mitoyenne (Extérieur)',
+        semiDetached: 'Maison Jumelée',
+        detached: 'Maison Individuelle',
+        bungalow: 'Bungalow',
+        purposeLabel: 'Objet du DPE',
+        selectPurpose: 'Sélectionner un Objet',
+        mortgage: 'Prêt/Banque',
+        selling: 'Vente',
+        renting: 'Location',
+        grant: 'Aide Publique',
+        other: 'Autre',
+        message: 'Message',
+        messagePh: 'Parlez-nous de vos objectifs énergétiques...',
+        eircodeLabel: 'Code Postal',
+        eircodePh: '75001',
+        sending: 'Envoi...',
+        hireBtn: 'Demander un Conseiller',
+        toastSuccess: 'Votre demande a été envoyée ! Un conseiller énergétique vous contactera prochainement.',
+        toastError: 'Échec de l\'envoi du message. Veuillez réessayer.',
     } : isEngland ? {
         seoTitle: 'Energy Advisor England | Independent Home Energy Advice',
         seoDesc: 'Receive independent energy advice, upgrade guidance and technical support to help improve your property\'s energy performance',
@@ -392,14 +465,16 @@ const HireAgent = () => {
                     {
                         '@context': 'https://schema.org',
                         '@type': 'Organization',
-                        name: isEngland ? 'EPC Cert' : isPortuguese ? 'Certificado Energia' : 'The BER Man',
+                        name: isEngland ? 'EPC Cert' : isPortuguese ? 'Certificado Energia' : isFrench ? 'DPE Cert France' : 'The BER Man',
                         url: tenantDomain,
-                        logo: isEngland ? 'https://www.epccert.com/logo.png' : isPortuguese ? 'https://certificadoenergia.com/certificado-energia-logo.png' : 'https://www.theberman.eu/logo.svg',
+                        logo: isEngland ? 'https://www.epccert.com/logo.png' : isPortuguese ? 'https://certificadoenergia.com/certificado-energia-logo.png' : isFrench ? 'https://www.dpecert.fr/dpecert-logo.png' : 'https://www.theberman.eu/logo.svg',
                         sameAs: isEngland
                             ? ['https://www.facebook.com/epccert', 'https://www.instagram.com/epccert']
                             : isPortuguese
                                 ? []
-                                : ['https://www.facebook.com/people/The-Berman/61578159843471/', 'https://www.instagram.com/thebermanireland'],
+                                : isFrench
+                                    ? []
+                                    : ['https://www.facebook.com/people/The-Berman/61578159843471/', 'https://www.instagram.com/thebermanireland'],
                     },
                 ]}
             />

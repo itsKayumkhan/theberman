@@ -43,16 +43,62 @@ serve(async (req: Request) => {
         const isSpanish = tenant === 'spain';
         const isEngland = tenant === 'england';
         const isPortuguese = tenant === 'portugal';
+        const isFrench = tenant === 'france';
         const brandName = config.display_name;
         const paymentUrl = `${websiteUrl}/membership-payment`;
         const roleName = isSpanish
             ? (role === 'business' ? 'Socio Comercial' : 'Certificador Energético')
             : isPortuguese
                 ? (role === 'business' ? 'Sócio Comercial' : 'Perito Certificador')
-                : (role === 'business' ? 'Business Partner' : (isEngland ? 'Domestic Energy Assessor' : 'BER Assessor'));
-        const marketArea = isSpanish ? 'España' : isPortuguese ? 'Portugal' : (isEngland ? 'England' : 'Ireland');
+                : isFrench
+                    ? (role === 'business' ? 'Partenaire Commercial' : 'Diagnostiqueur DPE')
+                    : (role === 'business' ? 'Business Partner' : (isEngland ? 'Domestic Energy Assessor' : 'BER Assessor'));
+        const marketArea = isSpanish ? 'España' : isPortuguese ? 'Portugal' : (isEngland ? 'England' : (isFrench ? 'France' : 'Ireland'));
 
-        const html = isPortuguese ? `
+        const html = isFrench ? `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #eee; border-radius: 8px; background-color: #ffffff;">
+                <div style="text-align: center; margin-bottom: 25px;">
+                    <img src="${websiteUrl}/logo.svg" alt="${brandName}" style="height: 40px; filter: grayscale(1) brightness(0.2);">
+                </div>
+                <h2 style="color: #2e7d32; margin-top: 0; text-align: center; font-size: 24px;">Renouvellement d'Abonnement</h2>
+                <p style="font-size: 16px; color: #333;">Bonjour <strong>${fullName}</strong>,</p>
+                <p style="font-size: 15px; color: #555; line-height: 1.6;">
+                    Ceci est un rappel automatique que votre abonnement en tant que <strong>${roleName}</strong> sur la plateforme ${brandName}
+                    ${expiryDate ? `a expiré ou va expirer le <strong>${expiryDate}</strong>` : 'a expiré'}.
+                </p>
+
+                <p style="font-size: 15px; color: #555; line-height: 1.6;">
+                    Pour maintenir votre statut actif dans notre catalogue et continuer à recevoir des demandes directes de DPE en ${marketArea},
+                    renouvelez votre adhésion via le lien sécurisé ci-dessous.
+                </p>
+
+                <div style="text-align: center; margin: 40px 0;">
+                    <a href="${paymentUrl}" target="_blank" style="display:inline-block;background-color:#2e7d32;color:#ffffff;padding:16px 35px;text-decoration:none;border-radius:6px;font-weight:bold;font-size:18px;box-shadow: 0 4px 6px rgba(0,0,0,0.15);">
+                        Renouveler Mon Abonnement Maintenant
+                    </a>
+                </div>
+
+                <div style="background-color: #f0f7f0; padding: 20px; border-radius: 8px; border-left: 5px solid #2e7d32; margin-bottom: 30px;">
+                    <h3 style="margin-top: 0; font-size: 16px; color: #1b5e20;">Avantages Actifs :</h3>
+                    <ul style="padding-left: 20px; margin-top: 10px; margin-bottom: 0; font-size: 14px; color: #2e7d32; line-height: 1.7;">
+                        <li><strong>Rester Visible :</strong> Maintenez votre fiche d'entreprise visible pour les propriétaires.</li>
+                        <li><strong>Alertes de Missions :</strong> Notifications en temps réel pour les demandes dans votre zone.</li>
+                        <li><strong>Statut Vérifié :</strong> Conservez votre badge de partenaire de confiance.</li>
+                    </ul>
+                </div>
+
+                <p style="color: #666; font-size: 14px; text-align: center;">
+                    Si le bouton ne fonctionne pas, copiez et collez ce lien :<br>
+                    <a href="${paymentUrl}" style="color: #2e7d32; word-break: break-all;">${paymentUrl}</a>
+                </p>
+
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+                <p style="font-size: 12px; color: #999; text-align: center; line-height: 1.5;">
+                    &copy; ${new Date().getFullYear()} ${brandName}.<br>
+                    Soutenant les certifications énergétiques durables en ${marketArea}.
+                </p>
+            </div>
+        ` : isPortuguese ? `
             <div style="font-family: sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #eee; border-radius: 8px; background-color: #ffffff;">
                 <div style="text-align: center; margin-bottom: 25px;">
                     <img src="${websiteUrl}/logo.svg" alt="${brandName}" style="height: 40px; filter: grayscale(1) brightness(0.2);">
@@ -186,7 +232,7 @@ serve(async (req: Request) => {
         await client.send(
             smtpFrom,
             email,
-            isSpanish ? "Acción Requerida: Estado de tu Suscripción" : isPortuguese ? `Ação Necessária: Estado da sua Subscrição ${brandName}` : `Action Required: Your ${brandName} Subscription Status`,
+            isSpanish ? "Acción Requerida: Estado de tu Suscripción" : isPortuguese ? `Ação Necessária: Estado da sua Subscrição ${brandName}` : isFrench ? `Action Requise : Statut de votre Abonnement ${brandName}` : `Action Required: Your ${brandName} Subscription Status`,
             html
         )
 

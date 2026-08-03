@@ -24,18 +24,19 @@ const REGISTRATION_NUMBER_LABELS: Record<string, { label: string; placeholder: s
 const tenant = getTenantFromDomain();
 const IS_SPANISH_TENANT = tenant === 'spain';
 const IS_PORTUGUESE_TENANT = tenant === 'portugal';
+const IS_FRENCH_TENANT = tenant === 'france';
 const regLabels = REGISTRATION_NUMBER_LABELS[tenant] || REGISTRATION_NUMBER_LABELS.ireland;
 
 const signupSchema = z.object({
-    fullName: z.string().min(2, IS_SPANISH_TENANT ? 'El nombre completo debe tener al menos 2 caracteres' : IS_PORTUGUESE_TENANT ? 'O nome completo deve ter pelo menos 2 caracteres' : 'Full name must be at least 2 characters'),
-    email: z.string().email(IS_SPANISH_TENANT ? 'Dirección de correo no válida' : IS_PORTUGUESE_TENANT ? 'Endereço de email inválido' : 'Invalid email address'),
+    fullName: z.string().min(2, IS_SPANISH_TENANT ? 'El nombre completo debe tener al menos 2 caracteres' : IS_PORTUGUESE_TENANT ? 'O nome completo deve ter pelo menos 2 caracteres' : IS_FRENCH_TENANT ? 'Le nom complet doit comporter au moins 2 caractères' : 'Full name must be at least 2 characters'),
+    email: z.string().email(IS_SPANISH_TENANT ? 'Dirección de correo no válida' : IS_PORTUGUESE_TENANT ? 'Endereço de email inválido' : IS_FRENCH_TENANT ? 'Adresse e-mail invalide' : 'Invalid email address'),
     phone: z.string().optional(),
-    password: z.string().min(6, IS_SPANISH_TENANT ? 'La contraseña debe tener al menos 6 caracteres' : IS_PORTUGUESE_TENANT ? 'A palavra-passe deve ter pelo menos 6 caracteres' : 'Password must be at least 6 characters'),
+    password: z.string().min(6, IS_SPANISH_TENANT ? 'La contraseña debe tener al menos 6 caracteres' : IS_PORTUGUESE_TENANT ? 'A palavra-passe deve ter pelo menos 6 caracteres' : IS_FRENCH_TENANT ? 'Le mot de passe doit comporter au moins 6 caractères' : 'Password must be at least 6 characters'),
     confirmPassword: z.string(),
     role: z.enum(['user', 'contractor', 'business']),
     seaiNumber: z.string().min(1, regLabels.validationError),
 }).refine((data) => data.password === data.confirmPassword, {
-    message: IS_SPANISH_TENANT ? 'Las contraseñas no coinciden' : IS_PORTUGUESE_TENANT ? 'As palavras-passe não coincidem' : "Passwords don't match",
+    message: IS_SPANISH_TENANT ? 'Las contraseñas no coinciden' : IS_PORTUGUESE_TENANT ? 'As palavras-passe não coincidem' : IS_FRENCH_TENANT ? 'Les mots de passe ne correspondent pas' : "Passwords don't match",
     path: ["confirmPassword"],
 }).refine((data) => {
     if (data.role === 'contractor' && (!data.seaiNumber || data.seaiNumber.trim().length < 1)) {
@@ -51,7 +52,7 @@ const signupSchema = z.object({
     }
     return true;
 }, {
-    message: IS_SPANISH_TENANT ? 'El número de teléfono es obligatorio para propietarios' : IS_PORTUGUESE_TENANT ? 'O número de telefone é obrigatório para proprietários' : "Phone number is required for homeowners",
+    message: IS_SPANISH_TENANT ? 'El número de teléfono es obligatorio para propietarios' : IS_PORTUGUESE_TENANT ? 'O número de telefone é obrigatório para proprietários' : IS_FRENCH_TENANT ? 'Le numéro de téléphone est obligatoire pour les propriétaires' : "Phone number is required for homeowners",
     path: ["phone"],
 });
 
@@ -114,6 +115,16 @@ const SignUp = () => {
                     return { title: 'Registro de Propietario', subtitle: 'Regístrate para empezar.', nameLabel: 'Nombre Completo', namePlaceholder: 'Nombre completo' };
             }
         }
+        if (tenant === 'france') {
+            switch (activeRole) {
+                case 'contractor':
+                    return { title: 'Inscription Diagnostiqueur', subtitle: 'Rejoignez notre réseau de diagnostiqueurs certifiés professionnels.', nameLabel: 'Nom Complet', namePlaceholder: 'Nom complet' };
+                case 'business':
+                    return { title: 'Inscription Entreprise', subtitle: 'Inscrivez votre entreprise dans notre Catalogue d\'Amélioration Énergétique.', nameLabel: 'Nom Complet de l\'Entreprise', namePlaceholder: 'Nom complet de l\'entreprise' };
+                default:
+                    return { title: 'Inscription Propriétaire', subtitle: 'Inscrivez-vous pour commencer.', nameLabel: 'Nom Complet', namePlaceholder: 'Nom complet' };
+            }
+        }
         if (tenant === 'portugal') {
             switch (activeRole) {
                 case 'contractor':
@@ -162,14 +173,16 @@ const SignUp = () => {
                 if (errMsg === 'EMAIL_EXISTS') {
                     toast.error(isSpanish
                         ? 'Este correo electrónico ya está registrado. Por favor, inicia sesión.'
-                        : tenant === 'portugal'
-                            ? 'Este email já está registado. Por favor, inicie sessão.'
-                            : 'This email is already registered. Please log in.');
+                        : tenant === 'france'
+                            ? 'Cet e-mail est déjà enregistré. Veuillez vous connecter.'
+                            : tenant === 'portugal'
+                                ? 'Este email já está registado. Por favor, inicie sessão.'
+                                : 'This email is already registered. Please log in.');
                     navigate('/login', { replace: true });
                     return;
                 }
                 if (errMsg === 'PHONE_EXISTS') {
-                    toast.error(isSpanish ? 'Este número de teléfono ya está asociado a otra cuenta. Por favor, usa un número diferente.' : tenant === 'portugal' ? 'Este número de telefone já está associado a outra conta. Por favor, utilize um número diferente.' : 'This phone number is already associated with another account. Please use a different number.');
+                    toast.error(isSpanish ? 'Este número de teléfono ya está asociado a otra cuenta. Por favor, usa un número diferente.' : tenant === 'france' ? 'Ce numéro de téléphone est déjà associé à un autre compte. Veuillez utiliser un numéro différent.' : tenant === 'portugal' ? 'Este número de telefone já está associado a outra conta. Por favor, utilize um número diferente.' : 'This phone number is already associated with another account. Please use a different number.');
                     return;
                 }
                 throw error;
@@ -207,10 +220,10 @@ const SignUp = () => {
                             });
                         
                         if (!quoteError) {
-                            toast.success(isSpanish ? '¡Cuenta creada y presupuesto enviado con éxito!' : tenant === 'portugal' ? 'Conta criada e orçamento enviado com sucesso!' : 'Account created and quote submitted successfully!');
+                            toast.success(isSpanish ? '¡Cuenta creada y presupuesto enviado con éxito!' : tenant === 'france' ? 'Compte créé et devis envoyé avec succès !' : tenant === 'portugal' ? 'Conta criada e orçamento enviado com sucesso!' : 'Account created and quote submitted successfully!');
                             sessionStorage.removeItem('pendingQuote');
                         } else {
-                            toast.error(isSpanish ? 'Cuenta creada, pero no se pudo enviar el presupuesto. Inténtalo de nuevo desde tu panel.' : tenant === 'portugal' ? 'Conta criada, mas não foi possível enviar o orçamento. Tente novamente a partir do painel.' : 'Account created but failed to submit quote. Please try again from your dashboard.');
+                            toast.error(isSpanish ? 'Cuenta creada, pero no se pudo enviar el presupuesto. Inténtalo de nuevo desde tu panel.' : tenant === 'france' ? 'Compte créé, mais l\'envoi du devis a échoué. Réessayez depuis votre tableau de bord.' : tenant === 'portugal' ? 'Conta criada, mas não foi possível enviar o orçamento. Tente novamente a partir do painel.' : 'Account created but failed to submit quote. Please try again from your dashboard.');
                         }
                     }
                 }
@@ -218,12 +231,12 @@ const SignUp = () => {
                 const isConfirmationRequired = !authData.session;
 
                 if (isConfirmationRequired) {
-                    toast.success(isSpanish ? '¡Cuenta creada! Revisa tu correo para confirmar tu cuenta antes de iniciar sesión.' : tenant === 'portugal' ? 'Conta criada! Verifique o seu email para confirmar a sua conta antes de iniciar sessão.' : 'Account created! Please check your email to confirm your account before logging in.', {
+                    toast.success(isSpanish ? '¡Cuenta creada! Revisa tu correo para confirmar tu cuenta antes de iniciar sesión.' : tenant === 'france' ? 'Compte créé ! Vérifiez votre e-mail pour confirmer votre compte avant de vous connecter.' : tenant === 'portugal' ? 'Conta criada! Verifique o seu email para confirmar a sua conta antes de iniciar sessão.' : 'Account created! Please check your email to confirm your account before logging in.', {
                         duration: 6000
                     });
                     navigate('/login');
                 } else {
-                    toast.success(isSpanish ? '¡Cuenta creada con éxito!' : tenant === 'portugal' ? 'Conta criada com sucesso!' : 'Account created successfully!');
+                    toast.success(isSpanish ? '¡Cuenta creada con éxito!' : tenant === 'france' ? 'Compte créé avec succès !' : tenant === 'portugal' ? 'Conta criada com sucesso!' : 'Account created successfully!');
                     if (data.role === 'business') {
                         navigate('/business-onboarding');
                     } else if (data.role === 'contractor') {
@@ -234,7 +247,7 @@ const SignUp = () => {
                 }
             }
         } catch (err: any) {
-            toast.error(err.message || (isSpanish ? 'No se pudo crear la cuenta' : tenant === 'portugal' ? 'Não foi possível criar a conta' : 'Failed to create account'));
+            toast.error(err.message || (isSpanish ? 'No se pudo crear la cuenta' : tenant === 'france' ? 'Impossible de créer le compte' : tenant === 'portugal' ? 'Não foi possível criar a conta' : 'Failed to create account'));
         }
     };
 
@@ -264,7 +277,7 @@ const SignUp = () => {
                                     : 'border-transparent text-gray-400 hover:text-gray-600'
                                     }`}
                             >
-                                {isSpanish ? 'PROPIETARIO' : tenant === 'portugal' ? 'PROPRIETÁRIO' : 'HOMEOWNER'}
+                                {isSpanish ? 'PROPIETARIO' : tenant === 'france' ? 'PROPRIÉTAIRE' : tenant === 'portugal' ? 'PROPRIETÁRIO' : 'HOMEOWNER'}
                             </button>
                             <button
                                 type="button"
@@ -274,7 +287,7 @@ const SignUp = () => {
                                     : 'border-transparent text-gray-400 hover:text-gray-600'
                                     }`}
                             >
-                                {isSpanish ? 'CERTIFICADOR' : tenant === 'portugal' ? 'PERITO' : 'ASSESSOR'}
+                                {isSpanish ? 'CERTIFICADOR' : tenant === 'france' ? 'DIAGNOSTIQUEUR' : tenant === 'portugal' ? 'PERITO' : 'ASSESSOR'}
                             </button>
                             <button
                                 type="button"
@@ -284,7 +297,7 @@ const SignUp = () => {
                                     : 'border-transparent text-gray-400 hover:text-gray-600'
                                     }`}
                             >
-                                {isSpanish ? 'CATÁLOGO NEGOCIOS' : tenant === 'portugal' ? 'CATÁLOGO NEGÓCIOS' : 'BUSINESS CATALOGUE'}
+                                {isSpanish ? 'CATÁLOGO NEGOCIOS' : tenant === 'france' ? 'CATALOGUE ENTREPRISES' : tenant === 'portugal' ? 'CATÁLOGO NEGÓCIOS' : 'BUSINESS CATALOGUE'}
                             </button>
                         </div>
                     )}
@@ -307,7 +320,7 @@ const SignUp = () => {
                                 {...register('email')}
                                 type="email"
                                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#007F00] focus:border-transparent outline-none transition-all"
-                                placeholder={isSpanish ? 'correo@empresa.com' : tenant === 'portugal' ? 'nome@exemplo.com' : 'email'}
+                                placeholder={isSpanish ? 'correo@empresa.com' : tenant === 'france' ? 'nom@exemple.com' : tenant === 'portugal' ? 'nome@exemplo.com' : 'email'}
                             />
                             {errors.email && <p className="text-red-500 text-xs mt-1 font-medium ml-1">{errors.email.message}</p>}
                         </div>
@@ -365,7 +378,7 @@ const SignUp = () => {
                                 {errors.password && <p className="text-red-500 text-xs mt-1 font-medium ml-1">{errors.password.message}</p>}
                             </div>
                             <div className="space-y-1 text-left">
-                                <label className="text-sm font-bold text-gray-700 ml-1">{isSpanish ? 'Confirmar' : tenant === 'portugal' ? 'Confirmar' : 'Confirm'}</label>
+                                <label className="text-sm font-bold text-gray-700 ml-1">{isSpanish ? 'Confirmar' : tenant === 'france' ? 'Confirmer' : tenant === 'portugal' ? 'Confirmar' : 'Confirm'}</label>
                                 <div className="relative">
                                     <input
                                         {...register('confirmPassword')}
@@ -393,7 +406,7 @@ const SignUp = () => {
                             {isSubmitting ? (
                                 <>
                                     <Loader2 className="animate-spin" size={20} />
-                                    {isSpanish ? 'Creando Cuenta...' : tenant === 'portugal' ? 'A Criar Conta...' : 'Creating Account...'}
+                                    {isSpanish ? 'Creando Cuenta...' : tenant === 'france' ? 'Création du compte...' : tenant === 'portugal' ? 'A Criar Conta...' : 'Creating Account...'}
                                 </>
                             ) : (
                                 t('sign_up')
@@ -402,9 +415,9 @@ const SignUp = () => {
 
                         <div className="text-center mt-6">
                             <p className="text-gray-500 font-medium">
-                                {isSpanish ? '¿Ya tienes una cuenta?' : tenant === 'portugal' ? 'Já tem conta?' : 'Already have an account?'}{' '}
+                                {isSpanish ? '¿Ya tienes una cuenta?' : tenant === 'france' ? 'Vous avez déjà un compte ?' : tenant === 'portugal' ? 'Já tem conta?' : 'Already have an account?'}{' '}
                                 <Link to="/login" className="text-[#007F00] font-black hover:underline">
-                                    {isSpanish ? 'Inicia sesión' : tenant === 'portugal' ? 'Iniciar sessão' : 'Log in'}
+                                    {isSpanish ? 'Inicia sesión' : tenant === 'france' ? 'Se connecter' : tenant === 'portugal' ? 'Iniciar sessão' : 'Log in'}
                                 </Link>
                             </p>
                         </div>

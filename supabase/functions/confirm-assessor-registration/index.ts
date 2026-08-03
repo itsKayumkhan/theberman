@@ -169,14 +169,38 @@ serve(async (req: Request) => {
         const websiteUrl = config.website_url || 'https://theberman.eu';
         const isSpanish = tenant === 'spain';
         const isPortuguese = tenant === 'portugal';
+        const isFrench = tenant === 'france';
         const brandName = config.display_name;
 
         const dateOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-        const locale = isSpanish ? 'es-ES' : isPortuguese ? 'pt-PT' : 'en-IE';
+        const locale = isSpanish ? 'es-ES' : isPortuguese ? 'pt-PT' : isFrench ? 'fr-FR' : 'en-IE';
         const startDateStr = startDate.toLocaleDateString(locale, dateOptions);
         const endDateStr = endDate.toLocaleDateString(locale, dateOptions);
 
-        const emailHtml = isPortuguese ? `
+        const emailHtml = isFrench ? `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; rounded-lg: 1rem;">
+                <h1 style="color: #007F00; text-align: center;">Inscription Terminée !</h1>
+                <p>Bonjour ${user_full_name},</p>
+                <p>Félicitations ! Votre inscription en tant que Diagnostiqueur DPE sur la plateforme ${brandName} est maintenant complète et votre abonnement est actif.</p>
+
+                <div style="background-color: #f9fafb; padding: 15px; border-radius: 0.5rem; margin: 20px 0;">
+                    <h2 style="font-size: 1.1rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px;">Détails de l'Abonnement</h2>
+                    <p><strong>Statut :</strong> Actif</p>
+                    <p><strong>Date de Début :</strong> ${startDateStr}</p>
+                    <p><strong>Valide Jusqu'au :</strong> ${endDateStr}</p>
+                </div>
+
+                <p>Vous pouvez maintenant vous connecter à votre tableau de bord pour gérer votre profil et consulter les notifications de missions.</p>
+
+                <div style="text-align: center; margin-top: 30px;">
+                    <a href="${websiteUrl}/login" style="background-color: #007F00; color: white; padding: 12px 24px; text-decoration: none; border-radius: 0.5rem; font-weight: bold;">Aller au Tableau de Bord</a>
+                </div>
+
+                <p style="margin-top: 40px; font-size: 0.8rem; color: #6b7280; text-align: center;">
+                    Si vous avez des questions, contactez-nous au ${smtpFrom}
+                </p>
+            </div>
+        ` : isPortuguese ? `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; rounded-lg: 1rem;">
                 <h1 style="color: #007F00; text-align: center;">Registo Concluído!</h1>
                 <p>Olá ${user_full_name},</p>
@@ -259,12 +283,36 @@ serve(async (req: Request) => {
             await client.send(
                 smtpFrom,
                 user_email,
-                isSpanish ? 'Registro Completado - Membresía de Certificador Activa' : isPortuguese ? 'Registo Concluído - Subscrição de Perito Ativa' : 'Registration Successful - Assessor Membership Active',
+                isSpanish ? 'Registro Completado - Membresía de Certificador Activa' : isPortuguese ? 'Registo Concluído - Subscrição de Perito Ativa' : isFrench ? 'Inscription Terminée - Abonnement Diagnostiqueur Actif' : 'Registration Successful - Assessor Membership Active',
                 emailHtml
             );
 
             // Email 2: To Admin (Notification)
-            const adminEmailHtml = isPortuguese ? `
+            const adminEmailHtml = isFrench ? `
+                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 1rem;">
+                    <h1 style="color: #4F46E5; text-align: center;">Nouveau Diagnostiqueur Inscrit</h1>
+                    <p>Un nouveau Diagnostiqueur DPE s'est inscrit et a payé avec succès sur ${brandName}.</p>
+
+                    <div style="background-color: #f3f4f6; padding: 15px; border-radius: 0.5rem; margin: 20px 0;">
+                        <h2 style="font-size: 1.1rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px;">Détails du Diagnostiqueur</h2>
+                        <p><strong>Nom :</strong> ${user_full_name}</p>
+                        <p><strong>E-mail :</strong> ${user_email}</p>
+                        <p><strong>Téléphone :</strong> ${phone}</p>
+                        <p><strong>Numéro SEAI :</strong> ${seaiNumber}</p>
+                        <p><strong>Types :</strong> ${assessorTypes.join(', ')}</p>
+                    </div>
+
+                    <div style="background-color: #ebf5ff; padding: 15px; border-radius: 0.5rem; margin: 20px 0;">
+                        <h2 style="font-size: 1.1rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px;">Confirmation de Paiement</h2>
+                        <p><strong>ID de Paiement Stripe :</strong> <code style="background: #fff; padding: 2px 4px; border-radius: 4px;">${paymentIntentId}</code></p>
+                        <p><strong>Statut :</strong> Payé et Actif</p>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 30px;">
+                        <p style="color: #6b7280; font-size: 0.9rem;">Connectez-vous à votre tableau de bord d'administration pour examiner cette inscription.</p>
+                    </div>
+                </div>
+            ` : isPortuguese ? `
                 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 1rem;">
                     <h1 style="color: #4F46E5; text-align: center;">Novo Registo de Perito Certificador</h1>
                     <p>Um novo Perito Certificador registou-se e pagou com sucesso na ${brandName}.</p>
@@ -340,7 +388,7 @@ serve(async (req: Request) => {
             await client.send(
                 smtpFrom,
                 adminEmail,
-                isSpanish ? `NOTIFICACIÓN: Nuevo registro de certificador - ${user_full_name}` : isPortuguese ? `NOTIFICAÇÃO: Novo registo de perito certificador - ${user_full_name}` : `NOTIFICATION: New Assessor Signup - ${user_full_name} `,
+                isSpanish ? `NOTIFICACIÓN: Nuevo registro de certificador - ${user_full_name}` : isPortuguese ? `NOTIFICAÇÃO: Novo registo de perito certificador - ${user_full_name}` : isFrench ? `NOTIFICATION : Nouveau diagnostiqueur inscrit - ${user_full_name}` : `NOTIFICATION: New Assessor Signup - ${user_full_name} `,
                 adminEmailHtml
             );
 

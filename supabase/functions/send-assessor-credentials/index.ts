@@ -38,6 +38,7 @@ Deno.serve(async (req: Request) => {
         const resolvedLoginUrl = loginUrl || `${config.website_url}/login`;
         const isSpanish = tenant === 'spain';
         const isEngland = tenant === 'england';
+        const isFrench = tenant === 'france';
 
         if (!smtpHostname || !smtpUsername || !smtpPassword) {
             throw new Error(`SMTP configuration missing for tenant ${tenant}`);
@@ -49,7 +50,9 @@ Deno.serve(async (req: Request) => {
             ? `Tus Credenciales de Acceso - ${config.display_name}`
             : isPortuguese
                 ? `As suas Credenciais de Acesso - ${config.display_name}`
-                : (isEngland ? `Your DEA Login Credentials - ${config.display_name}` : `Your BER Assessor Login Credentials - ${config.display_name}`);
+                : isFrench
+                    ? `Vos Identifiants de Connexion - ${config.display_name}`
+                    : (isEngland ? `Your DEA Login Credentials - ${config.display_name}` : `Your BER Assessor Login Credentials - ${config.display_name}`);
 
         let lastError: any = null;
         for (let attempt = 1; attempt <= 3; attempt++) {

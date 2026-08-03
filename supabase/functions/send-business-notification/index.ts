@@ -37,9 +37,10 @@ Deno.serve(async (req: Request) => {
         const smtpFrom = config.smtp_from || `${config.display_name} <${smtpUsername}>`;
         const isSpanish = tenant === 'spain';
         const isPortuguese = tenant === 'portugal';
+        const isFrench = tenant === 'france';
         const brandName = config.display_name;
-        const catalogueName = isSpanish ? `${brandName} Catálogo de Eficiencia Energética` : isPortuguese ? `Catálogo de Eficiência Energética ${brandName}` : `${brandName} Home Energy Catalogue`;
-        const marketArea = isSpanish ? 'España' : isPortuguese ? 'Portugal' : 'Ireland';
+        const catalogueName = isSpanish ? `${brandName} Catálogo de Eficiencia Energética` : isPortuguese ? `Catálogo de Eficiência Energética ${brandName}` : isFrench ? `${brandName} Catalogue d'Efficacité Énergétique` : `${brandName} Home Energy Catalogue`;
+        const marketArea = isSpanish ? 'España' : isPortuguese ? 'Portugal' : isFrench ? 'France' : 'Ireland';
 
         if (!smtpHostname || !smtpUsername || !smtpPassword) {
             throw new Error(`SMTP credentials missing for tenant ${tenant}`);
@@ -51,16 +52,116 @@ Deno.serve(async (req: Request) => {
 
         const isFreeRegistration = registrationAmount === 0 || registrationAmount === undefined;
         const feeText = isFreeRegistration
-            ? (isSpanish ? 'GRATIS' : isPortuguese ? 'GRÁTIS' : 'FREE')
+            ? (isSpanish ? 'GRATIS' : isPortuguese ? 'GRÁTIS' : isFrench ? 'GRATUIT' : 'FREE')
             : `€${registrationAmount.toFixed(2)}`;
 
         const subject = isSpanish
             ? `¡Tu negocio ha sido añadido al Catálogo de ${brandName}!`
             : isPortuguese
                 ? `O seu negócio foi adicionado ao Catálogo de ${brandName}!`
-                : `Your Business Has Been Added to ${brandName} Catalogue!`;
+                : isFrench
+                    ? `Votre entreprise a été ajoutée au Catalogue de ${brandName} !`
+                    : `Your Business Has Been Added to ${brandName} Catalogue!`;
 
-        const html = isPortuguese ? `
+        const html = isFrench ? `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #eee; border-radius: 8px; background-color: #ffffff;">
+                <div style="text-align: center; margin-bottom: 25px;">
+                    <img src="${logoUrl}" alt="${brandName}" style="height: 40px; filter: grayscale(1) brightness(0.2);">
+                </div>
+                <h2 style="color: #2e7d32; margin-top: 0; text-align: center; font-size: 24px;">Bienvenue sur le ${catalogueName} !</h2>
+                <p style="font-size: 16px; color: #333;">Chère équipe de <strong>${companyName}</strong>,</p>
+                <p style="font-size: 15px; color: #555; line-height: 1.6;">
+                    Excellentes nouvelles ! Votre entreprise a été ajoutée avec succès au ${catalogueName}, la plateforme de confiance en ${marketArea} pour connecter les propriétaires aux professionnels de l'énergie certifiés.
+                </p>
+
+                <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #eee; margin: 20px 0;">
+                    <h3 style="margin-top: 0; font-size: 16px; color: #333;">Détails de votre Fiche :</h3>
+                    <table style="width: 100%; font-size: 14px; color: #555;">
+                        <tr style="vertical-align: top;">
+                            <td style="padding: 5px 10px 5px 0;"><strong>Entreprise :</strong></td>
+                            <td style="padding: 5px 0;">${companyName}</td>
+                        </tr>
+                        ${email ? `
+                        <tr style="vertical-align: top;">
+                            <td style="padding: 5px 10px 5px 0;"><strong>E-mail :</strong></td>
+                            <td style="padding: 5px 0;">${email}</td>
+                        </tr>` : ''}
+                        ${phone ? `
+                        <tr style="vertical-align: top;">
+                            <td style="padding: 5px 10px 5px 0;"><strong>Téléphone :</strong></td>
+                            <td style="padding: 5px 0;">${phone}</td>
+                        </tr>` : ''}
+                        ${address ? `
+                        <tr style="vertical-align: top;">
+                            <td style="padding: 5px 10px 5px 0;"><strong>Adresse :</strong></td>
+                            <td style="padding: 5px 0;">${address}</td>
+                        </tr>` : ''}
+                        ${website ? `
+                        <tr style="vertical-align: top;">
+                            <td style="padding: 5px 10px 5px 0;"><strong>Site Web :</strong></td>
+                            <td style="padding: 5px 0;"><a href="${website}" style="color: #2e7d32; text-decoration: none;">${website}</a></td>
+                        </tr>` : ''}
+                    </table>
+                </div>
+
+                <div style="background-color: #e8f5e8; padding: 20px; border-radius: 8px; border: 1px solid #c8e6c9; margin: 20px 0;">
+                    <h3 style="margin-top: 0; font-size: 16px; color: #2e7d32;">🎉 Offre d'Inscription Spéciale !</h3>
+                    <p style="font-size: 15px; color: #2e7d32; font-weight: bold; margin-bottom: 10px;">
+                        Frais d'Inscription de votre Entreprise : <span style="font-size: 18px;">${feeText}</span>
+                    </p>
+                    <p style="font-size: 14px; color: #555; line-height: 1.6; margin: 0;">
+                        ${isFreeRegistration
+                            ? 'Vous avez été sélectionné pour une <strong>inscription GRATUITE</strong>. Créez votre compte dès aujourd\'hui pour réclamer votre fiche et commencer à recevoir des demandes de clients.'
+                            : `Vous avez été sélectionné pour des frais d'inscription spéciaux de <strong>€${registrationAmount.toFixed(2)}</strong>. Il s'agit d'un tarif exclusif pour votre entreprise.`}
+                    </p>
+                </div>
+
+                <p style="font-size: 15px; color: #555; line-height: 1.6;">
+                    Votre fiche est maintenant <strong>active et visible</strong> par les propriétaires en ${marketArea} qui recherchent des services d'amélioration énergétique. Cela signifie que les clients potentiels peuvent déjà vous trouver et vous contacter via notre plateforme.
+                </p>
+
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${catalogueUrl}" target="_blank" style="display:inline-block;background-color:#2e7d32;color:#ffffff;padding:16px 35px;text-decoration:none;border-radius:6px;font-weight:bold;font-size:18px;box-shadow: 0 4px 6px rgba(0,0,0,0.15);">
+                        Voir votre Fiche d'Entreprise
+                    </a>
+                </div>
+
+                <div style="background-color: #e8f5e8; padding: 20px; border-radius: 8px; border: 1px solid #c8e6c9; margin: 20px 0;">
+                    <h3 style="margin-top: 0; font-size: 16px; color: #2e7d32;">🚀 Et Maintenant ?</h3>
+                    <ul style="font-size: 14px; color: #555; line-height: 1.6; padding-left: 20px;">
+                        <li><strong>Vérifiez votre fiche :</strong> Contrôlez que toutes les informations sont correctes</li>
+                        <li><strong>Réclamez votre fiche :</strong> Créez un compte pour gérer le profil de votre entreprise</li>
+                        <li><strong>Recevez des demandes :</strong> Les propriétaires peuvent vous contacter directement via la plateforme</li>
+                        <li><strong>Améliorez votre profil :</strong> Ajoutez plus de photos, services et témoignages</li>
+                    </ul>
+                </div>
+
+                <p style="font-size: 15px; color: #555; line-height: 1.6;">
+                    Pour avoir le contrôle total de votre fiche, suivre les demandes et mettre à jour les informations de votre entreprise, nous vous recommandons de créer un compte professionnel.
+                </p>
+
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${websiteUrl}/signup?role=business" target="_blank" style="display:inline-block;background-color:#1976d2;color:#ffffff;padding:14px 30px;text-decoration:none;border-radius:6px;font-weight:bold;font-size:16px;box-shadow: 0 4px 6px rgba(0,0,0,0.15);">
+                        Créer un Compte d'Entreprise
+                    </a>
+                </div>
+
+                <p style="font-size: 14px; color: #777; line-height: 1.6; margin-top: 30px;">
+                    Cette fiche a été ajoutée par <strong>${adminName || `L'équipe ${brandName}`}</strong>. Si vous avez des questions ou besoin de mettre à jour vos informations, n'hésitez pas à nous contacter.
+                </p>
+
+                <p style="color: #888; font-size: 13px; text-align: center; margin-top: 30px;">
+                    Voir votre fiche :<br>
+                    <a href="${catalogueUrl}" style="color: #2e7d32; text-decoration: none; font-size: 11px; word-break: break-all;">${catalogueUrl}</a>
+                </p>
+
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+                <p style="font-size: 12px; color: #999; text-align: center; line-height: 1.6;">
+                    &copy; ${new Date().getFullYear()} ${brandName}.<br>
+                    Connecter les propriétaires aux professionnels de l'énergie de confiance en ${marketArea}.
+                </p>
+            </div>
+        ` : isPortuguese ? `
             <div style="font-family: sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #eee; border-radius: 8px; background-color: #ffffff;">
                 <div style="text-align: center; margin-bottom: 25px;">
                     <img src="${logoUrl}" alt="${brandName}" style="height: 40px; filter: grayscale(1) brightness(0.2);">

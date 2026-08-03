@@ -28,6 +28,21 @@ const PORTUGUESE_PURPOSES: Record<string, string> = {
     'Energy upgrade planning': 'Planeamento de Melhoria Energética',
 };
 
+const FRENCH_PURPOSES: Record<string, string> = {
+    'Selling': 'Vente',
+    'Letting': 'Location',
+    'Govt Grant': 'Subvention Publique',
+    'Mortgage': 'Hypothèque',
+    'New Build': 'Construction Neuve',
+    'Personal Interest': 'Intérêt Personnel',
+    'Compliance requirement': 'Obligation Réglementaire',
+    'Selling property': 'Vente de Propriété',
+    'Leasing property': 'Location de Propriété',
+    'ESG reporting': 'Rapport ESG',
+    'Grant / funding': 'Subvention / Financement',
+    'Energy upgrade planning': 'Planification d\'Amélioration Énergétique',
+};
+
 export const generateJobReminderEmail = (
     contractorName: string,
     jobs: Array<{
@@ -40,17 +55,19 @@ export const generateJobReminderEmail = (
     promoHtml: string,
     websiteUrl: string = "https://theberman.eu",
     contractorPhone?: string,
-    lang: 'en' | 'es' | 'pt' = 'en',
+    lang: 'en' | 'es' | 'pt' | 'fr' = 'en',
     displayName: string = 'The Berman',
 ) => {
     const isSpanish = lang === 'es';
     const isPortuguese = lang === 'pt';
+    const isFrench = lang === 'fr';
     const brandName = displayName;
     const jobCount = jobs.length;
     const phoneParam = contractorPhone ? `?phone=${encodeURIComponent(contractorPhone)}` : '';
     const translatePurpose = (purpose: string) => {
         if (isSpanish) return SPANISH_PURPOSES[purpose] || purpose;
         if (isPortuguese) return PORTUGUESE_PURPOSES[purpose] || purpose;
+        if (isFrench) return FRENCH_PURPOSES[purpose] || purpose;
         return purpose;
     };
     const translatePropertyType = (type: string) => {
@@ -90,6 +107,24 @@ export const generateJobReminderEmail = (
             'Healthcare': 'Saúde',
             'Education': 'Educação',
             'Mixed-Use': 'Uso Misto',
+        } : isFrench ? {
+            'Semi-Detached': 'Maison Jumelée',
+            'Mid-Terrace': 'Maison Mitoyenne (Intérieur)',
+            'End-Terrace': 'Maison Mitoyenne (Extérieur)',
+            'Apartment': 'Appartement',
+            'Piso': 'Appartement',
+            'Duplex': 'Duplex',
+            'Detached': 'Maison Individuelle',
+            'Bungalow': 'Bungalow',
+            'Multi-Unit': 'Multi-Logements',
+            'Other': 'Autre',
+            'Office': 'Bureau',
+            'Retail / Shop': 'Commerce / Boutique',
+            'Warehouse / Industrial': 'Entrepôt / Industriel',
+            'Hospitality': 'Hôtellerie',
+            'Healthcare': 'Santé',
+            'Education': 'Éducation',
+            'Mixed-Use': 'Usage Mixte',
         } : {};
         return map[type] || type;
     };
@@ -102,7 +137,7 @@ export const generateJobReminderEmail = (
       <td style="padding: 12px; font-size: 14px; color: #333;">${translatePurpose(job.ber_purpose)}</td>
       <td style="padding: 12px; text-align: center;">
         <a href="${websiteUrl}/quote/${job.id}${phoneParam}" style="background-color: #5CB85C; color: white !important; padding: 8px 12px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 12px; display: inline-block;">
-          ${isSpanish ? 'Presupuestar' : isPortuguese ? 'Orçamentar' : 'Quote Here'}
+          ${isSpanish ? 'Presupuestar' : isPortuguese ? 'Orçamentar' : isFrench ? 'Envoyer un Devis' : 'Quote Here'}
         </a>
       </td>
     </tr>
@@ -129,22 +164,22 @@ export const generateJobReminderEmail = (
 <body>
     <div class="container">
         <div class="header">
-            <h1>${isSpanish ? 'Envía tus Presupuestos' : isPortuguese ? 'Envie os seus Orçamentos' : 'Submit Your Quotes'}</h1>
+            <h1>${isSpanish ? 'Envía tus Presupuestos' : isPortuguese ? 'Envie os seus Orçamentos' : isFrench ? 'Envoyez vos Devis' : 'Submit Your Quotes'}</h1>
         </div>
         <div class="content">
-            <div class="greeting">${isSpanish ? 'Hola' : isPortuguese ? 'Olá' : 'Hi'} ${contractorName},</div>
+            <div class="greeting">${isSpanish ? 'Hola' : isPortuguese ? 'Olá' : isFrench ? 'Bonjour' : 'Hi'} ${contractorName},</div>
             <div class="message">
-                ${isSpanish ? `Hay <strong>${jobCount} trabajos</strong> disponibles en los que aún no has presupuestado.` : isPortuguese ? `Existem <strong>${jobCount} trabalhos</strong> disponíveis nos quais ainda não orçamentou.` : `There are <strong>${jobCount} jobs</strong> available that you have not yet quoted on.`}
+                ${isSpanish ? `Hay <strong>${jobCount} trabajos</strong> disponibles en los que aún no has presupuestado.` : isPortuguese ? `Existem <strong>${jobCount} trabalhos</strong> disponíveis nos quais ainda não orçamentou.` : isFrench ? `Il y a <strong>${jobCount} missions</strong> disponibles pour lesquelles vous n\'avez pas encore envoyé de devis.` : `There are <strong>${jobCount} jobs</strong> available that you have not yet quoted on.`}
             </div>
             
             <table class="job-table">
                 <thead>
                     <tr>
-                        <th>${isSpanish ? 'Provincia' : isPortuguese ? 'Distrito' : 'County'}</th>
-                        <th>${isSpanish ? 'Municipio' : isPortuguese ? 'Município' : 'Town'}</th>
-                        <th>${isSpanish ? 'Tipo' : isPortuguese ? 'Tipo' : 'Type'}</th>
-                        <th>${isSpanish ? 'Finalidad' : isPortuguese ? 'Finalidade' : 'Purpose'}</th>
-                        <th>${isSpanish ? 'Presupuesto' : isPortuguese ? 'Orçamento' : 'Quote'}</th>
+                        <th>${isSpanish ? 'Provincia' : isPortuguese ? 'Distrito' : isFrench ? 'Département' : 'County'}</th>
+                        <th>${isSpanish ? 'Municipio' : isPortuguese ? 'Município' : isFrench ? 'Ville' : 'Town'}</th>
+                        <th>${isSpanish ? 'Tipo' : isPortuguese ? 'Tipo' : isFrench ? 'Type' : 'Type'}</th>
+                        <th>${isSpanish ? 'Finalidad' : isPortuguese ? 'Finalidade' : isFrench ? 'Objet' : 'Purpose'}</th>
+                        <th>${isSpanish ? 'Presupuesto' : isPortuguese ? 'Orçamento' : isFrench ? 'Devis' : 'Quote'}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -153,7 +188,7 @@ export const generateJobReminderEmail = (
             </table>
 
             <div class="message">
-                ${isSpanish ? `Un saludo,<br>Equipo de ${brandName}` : isPortuguese ? `Com os melhores cumprimentos,<br>Equipa ${brandName}` : `Best Regards,<br>${brandName} Team`}
+                ${isSpanish ? `Un saludo,<br>Equipo de ${brandName}` : isPortuguese ? `Com os melhores cumprimentos,<br>Equipa ${brandName}` : isFrench ? `Cordialement,<br>L'équipe ${brandName}` : `Best Regards,<br>${brandName} Team`}
             </div>
         </div>
         <div class="footer">

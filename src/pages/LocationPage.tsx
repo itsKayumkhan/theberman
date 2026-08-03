@@ -106,19 +106,19 @@ const LocationPage = () => {
         getQuote: isSpanish ? 'Obtener cotización' : isFrance ? 'Obtenir un devis' : isPortugal ? 'Pedir orçamento' : 'Get Quote',
         viewAll: isSpanish ? 'Ver todos' : isFrance ? 'Voir tout' : isPortugal ? 'Ver todos' : 'View All',
         townsIn: isSpanish ? 'Localidades en' : isFrance ? 'Communes de' : isPortugal ? 'Localidades em' : 'Towns in',
-        serviceAreas: isSpanish ? 'Áreas de servicio' : 'Service Areas',
+        serviceAreas: isSpanish ? 'Áreas de servicio' : isFrance ? 'Zones d\'intervention' : isPortugal ? 'Áreas de serviço' : 'Service Areas',
     };
 
     const brandName = isSpanish ? 'Certificado Energético' : isEngland ? 'EPC Cert' : isFrance ? 'DPE France' : isPortugal ? 'Certificado Energético' : 'The Berman';
 
     // Generate meta title and description (use custom data if available)
     const defaultPageTitle = townName
-        ? `${labels.assessor} ${labels.in} ${townName}, ${countyName} | ${isSpanish ? 'Certificado Energético' : isEngland ? 'EPC Certificates' : 'BER Certificates'}`
-        : `${labels.assessor} ${labels.in} ${displayName} | ${isSpanish ? 'Certificado Energético' : isEngland ? 'EPC Certificates' : 'BER Certificates'}`;
+        ? `${labels.assessor} ${labels.in} ${townName}, ${countyName} | ${isSpanish ? 'Certificado Energético' : isEngland ? 'EPC Certificates' : isFrance ? 'DPE' : isPortugal ? 'Certificado Energético' : 'BER Certificates'}`
+        : `${labels.assessor} ${labels.in} ${displayName} | ${isSpanish ? 'Certificado Energético' : isEngland ? 'EPC Certificates' : isFrance ? 'DPE' : isPortugal ? 'Certificado Energético' : 'BER Certificates'}`;
 
     const defaultPageDescription = townName
-        ? `Find ${labels.assessor.toLowerCase()} ${labels.in} ${townName}, ${countyName}. ${isSpanish ? 'Obtenga su certificado de eficiencia energética con técnicos certificados locales.' : 'Get your energy certificate with local certified assessors.'}`
-        : `Find ${labels.assessor.toLowerCase()} ${labels.in} ${displayName}. ${isSpanish ? 'Obtenga su certificado de eficiencia energética con técnicos certificados locales.' : 'Get your energy certificate with local certified assessors.'}`;
+        ? `Find ${labels.assessor.toLowerCase()} ${labels.in} ${townName}, ${countyName}. ${isSpanish ? 'Obtenga su certificado de eficiencia energética con técnicos certificados locales.' : isFrance ? 'Obtenez votre DPE avec des diagnostiqueurs certifiés locaux.' : isPortugal ? 'Obtenha o seu certificado energético com peritos qualificados locais.' : 'Get your energy certificate with local certified assessors.'}`
+        : `Find ${labels.assessor.toLowerCase()} ${labels.in} ${displayName}. ${isSpanish ? 'Obtenga su certificado de eficiencia energética con técnicos certificados locales.' : isFrance ? 'Obtenez votre DPE avec des diagnostiqueurs certifiés locaux.' : isPortugal ? 'Obtenha o seu certificado energético com peritos qualificados locais.' : 'Get your energy certificate with local certified assessors.'}`;
 
     const pageTitle = customData?.seo_title || defaultPageTitle;
     const pageDescription = customData?.seo_description || defaultPageDescription;
@@ -132,18 +132,22 @@ const LocationPage = () => {
     const heroTitle = customData?.hero_title || `${labels.assessor} ${labels.in} ${townName || displayName}`;
     const heroSubtitle = customData?.hero_subtitle || (isSpanish
         ? `Su Certificado de Eficiencia Energética en ${countyName}.`
-        : isPortugal
-            ? `Encontre peritos qualificados em ${townName || displayName}. Compare orçamentos e reserve online.`
-            : (townName
-                ? `Find ${labels.assessor.toLowerCase()} ${labels.in} ${townName}, ${countyName}. Certified assessors ready to help with your energy certificate.`
-                : `Find ${labels.assessor.toLowerCase()} ${labels.in} ${displayName}. Certified assessors ready to help with your energy certificate.`)
+        : isFrance
+            ? `Trouvez des diagnostiqueurs certifiés à ${townName || displayName}. Comparez les devis et réservez en ligne.`
+            : isPortugal
+                ? `Encontre peritos qualificados em ${townName || displayName}. Compare orçamentos e reserve online.`
+                : (townName
+                    ? `Find ${labels.assessor.toLowerCase()} ${labels.in} ${townName}, ${countyName}. Certified assessors ready to help with your energy certificate.`
+                    : `Find ${labels.assessor.toLowerCase()} ${labels.in} ${displayName}. Certified assessors ready to help with your energy certificate.`)
     );
 
     const introText = customData?.intro_text || (isSpanish
         ? `Su Certificado de Eficiencia Energética en ${countyName}.`
-        : isPortugal
-            ? `A Certificado Energia conecta proprietários com peritos qualificados em ${townName || displayName}. Os nossos peritos estão prontos a fornecer certificados de eficiência energética de alta qualidade.`
-            : `${brandName} connects homeowners with ${isEngland ? 'certified assessors' : 'BER assessors'} in ${townName || displayName}. Our expert assessors are ready to provide high-quality ${isEngland ? 'Energy Performance Certificates' : 'Building Energy Ratings'}.`
+        : isFrance
+            ? `DPE Cert France connecte les propriétaires avec des diagnostiqueurs certifiés à ${townName || displayName}. Nos experts sont prêts à fournir des diagnostics de performance énergétique de haute qualité.`
+            : isPortugal
+                ? `A Certificado Energia conecta proprietários com peritos qualificados em ${townName || displayName}. Os nossos peritos estão prontos a fornecer certificados de eficiência energética de alta qualidade.`
+                : `${brandName} connects homeowners with ${isEngland ? 'certified assessors' : 'BER assessors'} in ${townName || displayName}. Our expert assessors are ready to provide high-quality ${isEngland ? 'Energy Performance Certificates' : 'Building Energy Ratings'}.`
     );
 
     return (
@@ -195,7 +199,7 @@ const LocationPage = () => {
                             <CheckCircle2 size={32} />
                             <span>{labels.available}</span>
                         </div>
-                        <p className="text-gray-600">{isPortugal ? 'Hoje' : 'Today'}</p>
+                        <p className="text-gray-600">{isPortugal ? 'Hoje' : isFrance ? 'Aujourd\'hui' : 'Today'}</p>
                     </div>
                 </div>
             </div>
@@ -213,9 +217,11 @@ const LocationPage = () => {
                             <p>
                                 {isSpanish
                                     ? `Todos nuestros técnicos están debidamente certificados y tienen experiencia en la evaluación de eficiencia energética de propiedades en ${countyName}.`
-                                    : isPortugal
-                                        ? `Todos os nossos peritos são plenamente qualificados e experientes na avaliação energética de imóveis em ${countyName}.`
-                                        : `All our assessors are fully certified and experienced in energy rating properties in ${countyName}.`
+                                    : isFrance
+                                        ? `Tous nos diagnostiqueurs sont pleinement certifiés et expérimentés dans le diagnostic de performance énergétique des propriétés en ${countyName}.`
+                                        : isPortugal
+                                            ? `Todos os nossos peritos são plenamente qualificados e experientes na avaliação energética de imóveis em ${countyName}.`
+                                            : `All our assessors are fully certified and experienced in energy rating properties in ${countyName}.`
                                 }
                             </p>
                         </div>
@@ -256,14 +262,16 @@ const LocationPage = () => {
             <div className="bg-gray-900 text-white py-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <h2 className="text-3xl font-bold mb-4">
-                        {isSpanish ? '¿Listo para obtener su certificado?' : isPortugal ? 'Pronto para obter o seu certificado?' : 'Ready to Get Your Certificate?'}
+                        {isSpanish ? '¿Listo para obtener su certificado?' : isFrance ? 'Prêt à obtenir votre DPE ?' : isPortugal ? 'Pronto para obter o seu certificado?' : 'Ready to Get Your Certificate?'}
                     </h2>
                     <p className="text-xl opacity-90 mb-8">
                         {isSpanish
                             ? 'Compare precios de técnicos certificados en minutos'
-                            : isPortugal
-                                ? 'Compare orçamentos de peritos qualificados em minutos'
-                                : 'Compare prices from certified assessors in minutes'
+                            : isFrance
+                                ? 'Comparez les devis de diagnostiqueurs certifiés en quelques minutes'
+                                : isPortugal
+                                    ? 'Compare orçamentos de peritos qualificados em minutos'
+                                    : 'Compare prices from certified assessors in minutes'
                         }
                     </p>
                     <Link

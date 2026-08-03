@@ -66,6 +66,7 @@ Deno.serve(async (req: Request) => {
         const websiteUrl = config.website_url;
         const isSpanish = tenant === 'spain';
         const isPortuguese = tenant === 'portugal';
+        const isFrench = tenant === 'france';
 
         let smtpClient: CustomSmtpClient | null = null;
 
@@ -112,7 +113,43 @@ Deno.serve(async (req: Request) => {
                         const town = quote.assessment?.town || 'Unknown';
                         const county = quote.assessment?.county || '';
 
-                        const emailHtml = isPortuguese ? `
+                        const emailHtml = isFrench ? `
+                            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                                <div style="text-align: center; margin-bottom: 30px;">
+                                    <h1 style="color: #1a1a1a; font-size: 24px; margin: 0;">Devis Expiré</h1>
+                                </div>
+
+                                <p style="color: #333; font-size: 16px; line-height: 1.6;">
+                                    Bonjour ${contractorName},
+                                </p>
+
+                                <p style="color: #555; font-size: 15px; line-height: 1.6;">
+                                    Votre devis de <strong>€${quote.price + 10}</strong> pour le DPE à
+                                    <strong>${town}${county ? ', ' + county : ''}</strong> a expiré car le propriétaire
+                                    n'a pas répondu dans un délai de 5 jours.
+                                </p>
+
+                                <div style="background: #f8f9fa; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #e9ecef;">
+                                    <p style="color: #666; font-size: 14px; margin: 0;">
+                                        <strong>Que se passe-t-il maintenant ?</strong><br>
+                                        La mission a été republiée sur la plateforme pour que de nouveaux diagnostiqueurs puissent soumettre un devis.
+                                        Vous pouvez envoyer un nouveau devis si vous êtes toujours intéressé.
+                                    </p>
+                                </div>
+
+                                <div style="text-align: center; margin: 30px 0;">
+                                    <a href="${websiteUrl}/login"
+                                       style="display: inline-block; background: #007F00; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px;">
+                                        Voir les Missions Disponibles
+                                    </a>
+                                </div>
+
+                                <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+                                <p style="color: #999; font-size: 12px; text-align: center;">
+                                    Ceci est une notification automatique de ${config.display_name}
+                                </p>
+                            </div>
+                        ` : isPortuguese ? `
                             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                                 <div style="text-align: center; margin-bottom: 30px;">
                                     <h1 style="color: #1a1a1a; font-size: 24px; margin: 0;">Orçamento Expirado</h1>
@@ -225,7 +262,7 @@ Deno.serve(async (req: Request) => {
                         await smtpClient.send(
                             smtpFrom,
                             contractorEmail,
-                            isSpanish ? `Presupuesto Caducado: Trabajo en ${town}` : isPortuguese ? `Orçamento Expirado: Trabalho em ${town}` : `Quote Expired: BER Job in ${town}`,
+                            isSpanish ? `Presupuesto Caducado: Trabajo en ${town}` : isPortuguese ? `Orçamento Expirado: Trabalho em ${town}` : isFrench ? `Devis Expiré : Mission à ${town}` : `Quote Expired: BER Job in ${town}`,
                             emailHtml
                         );
                         console.log(`[expire-quotes] Notified assessor: ${contractorEmail}`);

@@ -23,8 +23,9 @@ const tenant = getTenantFromDomain();
 const isEngland = tenant === 'england';
 const isSpanish = tenant === 'spain';
 const isPortuguese = tenant === 'portugal';
-const brandName = isEngland ? 'EPC Cert' : isSpanish ? 'Certificado Energético' : isPortuguese ? 'Certificado Energia' : 'The Berman';
-const regNumberLabel = isEngland ? 'Assessor ID' : isSpanish ? 'CEE CAT #' : isPortuguese ? 'N.º ADENE' : 'SEAI #';
+const isFrench = tenant === 'france';
+const brandName = isEngland ? 'EPC Cert' : isSpanish ? 'Certificado Energético' : isPortuguese ? 'Certificado Energia' : isFrench ? 'DPE Cert France' : 'The Berman';
+const regNumberLabel = isEngland ? 'Assessor ID' : isSpanish ? 'CEE CAT #' : isPortuguese ? 'N.º ADENE' : isFrench ? 'N° DPE' : 'SEAI #';
 
 const PublicAssessorProfile = () => {
     const { id } = useParams();
@@ -122,11 +123,11 @@ const PublicAssessorProfile = () => {
                 <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-6 text-gray-300">
                     <Shield size={40} />
                 </div>
-                <h1 className="text-2xl font-black text-gray-900 mb-2">Profile Not Found</h1>
-                <p className="text-gray-500 mb-8 max-w-sm">The assessor profile you are looking for does not exist or has been moved.</p>
+                <h1 className="text-2xl font-black text-gray-900 mb-2">{isSpanish ? 'Perfil No Encontrado' : isPortuguese ? 'Perfil Não Encontrado' : isFrench ? 'Profil Introuvable' : 'Profile Not Found'}</h1>
+                <p className="text-gray-500 mb-8 max-w-sm">{isSpanish ? 'El perfil del certificador que buscas no existe o ha sido movido.' : isPortuguese ? 'O perfil do perito que procura não existe ou foi movido.' : isFrench ? 'Le profil du diagnostiqueur que vous recherchez n\'existe pas ou a été déplacé.' : 'The assessor profile you are looking for does not exist or has been moved.'}</p>
                 <Link to="/" className="text-[#007EA7] font-bold hover:underline flex items-center gap-2">
                     <ArrowLeft size={16} />
-                    Back to Homepage
+                    {isSpanish ? 'Volver al Inicio' : isPortuguese ? 'Voltar ao Início' : isFrench ? 'Retour à l\'Accueil' : 'Back to Homepage'}
                 </Link>
             </div>
         );
@@ -148,7 +149,7 @@ const PublicAssessorProfile = () => {
                         className="text-xs font-black text-gray-400 hover:text-[#007EA7] uppercase tracking-widest transition-colors flex items-center gap-2"
                     >
                         <ArrowLeft size={14} />
-                        Back to Catalogue
+                        {isSpanish ? 'Volver al Catálogo' : isPortuguese ? 'Voltar ao Catálogo' : isFrench ? 'Retour au Catalogue' : 'Back to Catalogue'}
                     </Link>
                 </div>
             </nav>
@@ -173,18 +174,18 @@ const PublicAssessorProfile = () => {
                                             </h1>
                                             <div className="flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-600 rounded-full border border-green-100 self-center md:self-auto">
                                                 <ShieldCheck size={14} />
-                                                <span className="text-[10px] font-black uppercase tracking-widest">Verified Assessor</span>
+                                                <span className="text-[10px] font-black uppercase tracking-widest">{isSpanish ? 'Certificador Verificado' : isPortuguese ? 'Perito Verificado' : isFrench ? 'Diagnostiqueur Vérifié' : 'Verified Assessor'}</span>
                                             </div>
                                         </div>
 
                                         <div className="flex flex-wrap justify-center md:justify-start items-center gap-6">
                                             <div className="flex items-center gap-2 text-gray-500">
                                                 <Building2 size={18} className="text-[#007EA7]" />
-                                                <span className="text-sm font-bold">{profile.company_name || 'Independent Assessor'}</span>
+                                                <span className="text-sm font-bold">{profile.company_name || (isSpanish ? 'Certificador Independiente' : isPortuguese ? 'Perito Independente' : isFrench ? 'Diagnostiqueur Indépendant' : 'Independent Assessor')}</span>
                                             </div>
                                             <div className="flex items-center gap-2 text-gray-500">
                                                 <MapPin size={18} className="text-[#007EA7]" />
-                                                <span className="text-sm font-bold uppercase tracking-widest">{profile.home_county || 'Dublin'}, IE</span>
+                                                <span className="text-sm font-bold uppercase tracking-widest">{profile.home_county || 'Dublin'}, {isFrench ? 'FR' : isPortuguese ? 'PT' : isSpanish ? 'ES' : isEngland ? 'EN' : 'IE'}</span>
                                             </div>
                                             <div className="flex items-center gap-1">
                                                 <Star size={16} className="fill-yellow-400 text-yellow-400" />
@@ -208,7 +209,7 @@ const PublicAssessorProfile = () => {
                                                     className="px-4 py-2 bg-gray-50 text-gray-600 hover:text-[#007EA7] hover:bg-white hover:border-[#007EA7] transition-all rounded-xl border border-gray-100 text-xs font-bold flex items-center gap-2"
                                                 >
                                                     <Globe size={14} />
-                                                    Visit Website
+                                                    {isSpanish ? 'Visitar Sitio' : isPortuguese ? 'Visitar Site' : isFrench ? 'Visiter le Site' : 'Visit Website'}
                                                 </a>
                                             )}
                                         </div>
@@ -223,10 +224,10 @@ const PublicAssessorProfile = () => {
                                 <span className="w-8 h-8 bg-blue-50 text-[#007EA7] rounded-lg flex items-center justify-center">
                                     <MessageCircle size={18} />
                                 </span>
-                                {isSpanish ? 'Sobre el Certificador' : isPortuguese ? 'Sobre o Perito' : isEngland ? 'About the Assessor' : 'About the Assessor'}
+                                {isSpanish ? 'Sobre el Certificador' : isPortuguese ? 'Sobre o Perito' : isFrench ? 'À propos du Diagnostiqueur' : 'About the Assessor'}
                             </h2>
                             <div className="bg-white p-8 md:p-10 rounded-[2rem] border border-gray-50 shadow-sm leading-relaxed text-gray-600 font-medium text-lg">
-                                {profile.about_me || (isSpanish ? `Este certificador aún no ha proporcionado una biografía detallada, pero es un profesional licenciado y verificado en la plataforma ${brandName}.` : isPortuguese ? `Este perito ainda não forneceu uma biografia detalhada, mas é um profissional licenciado e verificado na plataforma ${brandName}.` : `This assessor has not provided a detailed biography yet, but they are a licensed and verified professional on ${brandName} platform.`)}
+                                {profile.about_me || (isSpanish ? `Este certificador aún no ha proporcionado una biografía detallada, pero es un profesional licenciado y verificado en la plataforma ${brandName}.` : isPortuguese ? `Este perito ainda não forneceu uma biografia detalhada, mas é um profissional licenciado e verificado na plataforma ${brandName}.` : isFrench ? `Ce diagnostiqueur n\'a pas encore fourni de biographie détaillée, mais c\'est un professionnel agréé et vérifié sur la plateforme ${brandName}.` : `This assessor has not provided a detailed biography yet, but they are a licensed and verified professional on ${brandName} platform.`)}
                             </div>
                         </div>
 
@@ -237,20 +238,20 @@ const PublicAssessorProfile = () => {
                                     <span className="w-8 h-8 bg-green-50 text-green-600 rounded-lg flex items-center justify-center">
                                         <Shield size={18} />
                                     </span>
-                                    {isSpanish ? 'Cualificaciones' : isPortuguese ? 'Qualificações' : 'Qualifications'}
+                                    {isSpanish ? 'Cualificaciones' : isPortuguese ? 'Qualificações' : isFrench ? 'Qualifications' : 'Qualifications'}
                                 </h3>
                                 <div className="bg-white p-6 rounded-[2rem] border border-gray-50 shadow-sm space-y-4">
                                     <div className="flex items-center gap-3 text-sm font-bold text-gray-600">
                                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                        {isSpanish ? 'Certificador Licenciado' : isPortuguese ? 'Perito Certificado Licenciado' : isEngland ? 'Licensed EPC Assessor' : 'Licensed BER Assessor'}
+                                        {isSpanish ? 'Certificador Licenciado' : isPortuguese ? 'Perito Certificado Licenciado' : isFrench ? 'Diagnostiqueur Agréé' : isEngland ? 'Licensed EPC Assessor' : 'Licensed BER Assessor'}
                                     </div>
                                     <div className="flex items-center gap-3 text-sm font-bold text-gray-600">
                                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                        {isSpanish ? 'Socio Registrado CEE CAT' : isPortuguese ? 'Parceiro Registado ADENE' : isEngland ? 'Accredited Partner' : 'SEAI Registered Partner'}
+                                        {isSpanish ? 'Socio Registrado CEE CAT' : isPortuguese ? 'Parceiro Registado ADENE' : isFrench ? 'Partenaire Enregistré DPE' : isEngland ? 'Accredited Partner' : 'SEAI Registered Partner'}
                                     </div>
                                     <div className="flex items-center gap-3 text-sm font-bold text-gray-600">
                                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                        {isSpanish ? 'Seguro Verificado' : isPortuguese ? 'Seguro Verificado' : 'Verified Insurance Coverage'}
+                                        {isSpanish ? 'Seguro Verificado' : isPortuguese ? 'Seguro Verificado' : isFrench ? 'Assurance Vérifiée' : 'Verified Insurance Coverage'}
                                     </div>
                                 </div>
                             </div>
@@ -260,13 +261,13 @@ const PublicAssessorProfile = () => {
                                     <span className="w-8 h-8 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center">
                                         <MapPin size={18} />
                                     </span>
-                                    {isSpanish ? 'Zonas de Servicio' : isPortuguese ? 'Áreas de Serviço' : 'Service Areas'}
+                                    {isSpanish ? 'Zonas de Servicio' : isPortuguese ? 'Áreas de Serviço' : isFrench ? 'Zones d\'Intervention' : 'Service Areas'}
                                 </h3>
                                 <div className="bg-white p-6 rounded-[2rem] border border-gray-50 shadow-sm">
                                     <div className="flex flex-wrap gap-2">
                                         {(profile.preferred_counties?.length ? profile.preferred_counties : [profile.home_county]).filter(Boolean).map((area: any) => (
                                             <span key={area} className="px-3 py-1.5 bg-gray-50 text-gray-600 text-xs font-bold rounded-lg border border-gray-100">
-                                                {isSpanish || isPortuguese ? area : `Co. ${area}`}
+                                                {isSpanish || isPortuguese || isFrench ? area : `Co. ${area}`}
                                             </span>
                                         ))}
                                     </div>
@@ -279,28 +280,28 @@ const PublicAssessorProfile = () => {
                     <div className="lg:col-span-4">
                         <div className="bg-white rounded-[2.5rem] p-8 md:p-10 shadow-xl border border-gray-100 sticky top-32">
                             <div className="mb-8">
-                                <h3 className="text-2xl font-black text-gray-900 leading-tight">{isSpanish ? 'Solicitar Presupuesto' : isPortuguese ? 'Peça um Orçamento' : 'Get A Quote'}</h3>
-                                <p className="text-gray-500 text-sm mt-2 font-medium">{isSpanish ? 'Solicita un presupuesto directamente a este certificador.' : isPortuguese ? 'Peça um orçamento diretamente a este perito.' : 'Request a quote directly from this assessor.'}</p>
+                                <h3 className="text-2xl font-black text-gray-900 leading-tight">{isSpanish ? 'Solicitar Presupuesto' : isPortuguese ? 'Peça um Orçamento' : isFrench ? 'Demander un Devis' : 'Get A Quote'}</h3>
+                                <p className="text-gray-500 text-sm mt-2 font-medium">{isSpanish ? 'Solicita un presupuesto directamente a este certificador.' : isPortuguese ? 'Peça um orçamento diretamente a este perito.' : isFrench ? 'Demandez un devis directement à ce diagnostiqueur.' : 'Request a quote directly from this assessor.'}</p>
                             </div>
 
                             <form onSubmit={handleLeadSubmit} className="space-y-5">
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Tu Nombre' : isPortuguese ? 'O seu Nome' : 'Your Name'}</label>
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Tu Nombre' : isPortuguese ? 'O seu Nome' : isFrench ? 'Votre Nom' : 'Your Name'}</label>
                                     <input
                                         required
                                         type="text"
-                                        placeholder={isSpanish ? 'Introduce tu nombre' : isPortuguese ? 'Introduza o seu nome' : 'Enter your name'}
+                                        placeholder={isSpanish ? 'Introduce tu nombre' : isPortuguese ? 'Introduza o seu nome' : isFrench ? 'Saisissez votre nom' : 'Enter your name'}
                                         value={formData.name}
                                         onChange={e => setFormData({ ...formData, name: e.target.value })}
                                         className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-[#007EA7] focus:bg-white rounded-2xl outline-none font-bold text-sm transition-all"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Correo Electrónico' : isPortuguese ? 'Email' : 'Email Address'}</label>
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Correo Electrónico' : isPortuguese ? 'Email' : isFrench ? 'Adresse E-mail' : 'Email Address'}</label>
                                     <input
                                         required
                                         type="email"
-                                        placeholder={isPortuguese ? 'nome@exemplo.com' : 'name@example.com'}
+                                        placeholder={isPortuguese ? 'nome@exemplo.com' : isFrench ? 'nom@exemple.com' : 'name@example.com'}
                                         value={formData.email}
                                         onChange={e => setFormData({ ...formData, email: e.target.value })}
                                         className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-[#007EA7] focus:bg-white rounded-2xl outline-none font-bold text-sm transition-all"
@@ -308,7 +309,7 @@ const PublicAssessorProfile = () => {
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Teléfono' : isPortuguese ? 'Telefone' : 'Phone'}</label>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Teléfono' : isPortuguese ? 'Telefone' : isFrench ? 'Téléphone' : 'Phone'}</label>
                                         <input
                                             required
                                             type="tel"
@@ -319,11 +320,11 @@ const PublicAssessorProfile = () => {
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Código Postal' : isPortuguese ? 'Código Postal' : 'Eircode'}</label>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Código Postal' : isPortuguese ? 'Código Postal' : isFrench ? 'Code Postal' : 'Eircode'}</label>
                                         <input
                                             required
                                             type="text"
-                                            placeholder={isSpanish ? '28001' : isPortuguese ? '1000-001' : 'A65 F123'}
+                                            placeholder={isSpanish ? '28001' : isPortuguese ? '1000-001' : isFrench ? '75001' : 'A65 F123'}
                                             value={formData.eircode}
                                             onChange={e => setFormData({ ...formData, eircode: e.target.value.toUpperCase() })}
                                             className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-[#007EA7] focus:bg-white rounded-2xl outline-none font-bold text-sm transition-all"
@@ -332,25 +333,25 @@ const PublicAssessorProfile = () => {
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Tipo de Propiedad' : isPortuguese ? 'Tipo de Imóvel' : 'Property Type'}</label>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Tipo de Propiedad' : isPortuguese ? 'Tipo de Imóvel' : isFrench ? 'Type de Bien' : 'Property Type'}</label>
                                         <select
                                             value={formData.property_type}
                                             onChange={e => setFormData({ ...formData, property_type: e.target.value })}
                                             className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-[#007EA7] focus:bg-white rounded-2xl outline-none font-bold text-sm transition-all"
                                         >
-                                            <option value="">{isSpanish ? 'Seleccionar' : isPortuguese ? 'Selecionar' : 'Select...'}</option>
-                                            <option value="Apartment">{isSpanish ? 'Apartamento' : isPortuguese ? 'Apartamento' : 'Apartment'}</option>
-                                            <option value="Mid-Terrace">{isSpanish ? 'Adosada' : isPortuguese ? 'Moradia em Banda' : 'Mid-Terrace'}</option>
-                                            <option value="Semi-Detached">{isSpanish ? 'Pareada' : isPortuguese ? 'Geminada' : 'Semi-Detached'}</option>
-                                            <option value="Detached">{isSpanish ? 'Independiente' : isPortuguese ? 'Isolada' : 'Detached'}</option>
-                                            <option value="Bungalow">{isSpanish ? 'Chalet' : isPortuguese ? 'Bungalow' : 'Bungalow'}</option>
+                                            <option value="">{isSpanish ? 'Seleccionar' : isPortuguese ? 'Selecionar' : isFrench ? 'Sélectionner...' : 'Select...'}</option>
+                                            <option value="Apartment">{isSpanish ? 'Apartamento' : isPortuguese ? 'Apartamento' : isFrench ? 'Appartement' : 'Apartment'}</option>
+                                            <option value="Mid-Terrace">{isSpanish ? 'Adosada' : isPortuguese ? 'Moradia em Banda' : isFrench ? 'Mitoyenne' : 'Mid-Terrace'}</option>
+                                            <option value="Semi-Detached">{isSpanish ? 'Pareada' : isPortuguese ? 'Geminada' : isFrench ? 'Jumelée' : 'Semi-Detached'}</option>
+                                            <option value="Detached">{isSpanish ? 'Independiente' : isPortuguese ? 'Isolada' : isFrench ? 'Individuelle' : 'Detached'}</option>
+                                            <option value="Bungalow">{isSpanish ? 'Chalet' : isPortuguese ? 'Bungalow' : isFrench ? 'Bungalow' : 'Bungalow'}</option>
                                         </select>
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Tamaño' : isPortuguese ? 'Tamanho' : 'Property Size'}</label>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Tamaño' : isPortuguese ? 'Tamanho' : isFrench ? 'Surface' : 'Property Size'}</label>
                                         <input
                                             type="text"
-                                            placeholder={isSpanish ? 'ej. 120 m²' : isPortuguese ? 'ex. 120 m²' : 'e.g. 120 sqm'}
+                                            placeholder={isSpanish ? 'ej. 120 m²' : isPortuguese ? 'ex. 120 m²' : isFrench ? 'ex. 120 m²' : 'e.g. 120 sqm'}
                                             value={formData.property_size}
                                             onChange={e => setFormData({ ...formData, property_size: e.target.value })}
                                             className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-[#007EA7] focus:bg-white rounded-2xl outline-none font-bold text-sm transition-all"
@@ -360,7 +361,7 @@ const PublicAssessorProfile = () => {
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Fecha Preferida' : isPortuguese ? 'Data Preferida' : 'Preferred Date'}</label>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Fecha Preferida' : isPortuguese ? 'Data Preferida' : isFrench ? 'Date Souhaitée' : 'Preferred Date'}</label>
                                         <input
                                             type="date"
                                             value={formData.preferred_date}
@@ -369,29 +370,29 @@ const PublicAssessorProfile = () => {
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Hora Preferida' : isPortuguese ? 'Hora Preferida' : 'Preferred Time'}</label>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Hora Preferida' : isPortuguese ? 'Hora Preferida' : isFrench ? 'Heure Souhaitée' : 'Preferred Time'}</label>
                                         <select
                                             value={formData.preferred_time}
                                             onChange={e => setFormData({ ...formData, preferred_time: e.target.value })}
                                             className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-[#007EA7] focus:bg-white rounded-2xl outline-none font-bold text-sm transition-all"
                                         >
-                                            <option value="">{isSpanish ? 'Seleccionar' : isPortuguese ? 'Selecionar' : 'Select...'}</option>
-                                            <option value="Morning">{isSpanish ? 'Mañana' : isPortuguese ? 'Manhã' : 'Morning'}</option>
-                                            <option value="Afternoon">{isSpanish ? 'Tarde' : isPortuguese ? 'Tarde' : 'Afternoon'}</option>
-                                            <option value="Evening">{isSpanish ? 'Noche' : isPortuguese ? 'Fim de Tarde' : 'Evening'}</option>
+                                            <option value="">{isSpanish ? 'Seleccionar' : isPortuguese ? 'Selecionar' : isFrench ? 'Sélectionner...' : 'Select...'}</option>
+                                            <option value="Morning">{isSpanish ? 'Mañana' : isPortuguese ? 'Manhã' : isFrench ? 'Matin' : 'Morning'}</option>
+                                            <option value="Afternoon">{isSpanish ? 'Tarde' : isPortuguese ? 'Tarde' : isFrench ? 'Après-midi' : 'Afternoon'}</option>
+                                            <option value="Evening">{isSpanish ? 'Noche' : isPortuguese ? 'Fim de Tarde' : isFrench ? 'Soir' : 'Evening'}</option>
                                         </select>
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Dormitorios' : isPortuguese ? 'Quartos' : 'Bedrooms'}</label>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Dormitorios' : isPortuguese ? 'Quartos' : isFrench ? 'Chambres' : 'Bedrooms'}</label>
                                         <select
                                             value={formData.bedrooms}
                                             onChange={e => setFormData({ ...formData, bedrooms: e.target.value })}
                                             className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-[#007EA7] focus:bg-white rounded-2xl outline-none font-bold text-sm transition-all"
                                         >
-                                            <option value="">{isSpanish ? 'Seleccionar' : isPortuguese ? 'Selecionar' : 'Select...'}</option>
+                                            <option value="">{isSpanish ? 'Seleccionar' : isPortuguese ? 'Selecionar' : isFrench ? 'Sélectionner...' : 'Select...'}</option>
                                             <option value="1">1</option>
                                             <option value="2">2</option>
                                             <option value="3">3</option>
@@ -401,24 +402,24 @@ const PublicAssessorProfile = () => {
                                         </select>
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Bomba de Calor' : isPortuguese ? 'Bomba de Calor' : 'Heat Pump'}</label>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Bomba de Calor' : isPortuguese ? 'Bomba de Calor' : isFrench ? 'Pompe à Chaleur' : 'Heat Pump'}</label>
                                         <select
                                             value={formData.heat_pump}
                                             onChange={e => setFormData({ ...formData, heat_pump: e.target.value })}
                                             className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-[#007EA7] focus:bg-white rounded-2xl outline-none font-bold text-sm transition-all"
                                         >
-                                            <option value="">{isSpanish ? 'Seleccionar' : isPortuguese ? 'Selecionar' : 'Select...'}</option>
-                                            <option value="Yes">{isSpanish ? 'Sí' : isPortuguese ? 'Sim' : 'Yes'}</option>
-                                            <option value="No">{isSpanish ? 'No' : isPortuguese ? 'Não' : 'No'}</option>
+                                            <option value="">{isSpanish ? 'Seleccionar' : isPortuguese ? 'Selecionar' : isFrench ? 'Sélectionner...' : 'Select...'}</option>
+                                            <option value="Yes">{isSpanish ? 'Sí' : isPortuguese ? 'Sim' : isFrench ? 'Oui' : 'Yes'}</option>
+                                            <option value="No">{isSpanish ? 'No' : isPortuguese ? 'Não' : isFrench ? 'Non' : 'No'}</option>
                                         </select>
                                     </div>
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Características Adicionales' : isPortuguese ? 'Características Adicionais' : 'Additional Features'}</label>
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Características Adicionales' : isPortuguese ? 'Características Adicionais' : isFrench ? 'Caractéristiques Supplémentaires' : 'Additional Features'}</label>
                                     <input
                                         type="text"
-                                        placeholder={isSpanish ? 'ej. paneles solares, ático aislado' : isPortuguese ? 'ex. painéis solares, sótão isolado' : 'e.g. solar panels, insulated attic'}
+                                        placeholder={isSpanish ? 'ej. paneles solares, ático aislado' : isPortuguese ? 'ex. painéis solares, sótão isolado' : isFrench ? 'ex. panneaux solaires, isolation des combles' : 'e.g. solar panels, insulated attic'}
                                         value={formData.additional_features}
                                         onChange={e => setFormData({ ...formData, additional_features: e.target.value })}
                                         className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-[#007EA7] focus:bg-white rounded-2xl outline-none font-bold text-sm transition-all"
@@ -426,10 +427,10 @@ const PublicAssessorProfile = () => {
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Mensaje (Opcional)' : isPortuguese ? 'Mensagem (Opcional)' : 'Message (Optional)'}</label>
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{isSpanish ? 'Mensaje (Opcional)' : isPortuguese ? 'Mensagem (Opcional)' : isFrench ? 'Message (Optionnel)' : 'Message (Optional)'}</label>
                                     <textarea
                                         rows={3}
-                                        placeholder={isSpanish ? '¿Algún detalle específico sobre tu propiedad?' : isPortuguese ? 'Algum detalhe específico sobre o seu imóvel?' : 'Any specific details about your property?'}
+                                        placeholder={isSpanish ? '¿Algún detalle específico sobre tu propiedad?' : isPortuguese ? 'Algum detalhe específico sobre o seu imóvel?' : isFrench ? 'Des détails spécifiques sur votre bien ?' : 'Any specific details about your property?'}
                                         value={formData.message}
                                         onChange={e => setFormData({ ...formData, message: e.target.value })}
                                         className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-[#007EA7] focus:bg-white rounded-2xl outline-none font-bold text-sm transition-all resize-none"
@@ -443,13 +444,13 @@ const PublicAssessorProfile = () => {
                                     {isSubmitting ? (
                                         <Loader2 className="w-5 h-5 animate-spin" />
                                     ) : (
-                                        <>{isSpanish ? 'Solicitar Presupuesto' : isPortuguese ? 'Pedir Orçamento' : 'Request Quote'} <ChevronRight size={16} /></>
+                                        <>{isSpanish ? 'Solicitar Presupuesto' : isPortuguese ? 'Pedir Orçamento' : isFrench ? 'Demander un Devis' : 'Request Quote'} <ChevronRight size={16} /></>
                                     )}
                                 </button>
 
                                 <div className="flex items-center gap-2 justify-center text-[10px] text-gray-400 font-bold uppercase tracking-widest">
                                     <Check size={12} className="text-green-500" />
-                                    {isSpanish ? 'No se requiere pago por adelantado' : isPortuguese ? 'Sem pagamento antecipado' : 'No upfront payment required'}
+                                    {isSpanish ? 'No se requiere pago por adelantado' : isPortuguese ? 'Sem pagamento antecipado' : isFrench ? 'Aucun paiement à l\'avance' : 'No upfront payment required'}
                                 </div>
                             </form>
                         </div>
@@ -460,12 +461,12 @@ const PublicAssessorProfile = () => {
             {/* Trust Footer */}
             <footer className="bg-white border-t border-gray-100 py-12 mt-20">
                 <div className="max-w-7xl mx-auto px-6 text-center">
-                    <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">{isPortuguese ? `${brandName} Rede de Profissionais Licenciados` : `${brandName} Licensed Professional Network`}</p>
+                    <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">{isPortuguese ? `${brandName} Rede de Profissionais Licenciados` : isFrench ? `${brandName} Réseau de Professionnels Agréés` : `${brandName} Licensed Professional Network`}</p>
                     <div className="flex flex-wrap justify-center gap-8 md:gap-16 opacity-30 grayscale">
-                        <span className="font-black text-lg italic tracking-tight">{isSpanish ? 'CEE CAT REGISTRADO' : isPortuguese ? 'ADENE REGISTADO' : isEngland ? 'ACCREDITED' : 'SEAI REGISTERED'}</span>
-                        <span className="font-black text-lg italic tracking-tight">{isSpanish ? 'CERTIFICADO' : isPortuguese ? 'CERTIFICADO' : isEngland ? 'CERTIFIED' : 'NSAI CERTIFIED'}</span>
-                        <span className="font-black text-lg italic tracking-tight">{isSpanish ? 'MIEMBRO' : isPortuguese ? 'MEMBRO' : isEngland ? 'MEMBER' : 'BIA MEMBER'}</span>
-                        <span className="font-black text-lg italic tracking-tight">{isSpanish ? 'SOCIO IEA' : isPortuguese ? 'PARCEIRO ADENE' : 'IEA PARTNER'}</span>
+                        <span className="font-black text-lg italic tracking-tight">{isSpanish ? 'CEE CAT REGISTRADO' : isPortuguese ? 'ADENE REGISTADO' : isFrench ? 'DPE AGRÉÉ' : isEngland ? 'ACCREDITED' : 'SEAI REGISTERED'}</span>
+                        <span className="font-black text-lg italic tracking-tight">{isSpanish ? 'CERTIFICADO' : isPortuguese ? 'CERTIFICADO' : isFrench ? 'CERTIFIÉ' : isEngland ? 'CERTIFIED' : 'NSAI CERTIFIED'}</span>
+                        <span className="font-black text-lg italic tracking-tight">{isSpanish ? 'MIEMBRO' : isPortuguese ? 'MEMBRO' : isFrench ? 'MEMBRE' : isEngland ? 'MEMBER' : 'BIA MEMBER'}</span>
+                        <span className="font-black text-lg italic tracking-tight">{isSpanish ? 'SOCIO IEA' : isPortuguese ? 'PARCEIRO ADENE' : isFrench ? 'PARTENAIRE DPE' : 'IEA PARTNER'}</span>
                     </div>
                 </div>
             </footer>

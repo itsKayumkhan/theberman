@@ -15,10 +15,11 @@ import { getTenantFromDomain } from '../lib/tenant';
 const tenant = getTenantFromDomain();
 const IS_SPANISH_TENANT = tenant === 'spain';
 const IS_PORTUGUESE_TENANT = tenant === 'portugal';
+const IS_FRENCH_TENANT = tenant === 'france';
 
 const loginSchema = z.object({
-    email: z.string().email(IS_SPANISH_TENANT ? 'Dirección de correo no válida' : IS_PORTUGUESE_TENANT ? 'Endereço de email inválido' : 'Invalid email address'),
-    password: z.string().min(6, IS_SPANISH_TENANT ? 'La contraseña debe tener al menos 6 caracteres' : IS_PORTUGUESE_TENANT ? 'A palavra-passe deve ter pelo menos 6 caracteres' : 'Password must be at least 6 characters'),
+    email: z.string().email(IS_SPANISH_TENANT ? 'Dirección de correo no válida' : IS_PORTUGUESE_TENANT ? 'Endereço de email inválido' : IS_FRENCH_TENANT ? 'Adresse e-mail invalide' : 'Invalid email address'),
+    password: z.string().min(6, IS_SPANISH_TENANT ? 'La contraseña debe tener al menos 6 caracteres' : IS_PORTUGUESE_TENANT ? 'A palavra-passe deve ter pelo menos 6 caracteres' : IS_FRENCH_TENANT ? 'Le mot de passe doit comporter au moins 6 caractères' : 'Password must be at least 6 characters'),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -27,7 +28,8 @@ const Login = () => {
     const { t, isSpanish } = useTranslation();
     const isEngland = tenant === 'england';
     const isPortuguese = tenant === 'portugal';
-    const assessorLabel = isEngland ? 'EPC Assessor' : isSpanish ? 'Certificador Energético' : isPortuguese ? 'Perito Certificador' : 'BER Assessor';
+    const isFrench = tenant === 'france';
+    const assessorLabel = isEngland ? 'EPC Assessor' : isSpanish ? 'Certificador Energético' : isPortuguese ? 'Perito Certificador' : isFrench ? 'Diagnostiqueur DPE' : 'BER Assessor';
     const { signIn, user, role, profile, loading } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
@@ -71,7 +73,7 @@ const Login = () => {
                 // Check if there's a pending quote to show
                 const pendingQuote = sessionStorage.getItem('pendingQuote');
                 if (pendingQuote) {
-                    toast.success(isSpanish ? '¡Sesión iniciada! Tu presupuesto ha sido enviado.' : isPortuguese ? 'Sessão iniciada! O seu orçamento foi enviado.' : 'Login successful! Your quote has been submitted.');
+                    toast.success(isSpanish ? '¡Sesión iniciada! Tu presupuesto ha sido enviado.' : isPortuguese ? 'Sessão iniciada! O seu orçamento foi enviado.' : isFrench ? 'Connexion réussie ! Votre devis a été envoyé.' : 'Login successful! Your quote has been submitted.');
                     sessionStorage.removeItem('pendingQuote');
                     navigate('/dashboard/ber-assessor', { replace: true });
                 } else {
@@ -105,9 +107,9 @@ const Login = () => {
             const rateLimitResult = checkRateLimit(email);
             if (!rateLimitResult.allowed) {
                 if (rateLimitResult.lockoutRemaining) {
-                    throw new Error(isSpanish ? `Demasiados intentos fallidos. Cuenta bloqueada durante ${rateLimitResult.lockoutRemaining} minutos.` : `Too many failed attempts. Account locked for ${rateLimitResult.lockoutRemaining} minutes.`);
+                    throw new Error(isSpanish ? `Demasiados intentos fallidos. Cuenta bloqueada durante ${rateLimitResult.lockoutRemaining} minutos.` : isFrench ? `Trop de tentatives échouées. Compte verrouillé pendant ${rateLimitResult.lockoutRemaining} minutes.` : `Too many failed attempts. Account locked for ${rateLimitResult.lockoutRemaining} minutes.`);
                 }
-                throw new Error(isSpanish ? 'Inicio de sesión bloqueado temporalmente. Inténtalo más tarde.' : 'Login temporarily blocked. Please try again later.');
+                throw new Error(isSpanish ? 'Inicio de sesión bloqueado temporalmente. Inténtalo más tarde.' : isFrench ? 'Connexion temporairement bloquée. Veuillez réessayer plus tard.' : 'Login temporarily blocked. Please try again later.');
             }
             
             const { data: authData, error } = await signIn(email, data.password);
@@ -122,7 +124,7 @@ const Login = () => {
                     return;
                 }
                 if (error.status === 400 || errorMessage.includes('invalid credentials')) {
-                    throw new Error(isSpanish ? 'Debido a una actualización técnica reciente, puede que necesites restablecer tu contraseña. Haz clic en "¿Olvidaste tu Contraseña?" para crear una nueva e inténtalo de nuevo.' : isPortuguese ? 'Devido a uma atualização técnica recente, poderá ser necessário redefinir a sua palavra-passe. Clique em "Esqueceu-se da palavra-passe?" para criar uma nova e tente novamente.' : 'Due to a recent technical update, your password may need to be reset. Please click "Forgot Password" to create a new password and try again.');
+                    throw new Error(isSpanish ? 'Debido a una actualización técnica reciente, puede que necesites restablecer tu contraseña. Haz clic en "¿Olvidaste tu Contraseña?" para crear una nueva e inténtalo de nuevo.' : isPortuguese ? 'Devido a uma atualização técnica recente, poderá ser necessário redefinir a sua palavra-passe. Clique em "Esqueceu-se da palavra-passe?" para criar uma nova e tente novamente.' : isFrench ? 'En raison d\'une mise à jour technique récente, vous devrez peut-être réinitialiser votre mot de passe. Cliquez sur "Mot de passe oublié ?" pour créer un nouveau mot de passe et réessayer.' : 'Due to a recent technical update, your password may need to be reset. Please click "Forgot Password" to create a new password and try again.');
                 }
                 throw error;
             }
@@ -174,7 +176,7 @@ const Login = () => {
             }
         } catch (err: any) {
             console.error('Login error:', err);
-            toast.error(err.message || (isSpanish ? 'No se pudo iniciar sesión' : isPortuguese ? 'Não foi possível iniciar sessão' : 'Failed to login'));
+            toast.error(err.message || (isSpanish ? 'No se pudo iniciar sesión' : isPortuguese ? 'Não foi possível iniciar sessão' : isFrench ? 'Échec de la connexion' : 'Failed to login'));
         } finally {
             signingIn.current = false;
         }
@@ -191,10 +193,10 @@ const Login = () => {
                 options: { emailRedirectTo: websiteUrl }
             });
             if (error) throw error;
-            toast.success(isSpanish ? '¡Correo de confirmación reenviado! Revisa tu bandeja de entrada y la carpeta de spam.' : isPortuguese ? 'Email de confirmação reenviado! Verifique a sua caixa de entrada e pasta de spam.' : 'Confirmation email resent! Please check your inbox and spam folder.');
+            toast.success(isSpanish ? '¡Correo de confirmación reenviado! Revisa tu bandeja de entrada y la carpeta de spam.' : isPortuguese ? 'Email de confirmação reenviado! Verifique a sua caixa de entrada e pasta de spam.' : isFrench ? 'E-mail de confirmation renvoyé ! Vérifiez votre boîte de réception et le dossier spam.' : 'Confirmation email resent! Please check your inbox and spam folder.');
             setUnconfirmedEmail(null);
         } catch (err: any) {
-            toast.error(err.message || (isSpanish ? 'No se pudo reenviar el correo de confirmación' : isPortuguese ? 'Não foi possível reenviar o email de confirmação' : 'Failed to resend confirmation email'));
+            toast.error(err.message || (isSpanish ? 'No se pudo reenviar el correo de confirmación' : isPortuguese ? 'Não foi possível reenviar o email de confirmação' : isFrench ? 'Échec du renvoi de l\'e-mail de confirmation' : 'Failed to resend confirmation email'));
         } finally {
             setResending(false);
         }
@@ -205,8 +207,8 @@ const Login = () => {
             <div className="w-full max-w-md px-6">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{isSpanish ? 'Bienvenido de Nuevo' : isPortuguese ? 'Bem-vindo de Volta' : 'Welcome Back'}</h1>
-                    <p className="text-gray-500">{isSpanish ? 'Inicia sesión para continuar.' : isPortuguese ? 'Inicie sessão para continuar.' : 'Sign in to continue.'}</p>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{isSpanish ? 'Bienvenido de Nuevo' : isPortuguese ? 'Bem-vindo de Volta' : isFrench ? 'Bon Retour' : 'Welcome Back'}</h1>
+                    <p className="text-gray-500">{isSpanish ? 'Inicia sesión para continuar.' : isPortuguese ? 'Inicie sessão para continuar.' : isFrench ? 'Connectez-vous pour continuer.' : 'Sign in to continue.'}</p>
                 </div>
 
                 {/* Simple Tab Switcher */}
@@ -219,7 +221,7 @@ const Login = () => {
                             : 'border-transparent text-gray-400 hover:text-gray-600'
                             }`}
                     >
-                        {isSpanish ? 'Zona Cliente' : isPortuguese ? 'Área Cliente' : 'Homeowner'}
+                        {isSpanish ? 'Zona Cliente' : isPortuguese ? 'Área Cliente' : isFrench ? 'Propriétaire' : 'Homeowner'}
                     </button>
                     <button
                         type="button"
@@ -239,7 +241,7 @@ const Login = () => {
                             : 'border-transparent text-gray-400 hover:text-gray-600'
                             }`}
                     >
-                        {isSpanish ? 'Negocio' : isPortuguese ? 'Negócio' : 'Business'}
+                        {isSpanish ? 'Negocio' : isPortuguese ? 'Negócio' : isFrench ? 'Entreprise' : 'Business'}
                     </button>
                 </div>
 
@@ -251,7 +253,7 @@ const Login = () => {
                             {...register('email')}
                             type="email"
                             autoComplete="email"
-                            placeholder={isSpanish ? 'nombre@empresa.com' : isPortuguese ? 'nome@empresa.com' : 'name@company.com'}
+                            placeholder={isSpanish ? 'nombre@empresa.com' : isPortuguese ? 'nome@empresa.com' : isFrench ? 'nom@entreprise.com' : 'name@company.com'}
                             className="w-full px-4 py-3 bg-[#e8f0fe] border-none rounded-lg focus:ring-2 focus:ring-[#007F00]/30 outline-none"
                         />
                         {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
@@ -288,12 +290,12 @@ const Login = () => {
                                     className="text-sm font-bold text-blue-600 hover:underline flex items-center gap-1"
                                 >
                                     {resending ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
-                                    {isSpanish ? 'Reenviar confirmación' : isPortuguese ? 'Reenviar confirmação' : 'Resend confirmation email'}
+                                    {isSpanish ? 'Reenviar confirmación' : isPortuguese ? 'Reenviar confirmação' : isFrench ? 'Renvoyer la confirmation' : 'Resend confirmation email'}
                                 </button>
                             )}
                         </div>
                         <Link to="/forgot-password" className="text-sm font-bold text-[#007F00] hover:underline">
-                            {isSpanish ? '¿Olvidaste tu Contraseña?' : isPortuguese ? 'Esqueceu-se da palavra-passe?' : 'Forgot Password?'}
+                            {isSpanish ? '¿Olvidaste tu Contraseña?' : isPortuguese ? 'Esqueceu-se da palavra-passe?' : isFrench ? 'Mot de passe oublié ?' : 'Forgot Password?'}
                         </Link>
                     </div>
 
@@ -306,7 +308,7 @@ const Login = () => {
                     </button>
 
                     <p className="text-center text-gray-500 mt-6">
-                        {isSpanish ? '¿No tienes una cuenta?' : isPortuguese ? 'Ainda não tem conta?' : "Don't have an account?"}{' '}
+                        {isSpanish ? '¿No tienes una cuenta?' : isPortuguese ? 'Ainda não tem conta?' : isFrench ? 'Pas encore de compte ?' : "Don't have an account?"}{' '}
                         <Link to="/signup" className="text-[#007F00] font-bold hover:underline">
                             {t('sign_up')}
                         </Link>
