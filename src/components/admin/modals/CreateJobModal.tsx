@@ -1,9 +1,51 @@
 import { useState } from 'react';
-import { X, Plus, Home, Briefcase, Loader2, CheckCircle2, AlertTriangle, UserPlus } from 'lucide-react';
+import { X, Plus, Home, Briefcase, Wrench, Loader2, CheckCircle2, AlertTriangle, UserPlus } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import toast from 'react-hot-toast';
 import { getCountiesForTenant } from '../../../lib/tenantData';
 
+const TECHNICAL_ASSESSMENT_TYPES: Record<string, string[]> = {
+    ireland: ['Heat Pump Survey', 'New Build Compliance (Part L / NZEB)', 'Energy Audit', 'Retrofit Assessment', 'Air Tightness Test', 'Thermal Imaging', 'Ventilation Assessment', 'SEAI Grant Assessment'],
+    spain: ['Auditoría Energética', 'Certificación Edificio Nuevo (CTE)', 'Evaluación Bomba de Calor', 'Evaluación de Rehabilitación', 'Test de Hermeticidad', 'Termografía Infrarroja', 'Evaluación de Ventilación', 'Evaluación para Subvenciones'],
+    england: ['Heat Pump Assessment', 'SAP Calculation (New Build)', 'Energy Audit', 'PAS 2035 Retrofit Assessment', 'Air Tightness Test', 'Thermal Imaging Survey', 'Ventilation Assessment', 'ECO4 / Grant Assessment'],
+    france: ['Audit Énergétique', 'DPE Neuf (RT2012/RE2020)', 'Évaluation Pompe à Chaleur', 'Évaluation Rénovation Énergétique', 'Test d\'Étanchéité à l\'Air', 'Thermographie Infrarouge', 'Évaluation Ventilation', 'Évaluation pour Subventions'],
+    portugal: ['Auditoria Energética', 'Certificação Edifício Novo (RCCTE/REH)', 'Avaliação Bomba de Calor', 'Avaliação de Reabilitação', 'Teste de Estanqueidade', 'Termografia Infravermelha', 'Avaliação de Ventilação', 'Avaliação para Subsídios'],
+};
+const TECHNICAL_PROPERTY_TYPES: Record<string, string[]> = {
+    ireland: ['Detached House', 'Semi-Detached', 'Terraced', 'Bungalow', 'Apartment', 'New Build (Under Construction)', 'Commercial Property'],
+    spain: ['Casa Individual', 'Adosado', 'Piso / Apartamento', 'Chalet', 'Dúplex', 'Obra Nueva (En Construcción)', 'Local Comercial'],
+    england: ['Detached House', 'Semi-Detached', 'Terraced', 'Bungalow', 'Flat / Maisonette', 'New Build (Under Construction)', 'Commercial Property'],
+    france: ['Maison Individuelle', 'Jumelée', 'Mitoyenne', 'Pavillon', 'Appartement', 'Construction Neuve', 'Local Commercial'],
+    portugal: ['Moradia Isolada', 'Geminada', 'Banda', 'Vivenda', 'Apartamento', 'Construção Nova', 'Imóvel Comercial'],
+};
+const YEAR_BUILT_OPTIONS: Record<string, string[]> = {
+    ireland: ['Pre-1940', '1940–1970', '1970–2000', '2000–2010', '2010–2020', '2020+ / New Build'],
+    spain: ['Anterior a 1940', '1940–1970', '1970–2000', '2000–2010', '2010–2020', '2020+ / Obra Nueva'],
+    england: ['Pre-1940', '1940–1970', '1970–2000', '2000–2010', '2010–2020', '2020+ / New Build'],
+    france: ['Avant 1940', '1940–1970', '1970–2000', '2000–2010', '2010–2020', '2020+ / Construction Neuve'],
+    portugal: ['Antes de 1940', '1940–1970', '1970–2000', '2000–2010', '2010–2020', '2020+ / Construção Nova'],
+};
+const CURRENT_HEATING_OPTIONS: Record<string, string[]> = {
+    ireland: ['Gas Boiler', 'Oil Boiler', 'Electric Storage Heaters', 'Heat Pump (Existing)', 'Solid Fuel / Stove', 'LPG', 'None / Under Construction'],
+    spain: ['Caldera de Gas', 'Caldera de Gasóleo', 'Calefacción Eléctrica', 'Bomba de Calor (Existente)', 'Biomasa / Pellets', 'Sin Calefacción / En Construcción'],
+    england: ['Gas Boiler', 'Oil Boiler', 'Electric Storage Heaters', 'Heat Pump (Existing)', 'Solid Fuel / Log Burner', 'LPG', 'District Heating', 'None / Under Construction'],
+    france: ['Chaudière Gaz', 'Chaudière Fioul', 'Chauffage Électrique', 'Pompe à Chaleur (Existante)', 'Biomasse / Granulés', 'Sans Chauffage / En Construction'],
+    portugal: ['Caldeira a Gás', 'Caldeira a Gasóleo', 'Aquecimento Elétrico', 'Bomba de Calor (Existente)', 'Biomassa / Pellets', 'Sem Aquecimento / Em Construção'],
+};
+const INSULATION_STATUS_OPTIONS: Record<string, string[]> = {
+    ireland: ['Fully Insulated (Walls, Attic, Floor)', 'Partially Insulated', 'Minimal / No Insulation', 'Unknown'],
+    spain: ['Totalmente Aislada (Paredes, Techo, Suelo)', 'Parcialmente Aislada', 'Sin Aislamiento / Mínimo', 'Desconocido'],
+    england: ['Fully Insulated (Walls, Loft, Floor)', 'Partially Insulated', 'Minimal / No Insulation', 'Unknown'],
+    france: ['Entièrement Isolé (Murs, Toit, Sol)', 'Partiellement Isolé', 'Minimal / Non Isolé', 'Inconnu'],
+    portugal: ['Totalmente Isolada (Paredes, Sótão, Pavimento)', 'Parcialmente Isolada', 'Sem Isolamento / Mínimo', 'Desconhecido'],
+};
+const TECHNICAL_PURPOSES: Record<string, string[]> = {
+    ireland: ['SEAI Grant Application', 'Heat Pump Installation', 'Building Regulations (Part L)', 'Pre-Purchase Survey', 'Energy Upgrade Planning', 'Compliance Certificate', 'Other'],
+    spain: ['Solicitud de Subvención', 'Instalación de Bomba de Calor', 'Cumplimiento Normativo (CTE)', 'Evaluación Pre-Compra', 'Planificación de Mejora Energética', 'Certificado de Cumplimiento', 'Otro'],
+    england: ['ECO4 / Grant Application', 'Heat Pump Installation', 'Building Regulations (Part L)', 'Pre-Purchase Survey', 'Energy Upgrade Planning', 'EPC Improvement', 'PAS 2035 Compliance', 'Other'],
+    france: ['Demande de Subvention', 'Installation Pompe à Chaleur', 'Réglementation Thermique (RT2012/RE2020)', 'Évaluation Pré-Achat', 'Planification Rénovation Énergétique', 'Certification de Conformité', 'Autre'],
+    portugal: ['Pedido de Subsídio', 'Instalação de Bomba de Calor', 'Cumprimento Regulamentar (RCCTE/REH)', 'Avaliação Pré-Compra', 'Planeamento de Melhoria Energética', 'Certificado de Conformidade', 'Outro'],
+};
 const PROPERTY_TYPES = ['Semi-Detached', 'Mid-Terrace', 'End-Terrace', 'Apartment', 'Piso', 'Duplex', 'Detached', 'Bungalow', 'Multi-Unit', 'Other'];
 const PROPERTY_SIZES = [
     'Under 70 m²', '70 - 90 m²', '90 - 110 m²', '110 - 140 m²', '140 - 160 m²',
@@ -31,7 +73,7 @@ interface Props {
 
 export const CreateJobModal = ({ onClose, onJobCreated, selectedTenant = 'ireland' }: Props) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [jobType, setJobType] = useState<'domestic' | 'commercial' | ''>('');
+    const [jobType, setJobType] = useState<'domestic' | 'commercial' | 'technical' | ''>('');
     const [step, setStep] = useState(1);
 
     // Contact / Homeowner Details
@@ -60,6 +102,14 @@ export const CreateJobModal = ({ onClose, onJobCreated, selectedTenant = 'irelan
     const [assessmentPurpose, setAssessmentPurpose] = useState('');
     const [heatingCooling, setHeatingCooling] = useState<string[]>([]);
 
+    // Technical
+    const [technicalAssessmentType, setTechnicalAssessmentType] = useState('');
+    const [technicalPropertyType, setTechnicalPropertyType] = useState('');
+    const [yearBuilt, setYearBuilt] = useState('');
+    const [currentHeating, setCurrentHeating] = useState('');
+    const [insulationStatus, setInsulationStatus] = useState('');
+    const [technicalPurpose, setTechnicalPurpose] = useState('');
+
     // Shared
     const [preferredDate, setPreferredDate] = useState('');
     const [preferredTime, setPreferredTime] = useState('');
@@ -80,6 +130,8 @@ export const CreateJobModal = ({ onClose, onJobCreated, selectedTenant = 'irelan
         setAdditionalFeatures([]); setHeatPump(''); setBerPurpose('');
         setBuildingType(''); setFloorArea(''); setBuildingComplexity('');
         setExistingDocs([]); setAssessmentPurpose(''); setHeatingCooling([]);
+        setTechnicalAssessmentType(''); setTechnicalPropertyType(''); setYearBuilt('');
+        setCurrentHeating(''); setInsulationStatus(''); setTechnicalPurpose('');
         setPreferredDate(''); setPreferredTime(''); setNotes('');
         setHomeownerUserId(null); setHomeownerStatus('idle'); setHomeownerMessage('');
     };
@@ -206,6 +258,15 @@ export const CreateJobModal = ({ onClose, onJobCreated, selectedTenant = 'irelan
                     assessment_purpose: assessmentPurpose || null,
                     heating_cooling_systems: heatingCooling.length > 0 ? heatingCooling : null,
                 };
+            } else if (jobType === 'technical') {
+                const technicalNotes = `Assessment Type: ${technicalAssessmentType}\nYear Built: ${yearBuilt}\nCurrent Heating: ${currentHeating}\nInsulation: ${insulationStatus}${notes ? '\n\nAdditional Notes: ' + notes : ''}`;
+                insertPayload = {
+                    ...basePayload,
+                    property_type: technicalPropertyType || null,
+                    property_size: propertySize || null,
+                    assessment_purpose: technicalPurpose || null,
+                    notes: technicalNotes,
+                };
             } else {
                 insertPayload = {
                     ...basePayload,
@@ -268,6 +329,10 @@ export const CreateJobModal = ({ onClose, onJobCreated, selectedTenant = 'irelan
             if (step === 4) return !!buildingType && !!floorArea && !!buildingComplexity;
             if (step === 5) return !!assessmentPurpose;
         }
+        if (jobType === 'technical') {
+            if (step === 4) return !!technicalAssessmentType && !!technicalPropertyType && !!propertySize;
+            if (step === 5) return !!technicalPurpose;
+        }
         return true;
     };
 
@@ -291,7 +356,7 @@ export const CreateJobModal = ({ onClose, onJobCreated, selectedTenant = 'irelan
                     {step === 1 && (
                         <div className="space-y-4">
                             <h3 className="text-lg font-bold text-gray-800">What type of job?</h3>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-3 gap-3">
                                 <button onClick={() => setJobType('domestic')} className={`p-4 rounded-xl border-2 text-left transition-all ${jobType === 'domestic' ? 'border-[#007F00] bg-green-50' : 'border-gray-200 hover:border-green-300'}`}>
                                     <Home size={24} className="text-[#007F00] mb-2" />
                                     <div className="font-bold text-gray-900">Domestic</div>
@@ -301,6 +366,11 @@ export const CreateJobModal = ({ onClose, onJobCreated, selectedTenant = 'irelan
                                     <Briefcase size={24} className="text-[#007F00] mb-2" />
                                     <div className="font-bold text-gray-900">Commercial</div>
                                     <div className="text-xs text-gray-500">Business property</div>
+                                </button>
+                                <button onClick={() => setJobType('technical')} className={`p-4 rounded-xl border-2 text-left transition-all ${jobType === 'technical' ? 'border-[#007F00] bg-green-50' : 'border-gray-200 hover:border-green-300'}`}>
+                                    <Wrench size={24} className="text-[#007F00] mb-2" />
+                                    <div className="font-bold text-gray-900">Technical</div>
+                                    <div className="text-xs text-gray-500">Heat pumps, new builds & energy audits</div>
                                 </button>
                             </div>
                         </div>
@@ -460,6 +530,56 @@ export const CreateJobModal = ({ onClose, onJobCreated, selectedTenant = 'irelan
                         </div>
                     )}
 
+                    {step === 4 && jobType === 'technical' && (
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-bold text-gray-800">Technical Assessment Details</h3>
+                            <div className="space-y-3">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Assessment Type</label>
+                                    <select value={technicalAssessmentType} onChange={e => setTechnicalAssessmentType(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]">
+                                        <option value="">Select type</option>
+                                        {(TECHNICAL_ASSESSMENT_TYPES[selectedTenant] || TECHNICAL_ASSESSMENT_TYPES.ireland).map(t => <option key={t} value={t}>{t}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Property Type</label>
+                                    <select value={technicalPropertyType} onChange={e => setTechnicalPropertyType(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]">
+                                        <option value="">Select type</option>
+                                        {(TECHNICAL_PROPERTY_TYPES[selectedTenant] || TECHNICAL_PROPERTY_TYPES.ireland).map(t => <option key={t} value={t}>{t}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Property Size</label>
+                                    <select value={propertySize} onChange={e => setPropertySize(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]">
+                                        <option value="">Select size</option>
+                                        {PROPERTY_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Year Built</label>
+                                    <select value={yearBuilt} onChange={e => setYearBuilt(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]">
+                                        <option value="">Select</option>
+                                        {(YEAR_BUILT_OPTIONS[selectedTenant] || YEAR_BUILT_OPTIONS.ireland).map(y => <option key={y} value={y}>{y}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Current Heating</label>
+                                    <select value={currentHeating} onChange={e => setCurrentHeating(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]">
+                                        <option value="">Select</option>
+                                        {(CURRENT_HEATING_OPTIONS[selectedTenant] || CURRENT_HEATING_OPTIONS.ireland).map(h => <option key={h} value={h}>{h}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Insulation Status</label>
+                                    <select value={insulationStatus} onChange={e => setInsulationStatus(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]">
+                                        <option value="">Select</option>
+                                        {(INSULATION_STATUS_OPTIONS[selectedTenant] || INSULATION_STATUS_OPTIONS.ireland).map(i => <option key={i} value={i}>{i}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {step === 4 && jobType === 'commercial' && (
                         <div className="space-y-4">
                             <h3 className="text-lg font-bold text-gray-800">Building Details</h3>
@@ -528,6 +648,15 @@ export const CreateJobModal = ({ onClose, onJobCreated, selectedTenant = 'irelan
                                         </select>
                                     </div>
                                 )}
+                                {jobType === 'technical' && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Technical Purpose</label>
+                                        <select value={technicalPurpose} onChange={e => setTechnicalPurpose(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]">
+                                            <option value="">Select purpose</option>
+                                            {(TECHNICAL_PURPOSES[selectedTenant] || TECHNICAL_PURPOSES.ireland).map(p => <option key={p} value={p}>{p}</option>)}
+                                        </select>
+                                    </div>
+                                )}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Preferred Date</label>
                                     <input type="date" value={preferredDate} onChange={e => setPreferredDate(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]" />
@@ -556,6 +685,7 @@ export const CreateJobModal = ({ onClose, onJobCreated, selectedTenant = 'irelan
                                     <p><strong>Location:</strong> {town}, {county} {eircode && `(${eircode})`}</p>
                                     {jobType === 'domestic' && <p><strong>Property:</strong> {propertyType}, {propertySize}, {bedrooms} bed</p>}
                                     {jobType === 'commercial' && <p><strong>Building:</strong> {buildingType}, {floorArea}</p>}
+                                    {jobType === 'technical' && <p><strong>Technical:</strong> {technicalAssessmentType}, {technicalPropertyType}, {propertySize}</p>}
                                 </div>
                             </div>
                         </div>

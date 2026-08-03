@@ -97,7 +97,7 @@ export interface Assessment {
     contact_name?: string;
     contact_email?: string;
     contact_phone?: string;
-    job_type?: 'domestic' | 'commercial';
+    job_type?: 'domestic' | 'commercial' | 'technical';
     user?: {
         full_name: string;
         email: string;
