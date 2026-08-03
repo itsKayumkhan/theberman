@@ -80,11 +80,11 @@ Deno.serve(async (req: Request) => {
             }
         }
 
-        // 3. Create auth user via admin API — email_confirm: true skips Supabase email entirely
+        // 3. Create auth user via admin API — email_confirm: false so user must verify via email
         const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
             email: normalizedEmail,
             password: password,
-            email_confirm: true,
+            email_confirm: false,
             user_metadata: {
                 full_name: fullName,
                 role: role,
@@ -147,42 +147,60 @@ Deno.serve(async (req: Request) => {
             console.error('[self-signup] Profile upsert error:', profileError.message);
         }
 
-        // 5. Send welcome email via tenant SMTP (non-blocking — user is already created)
+        // 5. Generate a verification link via admin API (does NOT send Supabase email)
+        const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+            type: 'signup',
+            email: normalizedEmail,
+            password: password,
+        });
+
+        if (linkError || !linkData?.properties?.action_link) {
+            console.error('[self-signup] Failed to generate verification link:', linkError?.message);
+            return new Response(
+                JSON.stringify({ success: false, error: 'Failed to generate verification link' }),
+                { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+        }
+
+        // 6. Send confirmation email via tenant SMTP with the verification link
         try {
             const config = await getTenantConfig(supabaseAdmin, resolvedTenant);
             if (config.smtp_hostname && config.smtp_username && config.smtp_password) {
                 const websiteUrl = (config.website_url || `https://${config.domain}`).replace(/\/$/, '');
                 const logoUrl = config.logo_url || `${websiteUrl}/logo.svg`;
                 const brandName = config.display_name;
-                const loginUrl = `${websiteUrl}/login`;
                 const isSpanish = resolvedTenant === 'spain';
                 const isPortuguese = resolvedTenant === 'portugal';
                 const isEngland = resolvedTenant === 'england';
 
-                const subject = isSpanish
-                    ? `Bienvenido a ${brandName}`
-                    : isPortuguese
-                        ? `Bem-vindo à ${brandName}`
-                        : `Welcome to ${brandName}`;
+                // Use the action_link from generateLink — it contains the token Supabase will verify
+                const confirmationUrl = linkData.properties.action_link;
 
-                const html = buildWelcomeEmail(fullName, loginUrl, websiteUrl, brandName, isSpanish, isPortuguese, isEngland, logoUrl);
+                const subject = isSpanish
+                    ? `Confirma tu cuenta – ${brandName}`
+                    : isPortuguese
+                        ? `Confirme a sua conta – ${brandName}`
+                        : `Confirm your account – ${brandName}`;
+
+                const html = buildConfirmationEmail(normalizedEmail, confirmationUrl, `${websiteUrl}/login`, websiteUrl, brandName, isSpanish, isEngland, isPortuguese, logoUrl);
 
                 const client = new CustomSmtpClient(config.domain);
                 await client.connect(config.smtp_hostname, config.smtp_port);
                 await client.authenticate(config.smtp_username, config.smtp_password);
                 await client.send(config.smtp_from, normalizedEmail, subject, html);
                 await client.close();
-                console.log(`[self-signup] Welcome email sent to ${normalizedEmail} via tenant ${resolvedTenant} SMTP`);
+                console.log(`[self-signup] Confirmation email sent to ${normalizedEmail} via tenant ${resolvedTenant} SMTP`);
             }
         } catch (smtpErr: any) {
-            console.error('[self-signup] Welcome email error (non-blocking):', smtpErr.message);
+            console.error('[self-signup] Confirmation email error (non-blocking):', smtpErr.message);
         }
 
         return new Response(
             JSON.stringify({
                 success: true,
                 user: authData.user,
-                message: 'Account created successfully',
+                needsEmailConfirmation: true,
+                message: 'Account created. Check your email to confirm.',
             }),
             { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
@@ -195,15 +213,16 @@ Deno.serve(async (req: Request) => {
     }
 });
 
-function buildWelcomeEmail(
-    fullName: string,
-    loginUrl: string,
+function buildConfirmationEmail(
+    email: string,
+    confirmationUrl: string,
+    fallbackUrl: string,
     websiteUrl: string,
     brandName: string,
     isSpanish: boolean,
-    isPortuguese: boolean,
     isEngland: boolean,
-    logoUrl: string
+    isPortuguese: boolean = false,
+    logoUrl: string = `${websiteUrl}/logo.svg`
 ): string {
     if (isPortuguese) {
         return `
@@ -211,17 +230,20 @@ function buildWelcomeEmail(
             <div style="text-align: center; margin-bottom: 25px;">
                 <img src="${logoUrl}" alt="${brandName}" style="height: 40px;">
             </div>
-            <h1 style="color: #007F00; text-align: center; font-size: 24px;">Bem-vindo à ${brandName}</h1>
-            <p style="font-size: 16px; color: #333;">Olá, ${fullName}</p>
+            <h1 style="color: #007F00; text-align: center; font-size: 24px;">Confirme a sua conta</h1>
+            <p style="font-size: 16px; color: #333;">Olá,</p>
             <p style="font-size: 15px; color: #555; line-height: 1.6;">
-                A sua conta foi criada com sucesso. Já pode iniciar sessão e começar a usar a plataforma.
+                Obrigado por se registar na <strong>${brandName}</strong>. Clique no botão abaixo para confirmar a sua conta e começar.
             </p>
             <div style="text-align: center; margin: 30px 0;">
-                <a href="${loginUrl}" style="display: inline-block; background: #007F00; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Iniciar Sessão</a>
+                <a href="${confirmationUrl}" style="display: inline-block; background: #007F00; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Confirmar a minha conta</a>
             </div>
+            <p style="color: #6b7280; font-size: 0.9rem;">Se o botão não funcionar, copie e cole este link:</p>
+            <p style="word-break: break-all; color: #007F00; font-size: 0.85rem;">${confirmationUrl}</p>
             <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
             <p style="font-size: 12px; color: #999; text-align: center;">
-                &copy; ${new Date().getFullYear()} ${brandName}. Todos os direitos reservados.
+                &copy; ${new Date().getFullYear()} ${brandName}.<br>
+                Apoiando objetivos de energia sustentável através de certificações profissionais.
             </p>
         </div>`;
     }
@@ -231,36 +253,42 @@ function buildWelcomeEmail(
             <div style="text-align: center; margin-bottom: 25px;">
                 <img src="${logoUrl}" alt="${brandName}" style="height: 40px;">
             </div>
-            <h1 style="color: #007F00; text-align: center; font-size: 24px;">Bienvenido a ${brandName}</h1>
-            <p style="font-size: 16px; color: #333;">Hola, ${fullName}</p>
+            <h1 style="color: #007F00; text-align: center; font-size: 24px;">Confirma tu cuenta</h1>
+            <p style="font-size: 16px; color: #333;">Hola,</p>
             <p style="font-size: 15px; color: #555; line-height: 1.6;">
-                Tu cuenta ha sido creada con éxito. Ya puedes iniciar sesión y empezar a usar la plataforma.
+                Gracias por registrarte en <strong>${brandName}</strong>. Haz clic en el botón de abajo para confirmar tu cuenta y comenzar.
             </p>
             <div style="text-align: center; margin: 30px 0;">
-                <a href="${loginUrl}" style="display: inline-block; background: #007F00; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Iniciar Sesión</a>
+                <a href="${confirmationUrl}" style="display: inline-block; background: #007F00; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Confirmar mi cuenta</a>
             </div>
+            <p style="color: #6b7280; font-size: 0.9rem;">Si el botón no funciona, copia y pega este enlace:</p>
+            <p style="word-break: break-all; color: #007F00; font-size: 0.85rem;">${confirmationUrl}</p>
             <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
             <p style="font-size: 12px; color: #999; text-align: center;">
-                &copy; ${new Date().getFullYear()} ${brandName}. Todos los derechos reservados.
+                &copy; ${new Date().getFullYear()} ${brandName}.<br>
+                Apoyando objetivos de energía sostenible a través de certificaciones profesionales.
             </p>
         </div>`;
     }
     return `
     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 1rem;">
         <div style="text-align: center; margin-bottom: 25px;">
-            <img src="${logoUrl}" alt="${brandName}" style="height: 40px;">
+            <img src="${logoUrl}" alt="${brandName}" style="height: 40px; filter: grayscale(1) brightness(0.2);">
         </div>
-        <h1 style="color: #007F00; text-align: center; font-size: 24px;">Welcome to ${brandName}</h1>
-        <p style="font-size: 16px; color: #333;">Hi, ${fullName}</p>
+        <h1 style="color: #007F00; text-align: center; font-size: 24px;">Confirm your account</h1>
+        <p style="font-size: 16px; color: #333;">Hi,</p>
         <p style="font-size: 15px; color: #555; line-height: 1.6;">
-            Your account has been created successfully. You can now log in and start using the platform.
+            Thanks for signing up with <strong>${brandName}</strong>. Click the button below to confirm your account and get started.
         </p>
         <div style="text-align: center; margin: 30px 0;">
-            <a href="${loginUrl}" style="display: inline-block; background: #007F00; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Log In</a>
+            <a href="${confirmationUrl}" style="display: inline-block; background: #007F00; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Confirm my account</a>
         </div>
+        <p style="color: #6b7280; font-size: 0.9rem;">If the button doesn't work, copy and paste this link:</p>
+        <p style="word-break: break-all; color: #007F00; font-size: 0.85rem;">${confirmationUrl}</p>
         <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
         <p style="font-size: 12px; color: #999; text-align: center;">
-            &copy; ${new Date().getFullYear()} ${brandName}. All rights reserved.
+            &copy; ${new Date().getFullYear()} ${brandName}.<br>
+            Supporting sustainable energy goals through professional assessments.
         </p>
     </div>`;
 }

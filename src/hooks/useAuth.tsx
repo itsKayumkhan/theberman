@@ -149,9 +149,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             return { data: { user: null, session: null }, error: { message: errMsg, name: 'AuthError' } as unknown as AuthError };
         }
 
-        // Auto sign in the user after successful creation
-        const result = await supabase.auth.signInWithPassword({ email, password });
-        return result;
+        // Return without auto-sign-in — user must confirm email first
+        return { data: { user: signupData.user, session: null }, error: null };
     };
 
     const resetPassword = async (email: string) => {
