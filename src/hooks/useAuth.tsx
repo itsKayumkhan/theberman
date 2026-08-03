@@ -134,22 +134,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const signUp = async (email: string, password: string, fullName: string, role: 'user' | 'contractor' | 'homeowner' | 'business', phone?: string, seaiNumber?: string) => {
         const currentTenant = getTenantFromDomain();
-        const websiteUrl = getTenantWebsiteUrl(currentTenant);
-        return await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-                data: {
-                    full_name: fullName,
-                    role: role,
-                    phone: phone,
-                    seai_number: seaiNumber,
-                    tenant: currentTenant,
-                    registration_status: (role === 'business' || role === 'contractor') ? 'pending' : 'active',
-                },
-                emailRedirectTo: websiteUrl,
-            },
+
+        // Call self-signup edge function (uses admin API, bypasses Supabase Auth rate limits)
+        const { data: signupData, error: signupError } = await supabase.functions.invoke('self-signup', {
+            body: { email, password, fullName, role, phone, seaiNumber, tenant: currentTenant },
         });
+
+        if (signupError) {
+            return { data: { user: null, session: null }, error: signupError as unknown as AuthError };
+        }
+
+        if (!signupData?.success) {
+            const errMsg = signupData?.error === 'EMAIL_EXISTS' ? 'Email already registered' : signupData?.error || 'Signup failed';
+            return { data: { user: null, session: null }, error: { message: errMsg, name: 'AuthError' } as unknown as AuthError };
+        }
+
+        // Auto sign in the user after successful creation
+        const result = await supabase.auth.signInWithPassword({ email, password });
+        return result;
     };
 
     const resetPassword = async (email: string) => {

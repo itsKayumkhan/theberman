@@ -148,44 +148,32 @@ const SignUp = () => {
             const referralCode = params.get('ref');
             const redirectParam = params.get('redirect');
 
-            // Check if email is already registered via secure RPC
-            const { data: emailExists, error: checkError } = await supabase
-                .rpc('check_email_exists', { p_email: data.email.trim().toLowerCase() });
-
-            if (checkError) throw checkError;
-
-            if (emailExists) {
-                toast.error(isSpanish
-                    ? 'Este correo electrónico ya está registrado. Por favor, inicia sesión.'
-                    : tenant === 'portugal'
-                        ? 'Este email já está registado. Por favor, inicie sessão.'
-                        : 'This email is already registered. Please log in.');
-                navigate('/login', { replace: true });
-                return;
-            }
-
-            // Check for duplicate phone number (if provided)
-            if (data.phone && data.phone.trim().length >= 7) {
-                const { data: existingPhone } = await supabase
-                    .from('profiles')
-                    .select('id, email')
-                    .eq('phone', data.phone.trim())
-                    .maybeSingle();
-                if (existingPhone) {
-                    toast.error(isSpanish ? 'Este número de teléfono ya está asociado a otra cuenta. Por favor, usa un número diferente.' : tenant === 'portugal' ? 'Este número de telefone já está associado a outra conta. Por favor, utilize um número diferente.' : 'This phone number is already associated with another account. Please use a different number.');
-                    return;
-                }
-            }
-
             const { error, data: authData } = await signUp(
                 data.email.trim(),
                 data.password,
                 data.fullName,
                 data.role,
                 data.phone,
-                data.seaiNumber // Pass registration number
+                data.seaiNumber
             );
-            if (error) throw error;
+
+            if (error) {
+                const errMsg = (error as any)?.message || '';
+                if (errMsg === 'EMAIL_EXISTS') {
+                    toast.error(isSpanish
+                        ? 'Este correo electrónico ya está registrado. Por favor, inicia sesión.'
+                        : tenant === 'portugal'
+                            ? 'Este email já está registado. Por favor, inicie sessão.'
+                            : 'This email is already registered. Please log in.');
+                    navigate('/login', { replace: true });
+                    return;
+                }
+                if (errMsg === 'PHONE_EXISTS') {
+                    toast.error(isSpanish ? 'Este número de teléfono ya está asociado a otra cuenta. Por favor, usa un número diferente.' : tenant === 'portugal' ? 'Este número de telefone já está associado a outra conta. Por favor, utilize um número diferente.' : 'This phone number is already associated with another account. Please use a different number.');
+                    return;
+                }
+                throw error;
+            }
 
             if (authData?.user) {
                 // Update profiles table with seai_number for contractors
