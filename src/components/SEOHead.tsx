@@ -35,6 +35,13 @@ const TENANT_CONFIG: Record<string, { siteName: string; baseUrl: string; ogImage
         locale: 'pt_PT',
         currency: 'EUR',
     },
+    france: {
+        siteName: 'DPE Cert France',
+        baseUrl: 'https://dpecert.fr',
+        ogImage: 'https://dpecert.fr/dpecert-logo.png',
+        locale: 'fr_FR',
+        currency: 'EUR',
+    },
     ireland: {
         siteName: 'The BER Man',
         baseUrl: 'https://www.theberman.eu',

@@ -2165,10 +2165,10 @@ const Admin = () => {
                 {/* Logo */}
                 <div className="h-14 flex items-center justify-between px-4 border-b border-white/10 flex-shrink-0">
                     <Link to="/" className={`block ${desktopExpanded ? 'md:block' : 'md:hidden'} lg:block`}>
-                        <img src={selectedTenant === 'portugal' ? '/certificado-energia-logo.png' : '/logo.svg'} alt={selectedTenant === 'england' ? 'EPC Cert' : selectedTenant === 'spain' ? 'Certificado Energético' : selectedTenant === 'france' ? 'DPE France' : selectedTenant === 'portugal' ? 'Certificado Energia' : 'The Berman'} className="h-9 w-auto" />
+                        <img src={selectedTenant === 'portugal' ? '/certificado-energia-logo.png' : selectedTenant === 'france' ? '/dpecert-logo.png' : '/logo.svg'} alt={selectedTenant === 'england' ? 'EPC Cert' : selectedTenant === 'spain' ? 'Certificado Energético' : selectedTenant === 'france' ? 'DPE Cert France' : selectedTenant === 'portugal' ? 'Certificado Energia' : 'The Berman'} className="h-9 w-auto" />
                     </Link>
                     <div className={`flex items-center justify-center ${desktopExpanded ? 'md:hidden' : 'md:flex'} lg:hidden`}>
-                        <img src={selectedTenant === 'portugal' ? '/certificado-energia-logo.png' : '/logo.svg'} alt={selectedTenant === 'england' ? 'EPC Cert' : selectedTenant === 'spain' ? 'Certificado Energético' : selectedTenant === 'france' ? 'DPE France' : selectedTenant === 'portugal' ? 'Certificado Energia' : 'The Berman'} className="h-9 w-auto" />
+                        <img src={selectedTenant === 'portugal' ? '/certificado-energia-logo.png' : selectedTenant === 'france' ? '/dpecert-logo.png' : '/logo.svg'} alt={selectedTenant === 'england' ? 'EPC Cert' : selectedTenant === 'spain' ? 'Certificado Energético' : selectedTenant === 'france' ? 'DPE Cert France' : selectedTenant === 'portugal' ? 'Certificado Energia' : 'The Berman'} className="h-9 w-auto" />
                     </div>
                     {/* Close on mobile */}
                     <button onClick={() => setSidebarOpen(false)} className="md:hidden text-white/40 hover:text-white p-1">

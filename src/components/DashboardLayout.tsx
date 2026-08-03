@@ -49,7 +49,7 @@ const DashboardLayout = ({
     const isEngland = tenant === 'england';
     const isPortuguese = tenant === 'portugal';
     const brandName = isEngland ? 'EPC Cert' : isPortuguese ? 'Certificado Energia' : 'The Berman';
-    const logoUrl = isPortuguese ? '/certificado-energia-logo.png' : '/logo.svg';
+    const logoUrl = isPortuguese ? '/certificado-energia-logo.png' : tenant === 'france' ? '/dpecert-logo.png' : '/logo.svg';
 
     const handleSignOut = async () => {
         await signOut();

@@ -37,7 +37,7 @@ const UpdatePassword = () => {
     const isPortuguese = tenant === 'portugal';
     const isEngland = tenant === 'england';
     const brandName = isEngland ? 'EPC Cert' : isSpanish ? 'Certificado Energético' : isPortuguese ? 'Certificado Energia' : 'The Berman';
-    const logoUrl = isPortuguese ? '/certificado-energia-logo.png' : '/logo.svg';
+    const logoUrl = isPortuguese ? '/certificado-energia-logo.png' : tenant === 'france' ? '/dpecert-logo.png' : '/logo.svg';
 
     // Detect custom token from email link (/update-password?token=xyz&email=abc)
     useEffect(() => {
