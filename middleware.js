@@ -1,9 +1,8 @@
-import { NextResponse } from 'next/server';
 // Vercel Edge Middleware — Multi-tenant SEO Fix
 // Injects: canonical, title, meta description, OG tags, hreflang, JSON-LD schema
 // Zero changes to the React app needed.
 
-export const config = { matcher: '/((?!_next|assets|favicon|logo|robots).*)' };
+export const config = { matcher: '/((?!assets|favicon|logo|robots|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|eot|xml|txt)).*)' };
 
 // ─── Meta Conversions API (Server-Side) ───────────────────────────────────────
 const META_PIXEL_ID   = '1597842568530965';
@@ -1032,17 +1031,17 @@ export default async function middleware(req) {
 
   // Handle redirects
   if (tenant === 'spain') {
-    if (path === '/about') return NextResponse.redirect(`${url.protocol}//${hostname}/sobre-nosotros`, 301);
-    if (path === '/faq') return NextResponse.redirect(`${url.protocol}//${hostname}/preguntas-frecuentes`, 301);
-    if (path === '/catalogue') return NextResponse.redirect(`${url.protocol}//${hostname}/directorio`, 301);
-    if (path === '/hire-agent') return NextResponse.redirect(`${url.protocol}//${hostname}/asesor-energetico`, 301);
-    if (path === '/contact-us') return NextResponse.redirect(`${url.protocol}//${hostname}/contacto`, 301);
+    if (path === '/about') return Response.redirect(`${url.protocol}//${hostname}/sobre-nosotros`, 301);
+    if (path === '/faq') return Response.redirect(`${url.protocol}//${hostname}/preguntas-frecuentes`, 301);
+    if (path === '/catalogue') return Response.redirect(`${url.protocol}//${hostname}/directorio`, 301);
+    if (path === '/hire-agent') return Response.redirect(`${url.protocol}//${hostname}/asesor-energetico`, 301);
+    if (path === '/contact-us') return Response.redirect(`${url.protocol}//${hostname}/contacto`, 301);
   } else if (tenant === 'ireland') {
-    if (path === '/about') return NextResponse.redirect(`${url.protocol}//${hostname}/about-us`, 301);
-    if (path === '/faq') return NextResponse.redirect(`${url.protocol}//${hostname}/ber-faqs/`, 301);
+    if (path === '/about') return Response.redirect(`${url.protocol}//${hostname}/about-us`, 301);
+    if (path === '/faq') return Response.redirect(`${url.protocol}//${hostname}/ber-faqs/`, 301);
   } else if (tenant === 'england') {
-    if (path === '/about') return NextResponse.redirect(`${url.protocol}//${hostname}/about-us`, 301);
-    if (path === '/faq') return NextResponse.redirect(`${url.protocol}//${hostname}/epc-faq`, 301);
+    if (path === '/about') return Response.redirect(`${url.protocol}//${hostname}/about-us`, 301);
+    if (path === '/faq') return Response.redirect(`${url.protocol}//${hostname}/epc-faq`, 301);
   }
 
   // Dynamic Sitemap Interception
@@ -1068,7 +1067,7 @@ export default async function middleware(req) {
     }
     xml += `</urlset>`;
 
-    return new NextResponse(xml, {
+    return new Response(xml, {
       status: 200,
       headers: { 'Content-Type': 'application/xml', 'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400' }
     });
@@ -1081,7 +1080,7 @@ export default async function middleware(req) {
     html = await res.text();
   } catch (_fetchErr) {
     // Local dev or fetch failure → pass through without injecting tags
-    return NextResponse.next();
+    return new Response(null, { headers: { 'x-middleware-next': '1' } });
   }
 
   // Safety: if not HTML (e.g. API, binary) skip processing entirely
