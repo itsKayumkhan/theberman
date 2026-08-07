@@ -21,7 +21,7 @@ Deno.serve(async (req: Request) => {
     const responseHeaders = { ...corsHeaders, 'Content-Type': 'application/json' };
 
     try {
-        const { assessmentId, tenant = 'ireland' } = await req.json();
+        const { assessmentId, tenant: passedTenant } = await req.json();
 
         if (!assessmentId) {
             throw new Error("assessmentId is required");
@@ -31,23 +31,25 @@ Deno.serve(async (req: Request) => {
         const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
         const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
-        // Load tenant config
-        const config = await getTenantConfig(supabase, tenant);
-        const websiteUrl = config.website_url;
-        const logoUrl = config.logo_url;
-        const smtpFrom = config.smtp_from || `${config.display_name} <${config.smtp_username}>`;
-
-        // 1. Fetch Assessment & Homeowner Details
+        // 1. Fetch Assessment & Homeowner Details (without tenant filter — derive tenant from the record)
         const { data: assessment, error: assessmentError } = await supabase
             .from('assessments')
-            .select('contact_name, contact_email, contact_phone, status, posted_by, user_id, referred_by_listing_id')
+            .select('contact_name, contact_email, contact_phone, status, posted_by, user_id, referred_by_listing_id, tenant')
             .eq('id', assessmentId)
-            .eq('tenant', tenant)
             .single();
 
         if (assessmentError || !assessment) {
             throw new Error(`Failed to fetch assessment: ${assessmentError?.message}`);
         }
+
+        // Use the assessment's actual tenant, falling back to the passed tenant or 'ireland'
+        const tenant = assessment.tenant || passedTenant || 'ireland';
+
+        // Load tenant config
+        const config = await getTenantConfig(supabase, tenant);
+        const websiteUrl = config.website_url;
+        const logoUrl = config.logo_url;
+        const smtpFrom = config.smtp_from || `${config.display_name} <${config.smtp_username}>`;
 
         const smtpHostname = config.smtp_hostname;
         const smtpPort = config.smtp_port;

@@ -202,7 +202,6 @@ const ContractorDashboard = () => {
     const [quotePrice, setQuotePrice] = useState('');
     const [quoteNotes, setQuoteNotes] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isNotifying, setIsNotifying] = useState(false);
     const [jobDetailsModalOpen, setJobDetailsModalOpen] = useState(false);
     const [schedulingJob, setSchedulingJob] = useState<Assessment | null>(null);
     const [scheduledDate, setScheduledDate] = useState('');
@@ -580,13 +579,10 @@ const ContractorDashboard = () => {
                     .eq('id', selectedJob.id);
             }
 
-            // Notify homeowner about the new quote (guard against double send)
-            if (!isNotifying) {
-                setIsNotifying(true);
-                supabase.functions.invoke('send-quote-notification', {
-                    body: { assessmentId: selectedJob.id }
-                }).catch(err => console.error('Failed to trigger homeowner notification:', err)).finally(() => setIsNotifying(false));
-            }
+            // Notify homeowner about the new quote
+            supabase.functions.invoke('send-quote-notification', {
+                body: { assessmentId: selectedJob.id, tenant: (selectedJob as any).tenant || tenant }
+            }).catch(err => console.error('Failed to trigger homeowner notification:', err));
 
             toast.success(isSpanish ? '¡Presupuesto enviado correctamente!' : isPortuguese ? 'Orçamento enviado com sucesso!' : isFrench ? 'Devis envoyé avec succès !' : 'Quote submitted successfully!');
             setQuoteModalOpen(false);
