@@ -185,6 +185,18 @@ export const CreateJobModal = ({ onClose, onJobCreated, selectedTenant = 'irelan
                 setHomeownerStatus(data.created ? 'created' : 'found');
                 setHomeownerMessage(data.created ? `Homeowner account created for ${contactEmail}` : `Existing profile linked: ${data.message || ''}`);
                 toast.success(data.created ? `Homeowner account created for ${contactEmail}` : `Existing profile found for ${contactEmail}`);
+
+                if (data.created && data.password) {
+                    supabase.functions.invoke('send-homeowner-credentials', {
+                        body: {
+                            fullName: contactName,
+                            email: contactEmail,
+                            password: data.password,
+                            loginUrl: data.loginUrl,
+                            tenant: selectedTenant,
+                        },
+                    }).catch(err => console.error('Failed to send homeowner credentials email:', err));
+                }
             }
         } catch (err: any) {
             setHomeownerStatus('error');
