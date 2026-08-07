@@ -991,6 +991,7 @@ function hreflangTags(pathname, tenant) {
 
 // ─── Main handler ─────────────────────────────────────────────────────────────
 export default async function middleware(req) {
+  try {
   const url  = new URL(req.url);
   const path = url.pathname;
   const testEventCode = url.searchParams.get('test_event_code') || '';
@@ -1079,8 +1080,8 @@ export default async function middleware(req) {
     res  = await fetch(req);
     html = await res.text();
   } catch (_fetchErr) {
-    // Local dev or fetch failure → pass through without injecting tags
-    return new Response(null, { headers: { 'x-middleware-next': '1' } });
+    // Local dev or fetch failure → let the global fallback return the original asset
+    throw _fetchErr;
   }
 
   // Safety: if not HTML (e.g. API, binary) skip processing entirely
@@ -1402,6 +1403,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   }
 
   return response;
+  } catch (err) {
+    // If anything in this middleware fails, pass the request through unchanged
+    // rather than crashing the entire page with MIDDLEWARE_INVOCATION_FAILED.
+    try {
+      return await fetch(req);
+    } catch (_fetchErr) {
+      return new Response('Middleware unavailable', { status: 500 });
+    }
+  }
 }
 const SITEMAP_IE = [
   '/',
