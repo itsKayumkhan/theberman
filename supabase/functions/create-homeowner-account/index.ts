@@ -65,6 +65,23 @@ Deno.serve(async (req: Request) => {
             }), { headers: responseHeaders });
         }
 
+        // 1b. Check if the phone number is already in use by another profile
+        //     (the handle_new_user trigger will fail on unique index violation)
+        if (phone && phone.trim() !== '') {
+            const { data: phoneConflict } = await supabase
+                .from('profiles')
+                .select('id, email, full_name, role')
+                .eq('phone', phone.trim())
+                .maybeSingle();
+
+            if (phoneConflict) {
+                return new Response(JSON.stringify({
+                    success: false,
+                    error: `Phone number already in use by ${phoneConflict.full_name || phoneConflict.email || 'another user'}`,
+                }), { status: 409, headers: responseHeaders });
+            }
+        }
+
         // 2. Check if an auth user exists with this email
         const { data: existingAuthUser } = await supabase.auth.admin.listUsers();
         const found = existingAuthUser?.users?.find((u: any) => u.email?.toLowerCase() === email.toLowerCase());
@@ -100,7 +117,7 @@ Deno.serve(async (req: Request) => {
             email,
             password,
             email_confirm: true,
-            user_metadata: { full_name: fullName, phone, tenant, role: 'homeowner', is_admin_created: true },
+            user_metadata: { full_name: fullName, phone: phone || null, tenant, role: 'homeowner', is_admin_created: true },
         });
 
         if (createError) throw createError;
