@@ -154,7 +154,7 @@ const QuickQuotePage = () => {
                 p_assessment_id: id,
                 p_phone: phone,
                 p_price: parseFloat(quoteData.price),
-                p_notes: quoteData.notes || null,
+                p_notes: null,
             });
 
             if (error) {
@@ -394,6 +394,7 @@ const QuickQuotePage = () => {
                                 <input
                                     type="date"
                                     required
+                                    min={new Date().toISOString().split('T')[0]}
                                     value={quoteData.availability_date}
                                     onChange={(e) => setQuoteData({ ...quoteData, availability_date: e.target.value })}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#007F00]"
@@ -414,19 +415,6 @@ const QuickQuotePage = () => {
                                     <option value="Afternoon (12pm-5pm)">{isSpanish ? 'Tarde (12-17h)' : isPortuguese ? 'Tarde (12-17h)' : isFrench ? 'Après-midi (12h-17h)' : 'Afternoon (12pm-5pm)'}</option>
                                     <option value="Evening (5pm-7pm)">{isSpanish ? 'Última hora (17-19h)' : isPortuguese ? 'Fim de tarde (17-19h)' : isFrench ? 'Soir (17h-19h)' : 'Evening (5pm-7pm)'}</option>
                                 </select>
-                            </div>
-
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    {isSpanish ? 'Notas Adicionales' : isPortuguese ? 'Notas Adicionais' : isFrench ? 'Notes Additionnelles' : 'Additional Notes'}
-                                </label>
-                                <textarea
-                                    rows={4}
-                                    value={quoteData.notes}
-                                    onChange={(e) => setQuoteData({ ...quoteData, notes: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#007F00]"
-                                    placeholder={isSpanish ? 'Cualquier información adicional o requisitos especiales...' : isPortuguese ? 'Qualquer informação adicional ou requisitos especiais...' : isFrench ? 'Toute information supplémentaire ou exigences particulières...' : 'Any additional information or special requirements...'}
-                                />
                             </div>
 
                             <button

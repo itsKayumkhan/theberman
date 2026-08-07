@@ -45,7 +45,6 @@ function generateQuotesSummaryEmail(
                     <br><span style="font-size: 11px; color: #999;">${date}</span>
                 </div>
             </div>
-            ${q.notes ? `<p style="font-size: 14px; color: #555; margin: 8px 0 0 0; font-style: italic;">${q.notes}</p>` : ''}
         </div>`;
     }).join('');
 

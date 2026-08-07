@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useTranslation } from '../hooks/useTranslation';
 import { supabase } from '../lib/supabase';
@@ -8,7 +8,6 @@ import { LogOut, FileText, User, Home, AlertCircle, X, Menu, Trash2, Search, Clo
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import QuoteModal from '../components/QuoteModal';
-import EmailVerification from '../components/EmailVerification';
 import PaymentModal from '../components/PaymentModal';
 
 interface Quote {
@@ -136,12 +135,9 @@ const UserDashboard = () => {
     const [selectedDetailsQuote, setSelectedDetailsQuote] = useState<Quote | null>(null); // New state for quote details modal
     const [view, setView] = useState<'assessments' | 'quotes'>('assessments');
     const [searchQuery, setSearchQuery] = useState('');
-    const [verifyingQuote, setVerifyingQuote] = useState<{ assessmentId: string, quoteId: string, targetStatus: 'accepted' | 'rejected' } | null>(null);
     const [confirmReject, setConfirmReject] = useState<{ assessmentId: string, quoteId: string } | null>(null);
-    const [verificationStep, setVerificationStep] = useState<1 | 2>(1);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    const [verifyEircode, setVerifyEircode] = useState('');
     const [paymentModalOpen, setPaymentModalOpen] = useState(false);
     const [paymentQuote, setPaymentQuote] = useState<{ assessmentId: string, quoteId: string, amount: number, balance?: number } | null>(null);
     const [deletingAssessmentId, setDeletingAssessmentId] = useState<string | null>(null);
@@ -232,6 +228,13 @@ const UserDashboard = () => {
             });
 
             setAssessments(jobsWithExpired);
+
+            // On first load, if there are pending quotes, land on the quotes view
+            if (!initialViewSet.current) {
+                initialViewSet.current = true;
+                const hasPendingQuotes = jobsWithExpired.some(a => (a.quotes || []).some(q => q.status === 'pending'));
+                if (hasPendingQuotes) setView('quotes');
+            }
         } catch (error: any) {
             console.error('Error fetching assessments:', error);
             toast.error(isSpanish ? 'Error al cargar certificaciones' : 'Failed to load assessments');
@@ -250,6 +253,7 @@ const UserDashboard = () => {
     };
 
     const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
+    const initialViewSet = useRef(false);
 
     const handleSubmitAssessment = async (id: string) => {
         if (submittingAssessmentId) return; // prevent double-submit
@@ -642,10 +646,14 @@ const UserDashboard = () => {
                                                             );
                                                         }).map((assessment, index) => {
                                                             const isCommercial = assessment.job_type === 'commercial';
+                                                            const hasPendingQuotes = !!(assessment.quotes && assessment.quotes.some(q => q.status === 'pending'));
                                                             return (
                                                                 <tr
                                                                     key={assessment.id}
-                                                                    className={`border-b border-gray-50 hover:bg-green-50/20 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/10'}`}
+                                                                    className={`border-b border-gray-50 hover:bg-green-50/20 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/10'} ${hasPendingQuotes ? 'cursor-pointer' : ''}`}
+                                                                    onClick={() => {
+                                                                        if (hasPendingQuotes) setView('quotes');
+                                                                    }}
                                                                 >
                                                                     <td className="py-4 px-6">
                                                                         <div className="text-xs font-bold text-gray-400 whitespace-nowrap">
@@ -750,8 +758,15 @@ const UserDashboard = () => {
                                                     );
                                                 }).map((assessment) => {
                                                     const isCommercial = assessment.job_type === 'commercial';
+                                                    const hasPendingQuotes = !!(assessment.quotes && assessment.quotes.some(q => q.status === 'pending'));
                                                     return (
-                                                        <div key={assessment.id} className="p-5">
+                                                        <div
+                                                            key={assessment.id}
+                                                            className={`p-5 ${hasPendingQuotes ? 'cursor-pointer active:bg-green-50/40 transition-colors' : ''}`}
+                                                            onClick={() => {
+                                                                if (hasPendingQuotes) setView('quotes');
+                                                            }}
+                                                        >
                                                             <div className="flex justify-between items-start mb-3">
                                                                 <div>
                                                                     <div className="flex items-center gap-2 mb-1">
@@ -774,11 +789,17 @@ const UserDashboard = () => {
                                                                 <div className={`text-xs font-bold px-2 py-1 rounded ${isCommercial ? 'text-purple-700 bg-purple-50' : 'text-gray-600 bg-gray-50'}`}>
                                                                     {isCommercial ? (assessment.building_type || '-') : (assessment.property_type || '-')}
                                                                 </div>
-                                                                {assessment.quotes && assessment.quotes.some(q => q.status === 'pending') && (
-                                                                    <div className={`text-[10px] font-black flex items-center gap-1 ${isCommercial ? 'text-purple-600' : 'text-[#007F00]'}`}>
+                                                                {hasPendingQuotes && (
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            setView('quotes');
+                                                                        }}
+                                                                        className={`text-[10px] font-black flex items-center gap-1 px-2 py-1 rounded-lg border ${isCommercial ? 'text-purple-600 border-purple-200 bg-purple-50' : 'text-[#007F00] border-green-200 bg-green-50'}`}
+                                                                    >
                                                                         <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${isCommercial ? 'bg-purple-500' : 'bg-green-500'}`}></div>
-                                                                        NEW QUOTES
-                                                                    </div>
+                                                                        {isSpanish ? 'VER PRESUPUESTOS' : isPortuguese ? 'VER ORÇAMENTOS' : isFrench ? 'VOIR LES DEVIS' : 'VIEW QUOTES'}
+                                                                    </button>
                                                                 )}
                                                             </div>
 
@@ -802,7 +823,10 @@ const UserDashboard = () => {
 
                                                             {assessment.status !== 'completed' && (
                                                                 <button
-                                                                    onClick={() => setDeletingAssessmentId(assessment.id)}
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setDeletingAssessmentId(assessment.id);
+                                                                    }}
                                                                     className="w-full py-3 border border-red-50 text-red-400 rounded-xl font-black text-xs hover:bg-red-50 hover:text-red-500 transition-all flex items-center justify-center gap-2"
                                                                 >
                                                                     <Trash2 size={14} />
@@ -871,13 +895,19 @@ const UserDashboard = () => {
                                                                     <td className="py-4 px-6">
                                                                         {quote.contractor ? (
                                                                             <div className="flex flex-col">
-                                                                                <span className="font-bold text-gray-700">#{quote.contractor.seai_number || quote.created_by.slice(0, 6)}</span>
-                                                                                <Link
-                                                                                    to={`/profiles/${quote.created_by}`}
-                                                                                    className="text-[10px] text-green-500 hover:text-green-600 font-bold hover:underline"
-                                                                                >
-                                                                                    {isSpanish ? 'Ver Perfil' : 'View Profile'}
-                                                                                </Link>
+                                                                                <span className="font-bold text-gray-700">
+                                                                                    {quote.status === 'accepted'
+                                                                                        ? quote.contractor.full_name
+                                                                                        : `#${quote.contractor.seai_number || quote.created_by.slice(0, 6)}`}
+                                                                                </span>
+                                                                                {quote.status === 'accepted' && (
+                                                                                    <Link
+                                                                                        to={`/profiles/${quote.created_by}`}
+                                                                                        className="text-[10px] text-green-500 hover:text-green-600 font-bold hover:underline"
+                                                                                    >
+                                                                                        {isSpanish ? 'Ver Perfil' : 'View Profile'}
+                                                                                    </Link>
+                                                                                )}
                                                                             </div>
                                                                         ) : <span className="text-gray-400">-</span>}
                                                                     </td>
@@ -984,10 +1014,14 @@ const UserDashboard = () => {
                                                         {quote.contractor && (
                                                             <div className="flex items-center gap-2 mb-4 p-2 bg-gray-50 rounded-lg border border-gray-100">
                                                                 <div className="w-8 h-8 bg-white rounded-md flex items-center justify-center text-[#007F00] font-black text-xs shadow-sm border border-gray-100">
-                                                                    {quote.contractor.full_name.charAt(0)}
+                                                                    {quote.status === 'accepted' ? quote.contractor.full_name.charAt(0) : '#'}
                                                                 </div>
                                                                 <div>
-                                                                    <p className="text-[10px] font-bold text-gray-900">{quote.contractor.full_name}</p>
+                                                                    <p className="text-[10px] font-bold text-gray-900">
+                                                                        {quote.status === 'accepted'
+                                                                            ? quote.contractor.full_name
+                                                                            : (isSpanish ? `Certificador #${quote.contractor.seai_number || quote.created_by.slice(0, 6)}` : isPortuguese ? `Perito #${quote.contractor.seai_number || quote.created_by.slice(0, 6)}` : isFrench ? `Diagnostiqueur #${quote.contractor.seai_number || quote.created_by.slice(0, 6)}` : `Assessor #${quote.contractor.seai_number || quote.created_by.slice(0, 6)}`)}
+                                                                    </p>
                                                                     <p className="text-[9px] text-gray-400">{isSpanish ? 'CEE CAT:' : isEngland ? 'Assessor ID:' : 'SEAI:'} {quote.contractor.seai_number || (isSpanish ? 'Pendiente' : 'Pending')}</p>
                                                                 </div>
                                                             </div>
@@ -1083,82 +1117,6 @@ const UserDashboard = () => {
                 />
             )}
 
-            {/* Quote Verification Modal */}
-            {verifyingQuote && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
-                    <div className={`bg-white rounded-[2.5rem] shadow-2xl w-full ${verificationStep === 2 ? 'max-w-3xl' : 'max-w-sm'} overflow-hidden animate-in zoom-in-95 duration-200 transition-all duration-500`}>
-                        {verificationStep === 1 ? (
-                            <div className="p-10 text-center">
-                                <div className="mb-8">
-                                    <h3 className="text-3xl font-extrabold text-gray-900 mb-2">Your Eircode</h3>
-                                    <p className="text-gray-500 font-medium">Last Question...</p>
-                                </div>
-                                <p className="text-gray-600 mb-8 text-lg">Provide your eircode (without any spaces)</p>
-                                <div className="space-y-6">
-                                    <input
-                                        type="text"
-                                        value={verifyEircode}
-                                        onChange={(e) => setVerifyEircode(e.target.value.toUpperCase().replace(/\s/g, ''))}
-                                        placeholder="Enter your Eircode"
-                                        className="w-full border-2 border-gray-100 rounded-2xl px-6 py-4 text-center text-xl font-bold focus:outline-none focus:border-[#007F00] transition-colors placeholder:text-gray-300"
-                                    />
-                                    <button
-                                        onClick={() => {
-                                            if (verifyEircode.length < 7) {
-                                                toast.error('Please enter a valid Eircode');
-                                                return;
-                                            }
-
-                                            // Validate Eircode against the assessment record
-                                            const assessment = assessments.find(a => a.id === verifyingQuote.assessmentId);
-                                            if (assessment) {
-                                                const storedEircode = assessment.eircode?.toUpperCase().replace(/\s/g, '') || '';
-                                                const inputEircode = verifyEircode.toUpperCase().replace(/\s/g, '');
-
-                                                if (inputEircode !== storedEircode) {
-                                                    toast.error('Incorrect Eircode for this property. Please check and try again.', {
-                                                        icon: '❌',
-                                                        style: {
-                                                            borderRadius: '10px',
-                                                            background: '#333',
-                                                            color: '#fff',
-                                                        },
-                                                    });
-                                                    return;
-                                                }
-                                            }
-
-                                            setVerificationStep(2);
-                                        }}
-                                        className={`w-full ${verifyingQuote.targetStatus === 'accepted' ? 'bg-[#007F00] hover:bg-[#006600]' : 'bg-red-600 hover:bg-red-700'} text-white py-4 rounded-2xl font-bold text-lg transition-all`}
-                                    >
-                                        {verifyingQuote.targetStatus === 'accepted' ? 'Submit' : 'Continue to Reject'}
-                                    </button>
-                                    <button
-                                        onClick={() => setVerifyingQuote(null)}
-                                        className="text-gray-400 font-bold hover:text-gray-600"
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="p-0 md:p-10 max-h-[90vh] overflow-y-auto">
-                                <EmailVerification
-                                    email={user?.email || ''}
-                                    assessmentId={verifyingQuote.assessmentId}
-                                    onVerified={() => {
-                                        handleUpdateQuoteStatus(verifyingQuote.assessmentId, verifyingQuote.quoteId, verifyingQuote.targetStatus);
-                                        setVerifyingQuote(null);
-                                    }}
-                                    onBack={() => setVerificationStep(1)}
-                                />
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-
             {/* Reject Confirmation Modal */}
             {confirmReject && (
                 <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
@@ -1173,18 +1131,12 @@ const UserDashboard = () => {
                             <div className="space-y-4">
                                 <button
                                     onClick={() => {
-                                        setVerifyingQuote({
-                                            assessmentId: confirmReject.assessmentId,
-                                            quoteId: confirmReject.quoteId,
-                                            targetStatus: 'rejected'
-                                        });
-                                        setVerificationStep(1);
-                                        setVerifyEircode('');
+                                        handleUpdateQuoteStatus(confirmReject.assessmentId, confirmReject.quoteId, 'rejected');
                                         setConfirmReject(null);
                                     }}
                                     className="w-full bg-red-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-red-700 transition-all shadow-lg shadow-red-100"
                                 >
-                                    Yes, Proceed to Verify
+                                    {isSpanish ? 'Sí, Rechazar Presupuesto' : isPortuguese ? 'Sim, Rejeitar Orçamento' : isFrench ? 'Oui, Rejeter le Devis' : 'Yes, Reject Quote'}
                                 </button>
                                 <button
                                     onClick={() => setConfirmReject(null)}
@@ -1252,9 +1204,7 @@ const UserDashboard = () => {
                             <button
                                 onClick={() => {
                                     const quote = selectedDetailsQuote;
-                                    setVerifyingQuote({ assessmentId: quote.assessment_id || (quote.assessment && quote.assessment.id), quoteId: quote.id, targetStatus: 'accepted' });
-                                    setVerificationStep(1);
-                                    setVerifyEircode('');
+                                    handleUpdateQuoteStatus(quote.assessment_id || (quote.assessment && quote.assessment.id), quote.id, 'accepted');
                                     setSelectedDetailsQuote(null);
                                 }}
                                 className="flex-[1.5] py-3 bg-[#007F00] text-white rounded-lg font-black text-sm hover:bg-[#006600]  transition-all shadow-sm active:scale-95"

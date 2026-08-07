@@ -2050,7 +2050,9 @@ const ContractorDashboard = () => {
                                         <span className="text-[10px] font-black text-[#007EA7] uppercase tracking-widest block">{isSpanish ? 'Horario Preferido' : isPortuguese ? 'Horário Preferido' : isFrench ? 'Horaire Préféré' : 'Preferred Schedule'}</span>
                                         <p className="text-sm font-bold text-gray-900 flex items-center gap-2">
                                             <Calendar size={14} />
-                                            {selectedJob.preferred_date} {isSpanish ? 'a las' : isPortuguese ? 'às' : isFrench ? 'à' : 'at'} {selectedJob.preferred_time}
+                                            {selectedJob.preferred_date || selectedJob.preferred_time
+                                                ? `${selectedJob.preferred_date || ''} ${selectedJob.preferred_time ? (isSpanish ? 'a las' : isPortuguese ? 'às' : isFrench ? 'à' : 'at') + ' ' + selectedJob.preferred_time : ''}`.trim()
+                                                : (isSpanish ? 'Flexible' : isPortuguese ? 'Flexível' : isFrench ? 'Flexible' : 'Flexible')}
                                         </p>
                                     </div>
                                     <div className="space-y-2">
@@ -2139,12 +2141,12 @@ const ContractorDashboard = () => {
                                         </p>
                                     </div>
 
-                                    {/* Calendar Grid - 30 days */}
-                                    <div className="grid grid-cols-5 gap-3 max-h-[400px] overflow-y-auto p-2">
+                                    {/* Calendar Grid - 30 days (includes today for same-day quotes) */}
+                                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3 max-h-[400px] overflow-y-auto p-2">
                                         {Array.from({ length: 30 }, (_, i) => {
                                             const date = new Date();
-                                            // Start from tomorrow (i + 1)
-                                            date.setDate(date.getDate() + i + 1);
+                                            // Start from today (allows same-day quotes)
+                                            date.setDate(date.getDate() + i);
                                             const dateStr = date.toISOString().split('T')[0];
                                             const isPreferred = selectedJob.preferred_date === dateStr ||
                                                 new Date(selectedJob.preferred_date).toDateString() === date.toDateString();
@@ -2157,22 +2159,22 @@ const ContractorDashboard = () => {
                                                         setSelectedAvailabilityDate(dateStr);
                                                         setQuoteStep(2);
                                                     }}
-                                                    className={`p-4 rounded-lg border-2 text-center transition-all ${isSelected
+                                                    className={`p-3 sm:p-4 rounded-lg border-2 text-center transition-all ${isSelected
                                                         ? 'border-green-500 bg-green-50'
                                                         : isPreferred
                                                             ? 'border-amber-400 bg-amber-50'
                                                             : 'border-gray-200 hover:border-green-300 hover:bg-green-50/50'
                                                         }`}
                                                 >
-                                                    <p className="text-sm font-medium text-gray-600">
-                                                        {date.toLocaleDateString(isSpanish ? 'es-ES' : isPortuguese ? 'pt-PT' : isFrench ? 'fr-FR' : 'en-IE', { weekday: 'long' })}
+                                                    <p className="text-xs sm:text-sm font-medium text-gray-600">
+                                                        {date.toLocaleDateString(isSpanish ? 'es-ES' : isPortuguese ? 'pt-PT' : isFrench ? 'fr-FR' : 'en-IE', { weekday: 'short' })}
                                                     </p>
-                                                    <p className={`text-lg font-bold ${isSelected ? 'text-green-700' : isPreferred ? 'text-amber-700' : 'text-gray-800'}`}>
+                                                    <p className={`text-base sm:text-lg font-bold ${isSelected ? 'text-green-700' : isPreferred ? 'text-amber-700' : 'text-gray-800'}`}>
                                                         {date.toLocaleDateString(isSpanish ? 'es-ES' : isPortuguese ? 'pt-PT' : isFrench ? 'fr-FR' : 'en-IE', { day: '2-digit', month: 'short' })}
                                                     </p>
                                                     {isPreferred && (
                                                         <p className="text-[10px] text-amber-600 font-medium mt-1">
-                                                            ({selectedJob.preferred_time || '8am - 10am'})
+                                                            ({selectedJob.preferred_time || (isSpanish ? 'Cualquier hora' : isPortuguese ? 'Qualquer hora' : isFrench ? 'Toute heure' : 'Any time')})
                                                         </p>
                                                     )}
                                                 </button>
