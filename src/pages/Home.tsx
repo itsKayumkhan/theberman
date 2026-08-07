@@ -140,6 +140,14 @@ const HomePage = () => {
                                         : 'The fastest, most reliable way to get your official Building Energy Rating. Compare competing quotes from local, SEAI-registered assessors today.'))}
                         </p>
 
+                        {(tenant === 'ireland' || tenant === 'england') && (
+                            <p className="text-gray-500 max-w-2xl mx-auto leading-relaxed text-sm md:text-base mb-6 md:mb-8">
+                                {tenant === 'england'
+                                    ? "Looking for a trusted EPC Certificate provider in England? EPCCert connects you with accredited energy assessors for fast, affordable domestic and commercial EPC assessments. Compare quotes, book online, and get your Energy Performance Certificate in days."
+                                    : "The Berman is Ireland's largest BER website, connecting property owners with 100+ SEAI-registered assessors nationwide. Whether you need a BER certificate for selling, renting, or SEAI grant applications — we make it fast, affordable and completely online."}
+                            </p>
+                        )}
+
                         <p className={`font-bold animate-fade-in ${isSpanish ? 'my-4 text-lg md:text-xl' : 'my-6 text-2xl md:text-3xl'}`} style={{ color: c('hero', 'highlight_color', '#007F00') }}>
                             {c('hero', 'cta_line', isSpanish
                                 ? 'Obtén los mejores presupuestos de certificadores locales hoy mismo.'

@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server';
 // Vercel Edge Middleware — Multi-tenant SEO Fix
 // Injects: canonical, title, meta description, OG tags, hreflang, JSON-LD schema
 // Zero changes to the React app needed.
@@ -23,7 +24,7 @@ function parseCookie(cookieHeader, name) {
   return match ? decodeURIComponent(match[1]) : '';
 }
 
-async function sendMetaCAPI(eventName, eventId, req, canonicalUrl, testEventCode = null) {
+async function sendMetaCAPI(eventName, eventId, req, canonicalUrl, fbc = null, fbp = null, testEventCode = null) {
   try {
     const ip     = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || '';
     const ua     = req.headers.get('user-agent') || '';
@@ -49,16 +50,8 @@ async function sendMetaCAPI(eventName, eventId, req, canonicalUrl, testEventCode
       sha256(rawLname),
     ]);
 
-    // ── fbc (Facebook Click ID) — fixes Meta's High Priority recommendation ──
-    // Priority: 1) _fbc cookie  2) fbclid URL param (build fbc format)
-    const reqUrl    = new URL(req.url);
-    const fbclid    = reqUrl.searchParams.get('fbclid');
-    const fbcCookie = parseCookie(cookie, '_fbc');
-    const fbc = fbcCookie
-      || (fbclid ? `fb.1.${Date.now()}.${fbclid}` : null);
-
-    // ── fbp (Facebook Browser ID) — from _fbp cookie set by pixel ──
-    const fbp = parseCookie(cookie, '_fbp') || null;
+    // fbc and fbp are now passed as parameters from the main middleware function
+    // This ensures they are available both for CAPI and for setting cookies on the response
 
     const userData = {
       client_ip_address: ip,
@@ -84,7 +77,7 @@ async function sendMetaCAPI(eventName, eventId, req, canonicalUrl, testEventCode
     if (testEventCode) payload.test_event_code = testEventCode;
 
     await fetch(
-      `https://graph.facebook.com/v19.0/${META_PIXEL_ID}/events?access_token=${META_CAPI_TOKEN}`,
+      `https://graph.facebook.com/v21.0/${META_PIXEL_ID}/events?access_token=${META_CAPI_TOKEN}`,
       { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
     );
   } catch (e) {
@@ -95,157 +88,285 @@ async function sendMetaCAPI(eventName, eventId, req, canonicalUrl, testEventCode
 // ─── Page metadata map (Ireland) ─────────────────────────────────────────────
 const PAGE_META_IE = {
   '/': {
-    title: "The Berman – Ireland's Largest BER Website | BER Certificates & Energy Ratings",
-    desc:  "Ireland's largest BER website. Get fast, reliable BER certificates from 100+ SEAI-registered assessors nationwide. Compare quotes and book online instantly.",
+    title:   "BER Certificate Ireland | Compare Quotes from SEAI Assessors",
+    desc:    "Ireland's largest BER marketplace. Instantly compare quotes from trusted SEAI-registered assessors near you. Book your Building Energy Rating online today.",
+    ogTitle: "Get a BER Certificate | SEAI Registered Assessors Nationwide",
+    ogDesc:  "Ireland's largest BER platform. Compare quotes from trusted local assessors and book your Building Energy Rating assessment online today.",
+    twTitle: "BER Certificate Ireland | Compare Quotes Instantly",
+    twDesc:  "Compare BER quotes from SEAI-registered assessors nationwide. Fast, reliable, and easy to book online.",
   },
   '/about': {
-    title: "About The Berman | Ireland's BER Certificate Platform",
-    desc:  "Learn about The Berman — Ireland's largest BER certificate platform connecting property owners with 100+ SEAI-registered assessors across every county.",
+    title:   "About The Berman | Ireland's BER Certificate Platform",
+    desc:    "Learn about The Berman, Ireland's trusted platform connecting homeowners with 100+ SEAI-registered BER assessors across every county in Ireland.",
+    ogTitle: "The Berman | SEAI Registered BER Assessor",
+    ogDesc:  "Discover how The Berman connects homeowners and businesses with qualified SEAI-registered BER assessors across Ireland.",
+    twTitle: "About The Berman | Trusted BER Assessor Network",
+    twDesc:  "Find out how The Berman connects Irish homeowners with SEAI-registered BER assessors nationwide.",
   },
   '/about-us': {
-    title: "About The Berman | Ireland's BER Certificate Platform",
-    desc:  "Learn about The Berman — Ireland's largest BER certificate platform connecting property owners with 100+ SEAI-registered assessors across every county.",
+    title:   "About The Berman | Ireland's BER Certificate Platform",
+    desc:    "Learn about The Berman, Ireland's trusted platform connecting homeowners with 100+ SEAI-registered BER assessors across every county in Ireland.",
+    ogTitle: "The Berman | SEAI Registered BER Assessor",
+    ogDesc:  "Discover how The Berman connects homeowners and businesses with qualified SEAI-registered BER assessors across Ireland.",
+    twTitle: "About The Berman | Trusted BER Assessor Network",
+    twDesc:  "Find out how The Berman connects Irish homeowners with SEAI-registered BER assessors nationwide.",
   },
   '/services': {
-    title: 'BER Certificate Services Ireland | Residential & Commercial | The Berman',
-    desc:  'Get residential, apartment and commercial BER certificates across Ireland. Compare quotes from SEAI-registered assessors and book online with The Berman.',
+    title:   'BER Certificate Services Ireland | Residential & Commercial | The Berman',
+    desc:    'The Berman covers every step of the BER process — instant quotes, verified SEAI assessors, rating lookups and everything your property needs.',
+    ogTitle: 'What We Offer | BER Certs, Ratings & Assessor Network',
+    ogDesc:  'One platform, every BER service — get quotes, connect with SEAI-registered assessors and manage your Building Energy Rating with ease.',
+    twTitle: 'Everything You Need for Your BER, In One Place',
+    twDesc:  'One platform, every BER service — get quotes, connect with SEAI-registered assessors and manage your rating online.',
   },
   '/pricing': {
-    title: 'BER Certificate Cost Ireland 2026 | Compare Prices | The Berman',
-    desc:  'How much does a BER certificate cost in Ireland? Compare prices from €150 from SEAI-registered assessors. Get the best BER quote with The Berman.',
+    title:   'BER Certificate Cost Ireland 2026 | Compare Prices | The Berman',
+    desc:    'How much does a BER certificate cost? Compare BER cert prices from €150, based on property size and county. Get the best quote with The Berman.',
+    ogTitle: 'BER Cert Cost Ireland | Compare Prices From €150',
+    ogDesc:  'See real BER certificate prices by property size and county. Compare quotes from SEAI-registered assessors. The Berman makes it simple.',
+    twTitle: 'BER Cert Cost Ireland 2026 | From €150',
+    twDesc:  'Compare BER certificate prices by property size from SEAI-registered assessors across Ireland.',
   },
   '/faq': {
-    title: 'BER Certificate FAQs Ireland | Common Questions Answered | The Berman',
-    desc:  'Answers to the most common BER certificate questions in Ireland. What is a BER? How long does it last? How much does it cost? Find out with The Berman.',
+    title:   'BER Certificate FAQs Ireland | Common Questions Answered | The Berman',
+    desc:    'Find answers to common questions about BER certificates, ratings, costs, validity and exemptions in Ireland. Everything you need to know.',
+    ogTitle: 'BER Certificate FAQs | The Berman',
+    ogDesc:  'Answers to the most common BER certificate questions in Ireland — costs, validity, exemptions, SEAI grants and more.',
+    twTitle: 'BER Certificate FAQs Answered',
+    twDesc:  'Common questions about BER certificates in Ireland — costs, ratings, validity and SEAI grant requirements.',
   },
-  '/ber-faqs/': {
-    title: 'BER Certificate FAQs Ireland | Common Questions Answered | The Berman',
-    desc:  'Answers to the most common BER certificate questions in Ireland. What is a BER? How long does it last? How much does it cost? Find out with The Berman.',
+  '/ber-faqs': {
+    title:   'BER Certificate FAQs Ireland | Common Questions Answered | The Berman',
+    desc:    'Find answers to common questions about BER certificates, ratings, costs, validity and exemptions in Ireland. Everything you need to know.',
+    ogTitle: 'BER Certificate FAQs | The Berman',
+    ogDesc:  'Answers to the most common BER certificate questions in Ireland — costs, validity, exemptions, SEAI grants and more.',
+    twTitle: 'BER Certificate FAQs Answered',
+    twDesc:  'Common questions about BER certificates in Ireland — costs, ratings, validity and SEAI grant requirements.',
   },
   '/contact-us': {
-    title: 'Contact The Berman | BER Certificate Support Ireland',
-    desc:  'Contact The Berman for BER certificate support. Ireland\'s largest BER platform — we\'re here to help with quotes, bookings and assessor queries.',
+    title:   'Contact The Berman | BER Certificate Support Ireland',
+    desc:    "Contact The Berman for BER certificate support. Ireland's largest BER platform — we're here to help with quotes, bookings and assessor queries.",
+    ogTitle: 'Contact The Berman | Get BER Support',
+    ogDesc:  "Get in touch with The Berman for quotes, bookings and BER assessor support across Ireland.",
+    twTitle: 'Contact The Berman | BER Support Ireland',
+    twDesc:  "Questions about your BER certificate? The Berman's team is here to help across Ireland.",
   },
   '/locations': {
-    title: 'BER Assessors by Location | All Counties Ireland | The Berman',
-    desc:  'Find SEAI-registered BER assessors in every county and town in Ireland. Compare local quotes and book your BER certificate online with The Berman.',
+    title:   'BER Assessors By County | Find Local BER Providers | The Berman',
+    desc:    'Find SEAI-registered BER assessors in your county. Compare local BER certificate prices and book online with The Berman.',
+    ogTitle: 'BER Assessors Near You | Search By County',
+    ogDesc:  'Browse SEAI-registered BER assessors by county across Ireland. Compare local quotes and book your assessment online.',
+    twTitle: 'Find Local BER Assessors By County',
+    twDesc:  'Search for SEAI-registered BER assessors in your county. Compare quotes and book online with The Berman.',
   },
   '/catalogue': {
-    title: 'Find BER Assessors Ireland | Browse & Compare Quotes | The Berman',
-    desc:  'Browse SEAI-registered BER assessors across Ireland. Compare quotes, check availability and book your BER certificate online instantly with The Berman.',
+    title:   'Find BER Assessors Ireland | Browse & Compare Quotes | The Berman',
+    desc:    'Browse SEAI-registered BER assessors across Ireland. Compare quotes, check availability and book your BER certificate online instantly with The Berman.',
+    ogTitle: 'Find & Compare BER Assessors Near You | The Berman',
+    ogDesc:  'Browse and compare SEAI-registered BER assessors in your area. Get quotes and book your BER certificate instantly online.',
+    twTitle: 'Browse BER Assessors Ireland | Compare Quotes',
+    twDesc:  'Find and compare SEAI-registered BER assessors near you. Book online with The Berman.',
   },
   '/news': {
-    title: 'BER Certificate News & Updates Ireland | The Berman',
-    desc:  'Latest BER certificate news, SEAI updates and energy rating information for Irish homeowners and landlords. Stay informed with The Berman.',
+    title:   'BER Certificate News & Updates Ireland | The Berman',
+    desc:    'Latest BER certificate news, SEAI updates and energy rating information for Irish homeowners and landlords. Stay informed with The Berman.',
+    ogTitle: 'BER News & SEAI Updates | The Berman',
+    ogDesc:  'Stay up to date with the latest BER certificate news and SEAI updates in Ireland.',
+    twTitle: 'BER Certificate News Ireland | The Berman',
+    twDesc:  'Latest BER and SEAI updates for Irish homeowners and landlords.',
   },
   '/blog': {
-    title: 'BER Certificate Blog | Energy Rating Guides Ireland | The Berman',
-    desc:  'Expert guides on BER certificates, energy efficiency upgrades, SEAI grants and property energy ratings in Ireland. Read more on The Berman blog.',
+    title:   'BER Certificate Blog | Energy Rating Guides Ireland | The Berman',
+    desc:    'Expert guides on BER certificates, energy efficiency upgrades, SEAI grants and property energy ratings in Ireland. Read more on The Berman blog.',
+    ogTitle: 'BER Certificate Guides & Resources | The Berman Blog',
+    ogDesc:  'Read expert articles on BER certificates, SEAI grants, energy upgrades and property ratings in Ireland.',
+    twTitle: 'BER Certificate Blog | The Berman',
+    twDesc:  'Guides on BER certs, SEAI grants and energy upgrades for Irish homeowners.',
   },
   '/hire-agent': {
-    title: 'Hire a BER Assessor Ireland | The Berman',
-    desc:  'Hire a SEAI-registered BER assessor through The Berman. Fast, reliable and affordable BER certificates anywhere in Ireland.',
+    title:   'Hire a BER Assessor Ireland | The Berman',
+    desc:    'Hire a SEAI-registered BER assessor through The Berman. Fast, reliable and affordable BER certificates anywhere in Ireland.',
+    ogTitle: 'Hire a BER Assessor | SEAI Registered | The Berman',
+    ogDesc:  'Connect with a verified SEAI-registered BER assessor near you. Fast and affordable BER certificates across Ireland.',
+    twTitle: 'Hire a BER Assessor | The Berman',
+    twDesc:  'Find a trusted SEAI-registered BER assessor in your area. Book with The Berman today.',
+  },
+  '/energy-advisor': {
+    title:   'BER Energy Advisor Ireland | Expert Energy Assessments | The Berman',
+    desc:    'Connect with a qualified BER energy advisor in Ireland. Get expert advice on improving your property energy rating, SEAI grants and upgrade costs.',
+    ogTitle: 'BER Energy Advisor | The Berman',
+    ogDesc:  'Get expert BER energy advice from qualified advisors across Ireland. Understand your rating and plan energy upgrades.',
+    twTitle: 'BER Energy Advisor Ireland | The Berman',
+    twDesc:  'Expert energy advice for Irish homeowners. Improve your BER rating and access SEAI grants.',
   },
   '/get-quote': {
-    title: 'Get a BER Certificate Quote | Free Quotes Ireland | The Berman',
-    desc:  'Get free BER certificate quotes from SEAI-registered assessors near you. Compare prices and book online instantly with The Berman.',
+    title:   'Get a Free BER Quote | Compare Prices Instantly | The Berman',
+    desc:    'Request a free BER certificate quote in minutes. Compare prices from SEAI-registered assessors near you and book online with The Berman.',
+    ogTitle: 'Get Your Free BER Quote Today',
+    ogDesc:  'Compare BER certificate quotes from local SEAI-registered assessors. Book your assessment online in minutes.',
+    twTitle: 'Get a Free BER Quote in Minutes',
+    twDesc:  'Compare BER certificate prices from SEAI-registered assessors near you. Fast and easy with The Berman.',
   },
   '/blog/ber-certificate-cost-ireland': {
-    title: 'How Much Does a BER Certificate Cost in Ireland? | 2026 Price Guide',
-    desc:  'BER certificate costs in Ireland range from €150–€300. Compare prices from SEAI-registered assessors near you. Get the best BER cert quote with The Berman.',
+    title:   'How Much Does a BER Certificate Cost in Ireland? | 2026 Price Guide',
+    desc:    'BER certificate costs in Ireland range from €150–€300. Compare prices from SEAI-registered assessors near you. Get the best BER cert quote with The Berman.',
   },
   '/blog/new-ber-rating-scale-2026-ireland': {
-    title: 'New BER Rating Scale 2026 — A0, A1, A2, A3 Ireland Explained | The Berman',
-    desc:  "Ireland's new 2026 BER scale runs from A0 to G. Learn what each rating means, how it affects SEAI grants, and how to get your property rated under the new system.",
+    title:   'New BER Rating Scale 2026 — A0, A1, A2, A3 Ireland Explained | The Berman',
+    desc:    "Ireland's new 2026 BER scale runs from A0 to G. Learn what each rating means, how it affects SEAI grants, and how to get your property rated under the new system.",
   },
   '/blog/ber-cert-for-landlords-ireland': {
-    title: 'BER Certificate for Landlords Ireland 2026 | Legal Requirements & Costs',
-    desc:  'Landlords in Ireland must have a valid BER certificate. Learn the legal requirements, costs (from €150), how long it lasts, and how to get one fast with The Berman.',
+    title:   'BER Certificate for Landlords Ireland 2026 | Legal Requirements & Costs',
+    desc:    'Landlords in Ireland must have a valid BER certificate. Learn the legal requirements, costs (from €150), how long it lasts, and how to get one fast with The Berman.',
   },
   '/blog/seai-grants-2026-ireland': {
-    title: 'SEAI Grants 2026 Ireland — Up to €25,000 for Home Energy Upgrades',
-    desc:  'Full guide to SEAI energy upgrade grants in 2026. What grants are available, how much you can get (up to €25,000), and why you need a BER certificate to apply.',
+    title:   'SEAI Grants 2026 Ireland — Up to €25,000 for Home Energy Upgrades',
+    desc:    'Full guide to SEAI energy upgrade grants in 2026. What grants are available, how much you can get (up to €25,000), and why you need a BER certificate to apply.',
   },
 };
 
 // ─── Page metadata map (England) ─────────────────────────────────────────────
 const PAGE_META_EN = {
   '/': {
-    title: "EPC Certificate England | Domestic & Commercial EPC",
-    desc: "Book Accredited EPC Assessments Across England. Fast Domestic and Commercial EPC Certificates with Competitive Pricing and Nationwide Coverage",
+    title:   "EPC Certificate England | Energy Performance Certificate & Assessors",
+    desc:    "EPCCert.com provides fast, reliable, and affordable EPC Certificates across England. Book accredited domestic and commercial energy assessments online today.",
+    ogTitle: "EPCCert.com | England's Trusted EPC Certificate & Energy Assessment Provider",
+    ogDesc:  "Book your EPC Certificate online with certified energy assessors across England. Fast turnaround, affordable pricing and nationwide coverage.",
+    twTitle: "EPC Certificate England | Fast & Trusted Energy Performance Certificates",
+    twDesc:  "Need an Energy Performance Certificate in England? Get fast, affordable EPC assessments from accredited professionals. Book online with EPCCert.",
   },
   '/about': {
-    title: 'About EPC Cert | Energy Performance Certificate Experts',
-    desc: 'Learn about EPC Cert, trusted Energy Performance Certificate experts helping property owners across England arrange EPC assessments',
+    title:   'About EPCCert | Trusted EPC Certificate Experts in England',
+    desc:    'Trusted EPC Certificate providers in England. EPCCert offers fast, affordable energy assessments for domestic and commercial properties across England.',
+    ogTitle: 'About EPCCert | Professional EPC Certificate Services England',
+    ogDesc:  'Learn how EPCCert connects property owners with accredited EPC assessors across England for fast, reliable energy performance certificates.',
+    twTitle: "About EPCCert | England's Trusted EPC Certificate Provider",
+    twDesc:  'Find out how EPCCert delivers trusted EPC Certificate services across England for homeowners, landlords and businesses.',
   },
   '/about-us': {
-    title: 'About EPC Cert | Energy Performance Certificate Experts',
-    desc: 'Learn about EPC Cert, trusted Energy Performance Certificate experts helping property owners across England arrange EPC assessments',
+    title:   'About EPCCert | Trusted EPC Certificate Experts in England',
+    desc:    'Trusted EPC Certificate providers in England. EPCCert offers fast, affordable energy assessments for domestic and commercial properties across England.',
+    ogTitle: 'About EPCCert | Professional EPC Certificate Services England',
+    ogDesc:  'Learn how EPCCert connects property owners with accredited EPC assessors across England for fast, reliable energy performance certificates.',
+    twTitle: "About EPCCert | England's Trusted EPC Certificate Provider",
+    twDesc:  'Find out how EPCCert delivers trusted EPC Certificate services across England for homeowners, landlords and businesses.',
   },
   '/services': {
-    title: 'EPC Certificate Services England | Residential & Commercial | EPC Cert',
-    desc: 'Get residential, landlord and commercial EPC certificates across England. Compare quotes from accredited assessors and book online with EPC Cert.',
+    title:   'EPC Certificate Services England | Residential & Commercial | EPC Cert',
+    desc:    'We provide fast, affordable Domestic and Commercial Energy Performance Certificates across England. Accredited assessors, quick turnaround, competitive pricing.',
+    ogTitle: 'Professional EPC Certificate Services Across England | EPCCert',
+    ogDesc:  'From domestic EPC assessments to commercial energy certificates — EPCCert covers all property types across England.',
+    twTitle: 'EPC Certificate Services England | Fast & Trusted EPC Assessment',
+    twDesc:  'Fast domestic and commercial EPC Certificate services across England. Accredited assessors, affordable prices.',
   },
   '/pricing': {
-    title: 'EPC Certificate Cost England 2026 | Compare Prices | EPC Cert',
-    desc: 'How much does an EPC certificate cost in England? Compare prices from accredited assessors. Get the best EPC quote with EPC Cert.',
+    title:   'EPC Certificate Cost England 2026 | Compare Prices | EPC Cert',
+    desc:    'View transparent EPC Certificate pricing across England. Compare domestic and commercial EPC costs from accredited assessors. Get the best quote with EPC Cert.',
+    ogTitle: 'Affordable EPC Costs Across England | Certificate for EPC',
+    ogDesc:  'Compare EPC Certificate prices by property type across England. Transparent pricing from accredited assessors — book online with EPCCert.',
+    twTitle: 'Fast & Affordable EPC Certificates Across England | EPCCert',
+    twDesc:  'Compare EPC Certificate costs for domestic and commercial properties across England. Affordable and accredited.',
   },
   '/faq': {
-    title: 'EPC Certificate FAQ England | EPC Assessor',
-    desc: 'Find Answers to Common EPC Certificate Questions, Including Costs, Timelines, and Legal',
+    title:   'EPC Certificate FAQ England | Common Questions Answered | EPC Cert',
+    desc:    'Find answers to common EPC Certificate questions in England — costs, legal requirements, timelines, Band C deadlines and landlord MEES obligations.',
+    ogTitle: 'EPC Certificate FAQs | EPCCert',
+    ogDesc:  'Everything you need to know about EPC Certificates in England — costs, landlord rules, MEES requirements and Band C 2030 deadline.',
+    twTitle: 'EPC Certificate FAQs England Answered',
+    twDesc:  'Common EPC questions for homeowners and landlords in England — costs, legal requirements and Band C obligations.',
   },
   '/epc-faq': {
-    title: 'EPC Certificate FAQ England 2026 | Landlord & MEES Questions Answered',
-    desc: 'Answers to common EPC questions in England — costs, landlord MEES requirements, Band C 2030 deadline, how to improve ratings, and who can carry out assessments.',
+    title:   'EPC Certificate FAQ England 2026 | Landlord & MEES Questions Answered',
+    desc:    'Answers to common EPC questions in England — costs, landlord MEES requirements, Band C 2030 deadline, how to improve ratings, and who can carry out assessments.',
+    ogTitle: 'EPC FAQs for Landlords & Homeowners England | EPCCert',
+    ogDesc:  'Detailed answers to EPC Certificate questions for landlords and homeowners in England — MEES, Band C, costs and improvement tips.',
+    twTitle: 'EPC FAQ England | Landlord & MEES Guide',
+    twDesc:  'All your EPC questions answered — Band C deadline, MEES rules, costs and how to improve your rating in England.',
   },
   '/contact-us': {
-    title: 'Contact EPC Cert | EPC Certificate Support England',
-    desc: "Contact EPC Cert for EPC certificate support. England's leading EPC platform — we're here to help.",
+    title:   'Contact EPCCert | Book an EPC Assessment in England',
+    desc:    'Get in touch with EPC Cert for fast, reliable EPC Certificate services across England. Request a quote or book your energy assessment today.',
+    ogTitle: 'Get in Touch with EPCCert | EPC Certificates England',
+    ogDesc:  'Contact EPCCert to book an EPC assessment or request a quote. Fast, reliable EPC Certificate services across England.',
+    twTitle: 'Contact EPCCert | Fast EPC Quotes & Support in England',
+    twDesc:  'Book an EPC assessment or request a quote from EPCCert. Trusted EPC Certificate support across England.',
   },
   '/locations': {
-    title: 'EPC Assessors by Location | All Counties England | EPC Cert',
-    desc: 'Find accredited EPC assessors in every county and town in England. Compare local quotes and book online with EPC Cert.',
+    title:   'EPC Certificate Locations Across England | EPCCert',
+    desc:    'Find trusted EPC Certificate services across England. Browse our locations and connect with accredited assessors in your area.',
+    ogTitle: 'EPC Certificate Locations Across England | EPCCert',
+    ogDesc:  'Browse EPC Certificate locations across England. Find accredited assessors in your area and book online with EPCCert.',
+    twTitle: 'EPC Certificate Locations England | EPCCert',
+    twDesc:  'Find accredited EPC assessors near you across England. Book your energy performance certificate online.',
   },
   '/catalogue': {
-    title: 'Find EPC Assessors England | Browse & Compare Quotes | EPC Cert',
-    desc: 'Browse accredited EPC assessors across England. Compare quotes and book your EPC certificate online instantly with EPC Cert.',
+    title:   'Find EPC Assessors England | Browse & Compare Quotes | EPC Cert',
+    desc:    'Browse accredited EPC assessors across England. Compare quotes and book your EPC certificate online instantly with EPC Cert.',
+    ogTitle: 'Your Local EPC Certificate Experts Across England',
+    ogDesc:  'Browse and compare accredited EPC assessors across England. Get quotes and book online with EPCCert.',
+    twTitle: 'Find EPC Assessors England | EPCCert',
+    twDesc:  'Compare accredited EPC assessors near you across England. Book your energy performance certificate online.',
   },
   '/news': {
-    title: 'EPC Certificate News & Updates England | EPC Cert',
-    desc: 'Latest EPC news, government regulations, and energy efficiency updates for English homeowners and landlords.',
+    title:   'EPC Certificate News & Updates England | EPC Cert',
+    desc:    'Latest EPC news, government regulations, and energy efficiency updates for English homeowners and landlords.',
+    ogTitle: 'EPC News & Regulation Updates | EPCCert',
+    ogDesc:  'Stay up to date with the latest EPC Certificate news, MEES changes and energy efficiency regulations in England.',
+    twTitle: 'EPC Certificate News England | EPCCert',
+    twDesc:  'Latest EPC and energy regulation updates for English homeowners and landlords.',
   },
   '/blog': {
-    title: 'EPC Certificate Blog | Energy Efficiency Guides England | EPC Cert',
-    desc: 'Expert guides on Energy Performance Certificates, home efficiency improvements, and landlord regulations in England.',
+    title:   'EPC Certificate Blog | Energy Efficiency Guides England | EPC Cert',
+    desc:    'Expert guides on Energy Performance Certificates, home efficiency improvements, and landlord regulations in England.',
+    ogTitle: 'EPC Certificate Guides & Resources | EPCCert Blog',
+    ogDesc:  'Read expert articles on EPC Certificates, landlord MEES requirements and energy efficiency improvements in England.',
+    twTitle: 'EPC Certificate Blog | EPCCert',
+    twDesc:  'Guides on EPC certs, MEES rules and energy upgrades for English homeowners and landlords.',
   },
   '/hire-agent': {
-    title: 'Hire an EPC Assessor England | EPC Cert',
-    desc: 'Hire an accredited EPC assessor through EPC Cert. Fast, reliable and affordable EPC certificates anywhere in England.',
+    title:   'Hire an EPC Assessor England | EPC Cert',
+    desc:    'Hire an accredited EPC assessor through EPC Cert. Fast, reliable and affordable EPC certificates anywhere in England.',
+    ogTitle: 'Hire an Accredited EPC Assessor | EPCCert',
+    ogDesc:  'Connect with a verified accredited EPC assessor near you. Fast and affordable EPC Certificates across England.',
+    twTitle: 'Hire an EPC Assessor | EPCCert',
+    twDesc:  'Find a trusted accredited EPC assessor in your area. Book with EPCCert today.',
+  },
+  '/energy-advisor': {
+    title:   'EPC Energy Advisor England | Expert Energy Assessments | EPC Cert',
+    desc:    'Connect with a qualified EPC energy advisor in England. Get expert guidance on improving your energy performance rating and meeting MEES requirements.',
+    ogTitle: 'EPC Energy Advisor | EPCCert England',
+    ogDesc:  'Expert EPC energy advice from qualified advisors across England. Understand your rating and plan energy improvements.',
+    twTitle: 'EPC Energy Advisor England | EPCCert',
+    twDesc:  'Expert energy advice for English homeowners and landlords. Improve your EPC rating and meet MEES obligations.',
   },
   '/get-quote': {
-    title: 'Get a Free EPC Certificate Quote | Compare Prices England | EPC Cert',
-    desc: 'Get free EPC certificate quotes from accredited assessors near you. Compare and book online instantly with EPC Cert.',
+    title:   'Get a Free EPC Certificate Quote | Compare Prices England | EPC Cert',
+    desc:    'Get free EPC certificate quotes from accredited assessors near you. Compare and book online instantly with EPC Cert.',
+    ogTitle: 'Get Your Free EPC Quote Today | EPCCert',
+    ogDesc:  'Compare EPC Certificate quotes from local accredited assessors across England. Book your assessment online in minutes.',
+    twTitle: 'Get a Free EPC Quote in Minutes | EPCCert',
+    twDesc:  'Compare EPC Certificate prices from accredited assessors near you. Fast and easy with EPCCert.',
   },
   // Blog posts — England
   '/blog/epc-certificate-cost-guide': {
-    title: 'How Much Does an EPC Certificate Cost in England? | 2026 Price Guide',
-    desc: 'EPC certificates in England cost £45–£150 for domestic properties. Compare prices from accredited assessors near you. Get your best EPC quote with EPC Cert.',
+    title:   'How Much Does an EPC Certificate Cost in England? | 2026 Price Guide',
+    desc:    'EPC certificates in England cost £45–£150 for domestic properties. Compare prices from accredited assessors near you. Get your best EPC quote with EPC Cert.',
   },
   '/blog/landlord-epc-requirements-england-2026': {
-    title: 'Landlord EPC Requirements England 2026 | MEES Band C 2030 Deadline Guide',
-    desc: 'England MEES requires EPC Band E now; all rentals must reach Band C by 2030. Fines up to £30,000. Learn what landlords must do and how EPC Cert can help.',
+    title:   'Landlord EPC Requirements England 2026 | MEES Band C 2030 Deadline Guide',
+    desc:    'England MEES requires EPC Band E now; all rentals must reach Band C by 2030. Fines up to £30,000. Learn what landlords must do and how EPC Cert can help.',
   },
   '/blog/how-to-improve-epc-rating-england': {
-    title: 'How to Improve Your EPC Rating England 2026 | E to C Upgrade Guide',
-    desc: 'Improve your EPC rating from E to C in England. Guide to loft insulation, heat pumps, boilers & solar panels with costs, grants available, and step-by-step plan.',
+    title:   'How to Improve Your EPC Rating England 2026 | E to C Upgrade Guide',
+    desc:    'Improve your EPC rating from E to C in England. Guide to loft insulation, heat pumps, boilers & solar panels with costs, grants available, and step-by-step plan.',
   },
   '/blog/commercial-epc-england-guide': {
-    title: 'Commercial EPC England 2026 | MEES Requirements, Costs & How to Comply',
-    desc: 'Commercial EPCs are required when selling or renting in England. MEES demands Band C by 2030. Costs from £150. Compare commercial EPC quotes with EPC Cert.',
+    title:   'Commercial EPC England 2026 | MEES Requirements, Costs & How to Comply',
+    desc:    'Commercial EPCs are required when selling or renting in England. MEES demands Band C by 2030. Costs from £150. Compare commercial EPC quotes with EPC Cert.',
   },
   '/blog/epc-band-c-2030-deadline-landlord-guide': {
-    title: 'EPC Band C 2030 Deadline — Landlord Action Plan England | EPC Cert',
-    desc: 'All English rentals must reach EPC Band C by 2030. With fines up to £30,000, here\'s your step-by-step landlord action plan to comply on time and save money.',
+    title:   'EPC Band C 2030 Deadline — Landlord Action Plan England | EPC Cert',
+    desc:    "All English rentals must reach EPC Band C by 2030. With fines up to £30,000, here's your step-by-step landlord action plan to comply on time and save money.",
   },
 };
 
@@ -859,12 +980,10 @@ function breadcrumbSchema(pathname, tenant) {
 function hreflangTags(pathname, tenant) {
   const cleanPath = pathname === '/' ? '/' : pathname;
   const domains = [
-    { lang:'en-IE', base:'https://theberman.eu' },
-    { lang:'en-GB', base:'https://epccert.com' },
-    { lang:'fr-FR', base:'https://dpefrance.eu' },
+    { lang:'en-IE', base:'https://www.theberman.eu' },
+    { lang:'en-GB', base:'https://www.epccert.com' },
     { lang:'es-ES', base:'https://www.xn--certificadoenergtico-q2b.eu' },
-    { lang:'pt-PT', base:'https://certificadopt.eu' },
-    { lang:'x-default', base:'https://theberman.eu' },
+    { lang:'x-default', base:'https://www.theberman.eu' },
   ];
   return domains.map(d =>
     `<link rel="alternate" hreflang="${d.lang}" href="${d.base}${cleanPath}" />`
@@ -873,18 +992,6 @@ function hreflangTags(pathname, tenant) {
 
 // ─── Main handler ─────────────────────────────────────────────────────────────
 export default async function middleware(req) {
-  try {
-    return await handleRequest(req);
-  } catch (_err) {
-    // Any unhandled error → pass through to origin, never 500
-    return undefined;
-  }
-}
-
-async function handleRequest(req) {
-  // Recursion guard: skip if this request originated from our own proxy fetch
-  if (req.headers.get('x-seo-middleware') === '1') return undefined;
-
   const url  = new URL(req.url);
   const path = url.pathname;
   const testEventCode = url.searchParams.get('test_event_code') || '';
@@ -894,6 +1001,18 @@ async function handleRequest(req) {
   const isEng = /epccert/.test(hostname);
   const tenant = isEsp ? 'spain' : (isEng ? 'england' : 'ireland');
 
+  // ── Extract/generate tracking IDs (needed for CAPI + cookie setting) ──
+  const cookieHeader = req.headers.get('cookie') || '';
+
+  // fbc: from cookie or from fbclid URL param
+  const fbclid = url.searchParams.get('fbclid');
+  const fbcCookie = parseCookie(cookieHeader, '_fbc');
+  const fbc = fbcCookie || (fbclid ? `fb.1.${Date.now()}.${fbclid}` : null);
+
+  // fbp: from cookie or generate server-side for first-time visitors
+  const fbpCookie = parseCookie(cookieHeader, '_fbp');
+  const fbp = fbpCookie || `fb.1.${Date.now()}.${Math.floor(Math.random() * 2147483647 + 1000000000)}`;
+
   // Handle SPA Conversions API bridge
   if (path === '/api/track-capi') {
     const eventName = url.searchParams.get('event') || 'PageView';
@@ -902,27 +1021,28 @@ async function handleRequest(req) {
     const trackCanonical = `${url.protocol}//${hostname}${trackPath}`;
     
     if (tenant === 'ireland') {
-      await sendMetaCAPI(eventName, eventId, req, trackCanonical, testEventCode);
+      await sendMetaCAPI(eventName, eventId, req, trackCanonical, fbc, fbp, testEventCode);
     }
-    return new Response(JSON.stringify({ success: true }), {
+    const trackResponse = new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
+    return trackResponse;
   }
 
   // Handle redirects
   if (tenant === 'spain') {
-    if (path === '/about') return Response.redirect(`${url.protocol}//${hostname}/sobre-nosotros`, 301);
-    if (path === '/faq') return Response.redirect(`${url.protocol}//${hostname}/preguntas-frecuentes`, 301);
-    if (path === '/catalogue') return Response.redirect(`${url.protocol}//${hostname}/directorio`, 301);
-    if (path === '/hire-agent') return Response.redirect(`${url.protocol}//${hostname}/asesor-energetico`, 301);
-    if (path === '/contact-us') return Response.redirect(`${url.protocol}//${hostname}/contacto`, 301);
+    if (path === '/about') return NextResponse.redirect(`${url.protocol}//${hostname}/sobre-nosotros`, 301);
+    if (path === '/faq') return NextResponse.redirect(`${url.protocol}//${hostname}/preguntas-frecuentes`, 301);
+    if (path === '/catalogue') return NextResponse.redirect(`${url.protocol}//${hostname}/directorio`, 301);
+    if (path === '/hire-agent') return NextResponse.redirect(`${url.protocol}//${hostname}/asesor-energetico`, 301);
+    if (path === '/contact-us') return NextResponse.redirect(`${url.protocol}//${hostname}/contacto`, 301);
   } else if (tenant === 'ireland') {
-    if (path === '/about') return Response.redirect(`${url.protocol}//${hostname}/about-us`, 301);
-    if (path === '/faq') return Response.redirect(`${url.protocol}//${hostname}/ber-faqs/`, 301);
+    if (path === '/about') return NextResponse.redirect(`${url.protocol}//${hostname}/about-us`, 301);
+    if (path === '/faq') return NextResponse.redirect(`${url.protocol}//${hostname}/ber-faqs/`, 301);
   } else if (tenant === 'england') {
-    if (path === '/about') return Response.redirect(`${url.protocol}//${hostname}/about-us`, 301);
-    if (path === '/faq') return Response.redirect(`${url.protocol}//${hostname}/epc-faq`, 301);
+    if (path === '/about') return NextResponse.redirect(`${url.protocol}//${hostname}/about-us`, 301);
+    if (path === '/faq') return NextResponse.redirect(`${url.protocol}//${hostname}/epc-faq`, 301);
   }
 
   // Dynamic Sitemap Interception
@@ -948,7 +1068,7 @@ async function handleRequest(req) {
     }
     xml += `</urlset>`;
 
-    return new Response(xml, {
+    return new NextResponse(xml, {
       status: 200,
       headers: { 'Content-Type': 'application/xml', 'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400' }
     });
@@ -957,21 +1077,24 @@ async function handleRequest(req) {
   // Fetch original response (proxy pattern — works on Vercel; falls back gracefully on local dev)
   let res, html;
   try {
-    const proxyHeaders = new Headers(req.headers);
-    proxyHeaders.set('x-seo-middleware', '1');
-    res  = await fetch(url.toString(), { headers: proxyHeaders, redirect: 'manual' });
+    res  = await fetch(req);
     html = await res.text();
   } catch (_fetchErr) {
     // Local dev or fetch failure → pass through without injecting tags
-    return undefined;
+    return NextResponse.next();
   }
 
-  // Safety: if not HTML (e.g. API, binary, redirect) let origin serve it directly
+  // Safety: if not HTML (e.g. API, binary) skip processing entirely
   if (!html || !html.includes('</head>')) {
-    return undefined;
+    return new Response(html, { status: res.status, headers: Object.fromEntries(res.headers) });
   }
 
-  const { title, desc } = getMeta(path, tenant);
+  const { title, desc, ogTitle, ogDesc, twTitle, twDesc } = getMeta(path, tenant);
+  // Social tag values: fall back to page title/desc if page-specific social fields not set
+  const ogTitleVal = ogTitle || title;
+  const ogDescVal  = ogDesc  || desc;
+  const twTitleVal = twTitle || title;
+  const twDescVal  = twDesc  || desc;
   
   let canonicalBase = 'https://www.theberman.eu';
   if (tenant === 'spain') canonicalBase = 'https://www.xn--certificadoenergtico-q2b.eu';
@@ -979,7 +1102,7 @@ async function handleRequest(req) {
   
   const canonical = `${canonicalBase}${path === '/' ? '/' : path}`;
   
-  let ogImage = 'https://theberman.eu/logo.png';
+  let ogImage = 'https://www.theberman.eu/logo.png';
   if (tenant === 'spain') ogImage = 'https://www.xn--certificadoenergtico-q2b.eu/logo.png';
   else if (tenant === 'england') ogImage = 'https://www.epccert.com/logo.png';
 
@@ -1099,7 +1222,7 @@ async function handleRequest(req) {
 
   // Fire server-side CAPI — Ireland only
   if (tenant === 'ireland') {
-    sendMetaCAPI(metaEventName, metaEventId, req, canonical, testEventCode);
+    sendMetaCAPI(metaEventName, metaEventId, req, canonical, fbc, fbp, testEventCode);
   }
 
   // ── Browser Meta Pixel — Ireland only, all events with deduplication ─────
@@ -1132,7 +1255,7 @@ function handleSPA() {
   let eventName = 'PageView';
   let eventData = {};
 
-  if (${isContactPage || isViewContent}) {
+  if (isContactPage || isViewContent) {
     eventName = 'ViewContent';
     eventData = { content_type: 'website' };
   }
@@ -1224,10 +1347,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     `<link rel="canonical" href="${canonical}" />`
   ).replace(
     /<meta property="og:title" content="[^"]*" \/>/,
-    `<meta property="og:title" content="${title}" />`
+    `<meta property="og:title" content="${ogTitleVal}" />`
   ).replace(
     /<meta property="og:description" content="[^"]*" \/>/,
-    `<meta property="og:description" content="${desc}" />`
+    `<meta property="og:description" content="${ogDescVal}" />`
   ).replace(
     /<meta property="og:url" content="[^"]*" \/>/,
     `<meta property="og:url" content="${canonical}" />`
@@ -1242,10 +1365,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     `<meta property="og:site_name" content="${siteName}" />`
   ).replace(
     /<meta name="twitter:title" content="[^"]*" \/>/,
-    `<meta name="twitter:title" content="${title}" />`
+    `<meta name="twitter:title" content="${twTitleVal}" />`
   ).replace(
     /<meta name="twitter:description" content="[^"]*" \/>/,
-    `<meta name="twitter:description" content="${desc}" />`
+    `<meta name="twitter:description" content="${twDescVal}" />`
   ).replace(
     /<meta name="twitter:image" content="[^"]*" \/>/,
     `<meta name="twitter:image" content="${ogImage}" />`
@@ -1254,25 +1377,32 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     `<meta name="author" content="${siteName}" />`
   ).replace(
     '</head>',
-    `  <meta name="description" content="${desc}" />\n  <link rel="canonical" href="${canonical}" />\n  <meta property="og:title" content="${title}" />\n  <meta property="og:description" content="${desc}" />\n  <meta property="og:url" content="${canonical}" />\n  <meta property="og:image" content="${ogImage}" />\n  <meta property="og:locale" content="${locale}" />\n  <meta property="og:site_name" content="${siteName}" />\n  <meta property="og:type" content="website" />\n  <meta name="twitter:card" content="summary_large_image" />\n  <meta name="twitter:title" content="${title}" />\n  <meta name="twitter:description" content="${desc}" />\n  <meta name="twitter:image" content="${ogImage}" />\n  ${gscMeta}\n  ${fbMeta}\n  ${hreflangTags(path, tenant)}\n  ${schemaBlock}\n  ${gtmHead}\n  ${metaPixelSnippet}\n</head>`
+    `  <meta name="description" content="${desc}" />\n  <link rel="canonical" href="${canonical}" />\n  <meta property="og:title" content="${ogTitleVal}" />\n  <meta property="og:description" content="${ogDescVal}" />\n  <meta property="og:url" content="${canonical}" />\n  <meta property="og:image" content="${ogImage}" />\n  <meta property="og:locale" content="${locale}" />\n  <meta property="og:site_name" content="${siteName}" />\n  <meta property="og:type" content="website" />\n  <meta name="twitter:card" content="summary_large_image" />\n  <meta name="twitter:title" content="${twTitleVal}" />\n  <meta name="twitter:description" content="${twDescVal}" />\n  <meta name="twitter:image" content="${ogImage}" />\n  ${gscMeta}\n  ${fbMeta}\n  ${hreflangTags(path, tenant)}\n  ${schemaBlock}\n  ${gtmHead}\n  ${metaPixelSnippet}\n</head>`
   ).replace(
     /<body([^>]*)>/i,
     `<body$1>${gtmBody}`
   );
 
-  const outHeaders = Object.fromEntries(res.headers);
-  delete outHeaders['content-encoding'];
-  delete outHeaders['content-length'];
-  delete outHeaders['transfer-encoding'];
-
-  return new Response(injected, {
+  const response = new Response(injected, {
     status:  res.status,
     headers: {
-      ...outHeaders,
+      ...Object.fromEntries(res.headers),
       'content-type': 'text/html; charset=utf-8',
       'cache-control': 'public, max-age=3600, stale-while-revalidate=86400',
     },
   });
+
+  // ── Set tracking cookies for improved Meta EMQ ──
+  // fbp: set for all visitors (1 year expiry) — ensures CAPI has it on every subsequent visit
+  if (!fbpCookie && tenant === 'ireland') {
+    response.headers.append('Set-Cookie', `_fbp=${fbp}; Path=/; Max-Age=31536000; SameSite=Lax; Secure`);
+  }
+  // fbc: set when user arrives from a Meta ad click (90 day expiry)
+  if (fbc && !fbcCookie && tenant === 'ireland') {
+    response.headers.append('Set-Cookie', `_fbc=${fbc}; Path=/; Max-Age=7776000; SameSite=Lax; Secure`);
+  }
+
+  return response;
 }
 const SITEMAP_IE = [
   '/',

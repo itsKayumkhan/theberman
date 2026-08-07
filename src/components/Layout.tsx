@@ -10,6 +10,8 @@ import QuoteModal from './QuoteModal';
 
 const NAV_LINKS = [
     { label: 'Home', path: '/' },
+    { label: 'Services', path: '/services' },
+    { label: 'Pricing', path: '/pricing' },
     { label: 'About', path: '/about-us' },
     { label: 'Home Energy Upgrade Catalogue', path: '/catalogue' },
     { label: 'Speak to an Energy Advisor', path: '/hire-agent', hideForEngland: true },
@@ -97,6 +99,8 @@ const Layout = () => {
         if (isSpanish) {
             const map: Record<string, string> = {
                 'Home': 'Inicio',
+                'Services': 'Servicios',
+                'Pricing': 'Precios',
                 'About': 'Sobre Nosotros',
                 'Home Energy Upgrade Catalogue': 'Catálogo de Eficiencia Energética',
                 'Speak to an Energy Advisor': 'Habla con un Asesor Energético',
@@ -112,6 +116,8 @@ const Layout = () => {
         if (tenant === 'france') {
             const map: Record<string, string> = {
                 'Home': 'Accueil',
+                'Services': 'Services',
+                'Pricing': 'Tarifs',
                 'About': 'À Propos',
                 'Home Energy Upgrade Catalogue': 'Catalogue de Rénovation Énergétique',
                 'Speak to an Energy Advisor': 'Parlez à un Conseiller Énergétique',
@@ -127,6 +133,8 @@ const Layout = () => {
         if (tenant === 'portugal') {
             const map: Record<string, string> = {
                 'Home': 'Início',
+                'Services': 'Serviços',
+                'Pricing': 'Preços',
                 'About': 'Sobre Nós',
                 'Home Energy Upgrade Catalogue': 'Catálogo de Melhoria Energética',
                 'Speak to an Energy Advisor': 'Fale com um Consultor Energético',
@@ -160,7 +168,7 @@ const Layout = () => {
     // Filter out tenant-hidden links, then apply tenant-specific ordering.
     const visibleNavLinks = NAV_LINKS.filter(link => !(tenant === 'england' && link.hideForEngland));
     const orderedNavLinks = tenant === 'england'
-        ? (['Home', 'About', 'Location', 'Home Energy Upgrade Catalogue', 'Our News', 'Blog', 'FAQ', 'Contact']
+        ? (['Home', 'Services', 'Pricing', 'About', 'Location', 'Home Energy Upgrade Catalogue', 'Our News', 'Blog', 'FAQ', 'Contact']
             .map(label => visibleNavLinks.find(l => l.label === label))
             .filter((l): l is typeof NAV_LINKS[number] => Boolean(l)))
         : visibleNavLinks;
@@ -603,6 +611,8 @@ const Layout = () => {
                             <ul className="space-y-3">
                                 {[
                                     { label: isSpanish ? 'Inicio' : tenant === 'portugal' ? 'Início' : 'Home', path: '/' },
+                                    { label: isSpanish ? 'Servicios' : tenant === 'portugal' ? 'Serviços' : 'Services', path: '/services' },
+                                    { label: isSpanish ? 'Precios' : tenant === 'portugal' ? 'Preços' : 'Pricing', path: '/pricing' },
                                     { label: isSpanish ? 'Sobre Nosotros' : tenant === 'portugal' ? 'Sobre Nós' : 'About Us', path: '/about-us' },
                                     { label: isSpanish ? 'Catálogo de Eficiencia Energética' : tenant === 'portugal' ? 'Catálogo de Melhoria Energética' : 'Energy Upgrade Catalogue', path: '/catalogue' },
                                     { label: isSpanish ? 'Habla con un Asesor Energético' : tenant === 'portugal' ? 'Fale com um Consultor Energético' : 'Speak to an Energy Advisor', path: '/hire-agent' },
