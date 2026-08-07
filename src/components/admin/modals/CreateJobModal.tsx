@@ -164,6 +164,10 @@ export const CreateJobModal = ({ onClose, onJobCreated, selectedTenant = 'irelan
 
     const createHomeowner = async () => {
         if (!contactEmail || !contactName) return;
+        if (!contactPhone || contactPhone.trim() === '') {
+            toast.error('A phone number is required to create a homeowner account');
+            return;
+        }
         setIsCreatingHomeowner(true);
         setHomeownerStatus('checking');
         setHomeownerMessage('');

@@ -48,6 +48,10 @@ Deno.serve(async (req: Request) => {
             return new Response(JSON.stringify({ success: false, error: 'email and fullName are required' }), { status: 400, headers: responseHeaders });
         }
 
+        if (!phone || phone.trim() === '') {
+            return new Response(JSON.stringify({ success: false, error: 'A phone number is required to create a homeowner account' }), { status: 400, headers: responseHeaders });
+        }
+
         // 1. Check if a profile already exists with this email
         const { data: existingProfile } = await supabase
             .from('profiles')
@@ -66,20 +70,17 @@ Deno.serve(async (req: Request) => {
         }
 
         // 1b. Check if the phone number is already in use by another profile
-        //     (the handle_new_user trigger will fail on unique index violation)
-        if (phone && phone.trim() !== '') {
-            const { data: phoneConflict } = await supabase
-                .from('profiles')
-                .select('id, email, full_name, role')
-                .eq('phone', phone.trim())
-                .maybeSingle();
+        const { data: phoneConflict } = await supabase
+            .from('profiles')
+            .select('id, email, full_name, role, tenant')
+            .eq('phone', phone.trim())
+            .maybeSingle();
 
-            if (phoneConflict) {
-                return new Response(JSON.stringify({
-                    success: false,
-                    error: `Phone number already in use by ${phoneConflict.full_name || phoneConflict.email || 'another user'}`,
-                }), { status: 409, headers: responseHeaders });
-            }
+        if (phoneConflict) {
+            return new Response(JSON.stringify({
+                success: false,
+                error: `A user already exists with this phone number: ${phoneConflict.full_name || phoneConflict.email} (${phoneConflict.role || 'user'})`,
+            }), { status: 409, headers: responseHeaders });
         }
 
         // 2. Check if an auth user exists with this email
