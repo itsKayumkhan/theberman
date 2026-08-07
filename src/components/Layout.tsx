@@ -721,20 +721,31 @@ const Layout = () => {
             </footer>
 
             {/* Floating WhatsApp CTA */}
-            <a
-                href={`https://wa.me/34613907509?text=${encodeURIComponent(isSpanish ? 'Hola, me gustaría más información sobre certificados energéticos.' : tenant === 'portugal' ? 'Olá, gostaria de mais informações sobre certificados energéticos.' : 'Hi, I would like more information about energy certificates.')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="fixed bottom-5 right-5 z-50 flex items-center gap-2 bg-[#25D366] hover:bg-[#1ebe5d] text-white rounded-full shadow-lg transition-all hover:scale-105 group"
-                aria-label="WhatsApp"
-            >
-                <span className="flex items-center justify-center w-12 h-12 shrink-0">
-                    <MessageCircle size={24} className="fill-white text-white" />
-                </span>
-                <span className="max-w-0 overflow-hidden whitespace-nowrap text-sm font-bold transition-all duration-300 group-hover:max-w-[200px] group-hover:pr-4">
-                    {isSpanish ? 'Escríbenos' : tenant === 'portugal' ? 'Escreve-nos' : 'Chat with us'}
-                </span>
-            </a>
+            {(() => {
+                const whatsappConfig: Record<string, { number: string; message: string; label: string }> = {
+                    spain: { number: '34613907509', message: 'Hola, me gustaría más información sobre certificados energéticos.', label: 'Escríbenos' },
+                    portugal: { number: '351920123456', message: 'Olá, gostaria de mais informações sobre certificados energéticos.', label: 'Escreve-nos' },
+                    england: { number: '441515288866', message: 'Hi, I would like more information about EPC certificates.', label: 'Chat with us' },
+                    france: { number: '33000000000', message: 'Bonjour, j\'aimerais plus d\'informations sur les DPE.', label: 'Écrivez-nous' },
+                };
+                const cfg = whatsappConfig[tenant] || { number: '353818213131', message: 'Hi, I would like more information about BER certificates.', label: 'Chat with us' };
+                return (
+                    <a
+                        href={`https://wa.me/${cfg.number}?text=${encodeURIComponent(cfg.message)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="fixed bottom-5 right-5 z-50 flex items-center gap-2 bg-[#25D366] hover:bg-[#1ebe5d] text-white rounded-full shadow-lg transition-all hover:scale-105 group"
+                        aria-label="WhatsApp"
+                    >
+                        <span className="flex items-center justify-center w-12 h-12 shrink-0">
+                            <MessageCircle size={24} className="fill-white text-white" />
+                        </span>
+                        <span className="max-w-0 overflow-hidden whitespace-nowrap text-sm font-bold transition-all duration-300 group-hover:max-w-[200px] group-hover:pr-4">
+                            {cfg.label}
+                        </span>
+                    </a>
+                );
+            })()}
         </div>
     );
 };
