@@ -1404,13 +1404,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   return response;
   } catch (err) {
-    // If anything in this middleware fails, pass the request through unchanged
-    // rather than crashing the entire page with MIDDLEWARE_INVOCATION_FAILED.
-    try {
-      return await fetch(req);
-    } catch (_fetchErr) {
-      return new Response('Middleware unavailable', { status: 500 });
-    }
+    // If anything in this middleware fails, pass through to origin unchanged.
+    // Returning undefined tells Vercel Edge to skip middleware and serve the static asset directly.
+    console.error('[middleware] Error — passing through:', err);
+    return undefined;
   }
 }
 const SITEMAP_IE = [
