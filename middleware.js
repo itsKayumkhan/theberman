@@ -1249,8 +1249,11 @@ ${metaBrowserEvent}
 
 // SPA router listener for client-side routing tracking
 // NOTE: Lead/Contact events are handled by GTM on form submit.
-   var originalReplace = history.replaceState;
-   var originalPush = history.pushState;
+const isContactPage = ${JSON.stringify(isContactPage)};
+const isViewContent = ${JSON.stringify(isViewContent)};
+
+var originalReplace = history.replaceState;
+var originalPush = history.pushState;
 function handleSPA() {
   let eventName = 'PageView';
   let eventData = {};
