@@ -143,6 +143,8 @@ const UserDashboard = () => {
     const [deletingAssessmentId, setDeletingAssessmentId] = useState<string | null>(null);
     const [submittingAssessmentId, setSubmittingAssessmentId] = useState<string | null>(null);
     const [bookingDepositAmount, setBookingDepositAmount] = useState<number>(35);
+    const [hiddenFee, setHiddenFee] = useState<number>(5);
+    const [platformFeeAmount, setPlatformFeeAmount] = useState<number>(30);
 
     useEffect(() => {
         fetchAssessments();
@@ -177,7 +179,7 @@ const UserDashboard = () => {
             const currentTenant = getTenantFromDomain();
             const { data, error } = await supabase
                 .from('app_settings')
-                .select('platform_fee_amount, hidden_fee_amount')
+                .select('platform_fee_amount, hidden_fee_amount, vat_seai_fee_amount')
                 .eq('tenant', currentTenant)
                 .single();
             if (error) throw error;
@@ -185,6 +187,8 @@ const UserDashboard = () => {
                 const platform = parseFloat(data.platform_fee_amount) || 25;
                 const hidden = parseFloat(data.hidden_fee_amount) || 10;
                 setBookingDepositAmount(platform + hidden);
+                setHiddenFee(hidden);
+                setPlatformFeeAmount(platform);
             }
         } catch (error) {
             console.error('Error fetching app settings:', error);
@@ -338,7 +342,7 @@ const UserDashboard = () => {
 
                 // Open Payment Modal with booking deposit (platform_fee + hidden_fee)
                 const depositAmount = bookingDepositAmount;
-                const balance = quote.price; // Balance = assessor's price, paid directly to them
+                const balance = quote.price - platformFeeAmount; // Balance = assessor's net (quote minus platform fee), paid directly to them
                 setPaymentQuote({ assessmentId, quoteId, amount: depositAmount, balance });
                 setPaymentModalOpen(true);
                 return;
@@ -883,9 +887,9 @@ const UserDashboard = () => {
                                                                     </td>
                                                                     <td className="py-4 px-6">
                                                                         <div className="flex flex-col">
-                                                                            <div className="text-lg font-black text-gray-900">{formatCurrency(quote.price + bookingDepositAmount)}</div>
+                                                                            <div className="text-lg font-black text-gray-900">{formatCurrency(quote.price + hiddenFee)}</div>
                                                                             <div className="text-[10px] text-gray-500 font-medium">
-                                                                                {isSpanish ? 'Depósito: ' : 'Deposit: '}{formatCurrency(bookingDepositAmount)}{isSpanish ? ' | Saldo: ' : ' | Balance: '}{formatCurrency(quote.price)}
+                                                                                {isSpanish ? 'Depósito: ' : 'Deposit: '}{formatCurrency(bookingDepositAmount)}{isSpanish ? ' | Saldo: ' : ' | Balance: '}{formatCurrency(quote.price - platformFeeAmount)}
                                                                             </div>
                                                                         </div>
                                                                     </td>
@@ -998,9 +1002,9 @@ const UserDashboard = () => {
                                                                 </p>
                                                             </div>
                                                             <div className="text-right">
-                                                                <p className="text-xl font-black text-gray-900">{formatCurrency(quote.price + bookingDepositAmount)}</p>
+                                                                <p className="text-xl font-black text-gray-900">{formatCurrency(quote.price + hiddenFee)}</p>
                                                                 <div className="text-[9px] text-gray-500 font-medium mt-0.5">
-                                                                    {isSpanish ? `Depósito: ${formatCurrency(bookingDepositAmount)} / Saldo: ` : `Deposit: ${formatCurrency(bookingDepositAmount)} / Balance: `}{formatCurrency(quote.price)}
+                                                                    {isSpanish ? `Depósito: ${formatCurrency(bookingDepositAmount)} / Saldo: ` : `Deposit: ${formatCurrency(bookingDepositAmount)} / Balance: `}{formatCurrency(quote.price - platformFeeAmount)}
                                                                 </div>
                                                                 <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter border ${quote.status === 'accepted' ? 'bg-green-50 text-green-700 border-green-100' :
                                                                     quote.status === 'rejected' ? 'bg-red-50 text-red-700 border-red-100' :
@@ -1164,17 +1168,29 @@ const UserDashboard = () => {
                         {/* Details Grid */}
                         <div className="space-y-6">
                             <div className="flex justify-between items-center group">
-                                <span className="text-gray-500 font-medium text-sm">Quote</span>
-                                <span className="text-gray-900 font-black text-lg">{formatCurrency(selectedDetailsQuote.price + bookingDepositAmount)}</span>
+                                <span className="text-gray-500 font-medium text-sm">Total Price</span>
+                                <span className="text-gray-900 font-black text-lg">{formatCurrency(selectedDetailsQuote.price + hiddenFee)}</span>
                             </div>
 
-                            <div className="flex justify-between items-center">
-                                <span className="text-gray-500 font-medium text-sm">Earliest Availability</span>
-                                <span className="text-gray-900 font-black text-sm">
+                            <div className="flex justify-between items-center text-xs">
+                                <span className="text-gray-400 font-medium">Assessor Fee</span>
+                                <span className="text-gray-600 font-bold">{formatCurrency(selectedDetailsQuote.price - platformFeeAmount)}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs">
+                                <span className="text-gray-400 font-medium">Booking Deposit</span>
+                                <span className="text-gray-600 font-bold">{formatCurrency(bookingDepositAmount)}</span>
+                            </div>
+
+                            <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 text-center">
+                                <p className="text-[10px] font-black text-green-600 uppercase tracking-widest mb-1">{isSpanish ? 'Fecha Disponible' : 'Earliest Availability'}</p>
+                                <p className="text-lg font-black text-green-800">
                                     {selectedDetailsQuote.estimated_date
-                                        ? new Date(selectedDetailsQuote.estimated_date).toLocaleDateString('en-IE', { weekday: 'short', day: 'numeric', month: 'short' })
-                                        : 'TBC'}
-                                </span>
+                                        ? new Date(selectedDetailsQuote.estimated_date).toLocaleDateString('en-IE', { weekday: 'long', day: 'numeric', month: 'long' })
+                                        : (isSpanish ? 'Por confirmar' : 'TBC')}
+                                </p>
+                                {selectedDetailsQuote.estimated_date && (
+                                    <p className="text-[10px] text-green-600 mt-1">{isSpanish ? 'El asesor está disponible desde esta fecha' : 'Assessor is available from this date onwards'}</p>
+                                )}
                             </div>
 
                             <div className="flex justify-between items-center">
@@ -1209,7 +1225,7 @@ const UserDashboard = () => {
                                 }}
                                 className="flex-[1.5] py-3 bg-[#007F00] text-white rounded-lg font-black text-sm hover:bg-[#006600]  transition-all shadow-sm active:scale-95"
                             >
-                                Accept {formatCurrency(selectedDetailsQuote.price + bookingDepositAmount)} Quote
+                                Accept {formatCurrency(selectedDetailsQuote.price + hiddenFee)} Quote
                             </button>
                         </div>
                     </div>

@@ -229,8 +229,9 @@ const ContractorDashboard = () => {
     const [termsAgreed, setTermsAgreed] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [platformFee, setPlatformFee] = useState<number>(35);
     const [assessorFee, setAssessorFee] = useState<number>(25);
+    const [vatSeaiFee, setVatSeaiFee] = useState<number>(0);
+    const [hiddenFee, setHiddenFee] = useState<number>(5);
 
 
 
@@ -289,14 +290,15 @@ const ContractorDashboard = () => {
             const contractorTenantForSettings = profileData?.tenant || 'ireland';
             const { data: settingsData } = await supabase
                 .from('app_settings')
-                .select('platform_fee_amount, hidden_fee_amount')
+                .select('platform_fee_amount, hidden_fee_amount, vat_seai_fee_amount')
                 .eq('tenant', contractorTenantForSettings)
                 .single();
             if (settingsData) {
                 const platform = parseFloat(settingsData.platform_fee_amount) || 25;
                 const hidden = parseFloat(settingsData.hidden_fee_amount) || 10;
                 setAssessorFee(platform);
-                setPlatformFee(platform + hidden);
+                setHiddenFee(hidden);
+                setVatSeaiFee(parseFloat(settingsData.vat_seai_fee_amount) || 0);
             }
 
             // 2. Fetch Available Jobs (submitted status, no quote from this contractor yet)
@@ -1174,7 +1176,10 @@ const ContractorDashboard = () => {
                                                                 <td className="py-3 px-3 text-gray-900 font-bold">{quote.lowestPrice != null ? formatCurrency(quote.lowestPrice) : '-'}</td>
                                                                 <td className={`py-3 px-3 font-bold ${isCompetitive ? 'text-green-700' : 'text-red-600'}`}>
                                                                     {formatCurrency(quote.price)}
-                                                                    <p className="text-[10px] font-normal text-gray-400">{isSpanish ? 'Propietario ve:' : isPortuguese ? 'Proprietário vê:' : isFrench ? 'Propriétaire voit :' : 'Homeowner sees:'} {formatCurrency(quote.price + platformFee)}</p>
+                                                                    <p className="text-[10px] font-normal text-gray-400">{isSpanish ? 'Propietario ve:' : isPortuguese ? 'Proprietário vê:' : isFrench ? 'Propriétaire voit :' : 'Homeowner sees:'} {formatCurrency(quote.price + hiddenFee)}</p>
+                                                                    {quote.estimated_date && (
+                                                                        <p className="text-[10px] font-normal text-blue-500">{isSpanish ? 'Disponible:' : isPortuguese ? 'Disponível:' : isFrench ? 'Disponible :' : 'Available:'} {new Date(quote.estimated_date).toLocaleDateString(isSpanish ? 'es-ES' : isPortuguese ? 'pt-PT' : isFrench ? 'fr-FR' : 'en-IE', { day: '2-digit', month: 'short' })}</p>
+                                                                    )}
                                                                 </td>
                                                                 <td className="py-3 px-3">
                                                                     <button
@@ -1256,7 +1261,10 @@ const ContractorDashboard = () => {
                                                             <div>
                                                                 <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">{isSpanish ? 'Mi Presupuesto' : isPortuguese ? 'O Meu Orçamento' : isFrench ? 'Mon Devis' : 'My Quote'}</p>
                                                                 <p className="text-lg font-bold text-green-700">{formatCurrency(quote.price)}</p>
-                                                                <p className="text-[10px] text-gray-400">{isSpanish ? 'Propietario ve:' : isPortuguese ? 'Proprietário vê:' : isFrench ? 'Propriétaire voit :' : 'Homeowner sees:'} {formatCurrency(quote.price + platformFee)}</p>
+                                                                <p className="text-[10px] text-gray-400">{isSpanish ? 'Propietario ve:' : isPortuguese ? 'Proprietário vê:' : isFrench ? 'Propriétaire voit :' : 'Homeowner sees:'} {formatCurrency(quote.price + hiddenFee)}</p>
+                                                                {quote.estimated_date && (
+                                                                    <p className="text-[10px] text-blue-500 font-medium">{isSpanish ? 'Disponible:' : isPortuguese ? 'Disponível:' : isFrench ? 'Disponible :' : 'Available:'} {new Date(quote.estimated_date).toLocaleDateString(isSpanish ? 'es-ES' : isPortuguese ? 'pt-PT' : isFrench ? 'fr-FR' : 'en-IE', { day: '2-digit', month: 'short' })}</p>
+                                                                )}
                                                             </div>
                                                         </div>
                                                         <button
@@ -2278,7 +2286,7 @@ const ContractorDashboard = () => {
                                                 <p className="text-sm text-green-700 text-center italic">{isSpanish ? 'Incluye tarifas de' : isPortuguese ? 'Inclui taxas de' : isFrench ? 'Inclut les frais de' : 'Includes fees for'} {regAuthority}.</p>
                                                 <p className="text-sm text-green-700 text-center italic">{isSpanish ? 'Incluye IVA (si estás registrado).' : isPortuguese ? 'Inclui IVA (se registado).' : isFrench ? 'Inclut la TVA (si enregistré).' : 'Include VAT (if registered).'}</p>
                                                 <p className="text-sm text-green-700 text-center font-bold">
-                                                    <span className="italic">{isSpanish ? 'Incluye' : isPortuguese ? 'Inclui' : isFrench ? 'Inclut' : 'Includes'} {formatCurrency(assessorFee)} {isSpanish ? 'tasa de plataforma.' : isPortuguese ? 'taxa de plataforma.' : isFrench ? 'de frais de plateforme.' : 'platform fee.'}</span>
+                                                    <span className="italic">{isSpanish ? `Incluye ${formatCurrency(assessorFee)} tasa de plataforma` : isPortuguese ? `Inclui ${formatCurrency(assessorFee)} taxa de plataforma` : isFrench ? `Inclut ${formatCurrency(assessorFee)} frais de plateforme` : `Includes ${formatCurrency(assessorFee)} platform fee`}{vatSeaiFee > 0 ? (isSpanish ? ` y ${formatCurrency(vatSeaiFee)} IVA/SEAI` : ` and ${formatCurrency(vatSeaiFee)} VAT/SEAI`) : ''}.</span>
                                                 </p>
 
                                                 <div className="relative mt-4">
@@ -2291,14 +2299,34 @@ const ContractorDashboard = () => {
                                                     />
                                                 </div>
                                                 <p className="text-sm text-center font-bold text-gray-600">
-                                                    {isSpanish ? 'Recibirás:' : isPortuguese ? 'Receberá:' : isFrench ? 'Vous recevrez :' : 'You will receive:'} {formatCurrency(quotePrice ? (parseInt(quotePrice) - ((profile?.completed_jobs_count || 0) % 11 === 10 ? 0 : assessorFee)) : 0)} {isSpanish ? '(directo del cliente)' : isPortuguese ? '(direto do cliente)' : isFrench ? '(directement du client)' : '(direct from customer)'}
+                                                    {isSpanish ? 'Recibirás:' : isPortuguese ? 'Receberá:' : isFrench ? 'Vous recevrez :' : 'You will receive:'} {formatCurrency(quotePrice ? (parseInt(quotePrice) - assessorFee - vatSeaiFee - ((profile?.completed_jobs_count || 0) % 11 === 10 ? 0 : 0)) : 0)} {isSpanish ? '(directo del cliente)' : isPortuguese ? '(direto do cliente)' : isFrench ? '(directement du client)' : '(direct from customer)'}
                                                 </p>
-                                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-                                                    <p className="text-sm font-bold text-blue-800">
-                                                        {isSpanish ? 'El propietario verá:' : isPortuguese ? 'O proprietário verá:' : isFrench ? 'Le propriétaire verra :' : 'Homeowner sees:'} {formatCurrency(quotePrice ? parseInt(quotePrice) + platformFee : 0)}
-                                                    </p>
-                                                    <p className="text-[11px] text-blue-600 mt-0.5">
-                                                        {isSpanish ? `(tu precio de ${formatCurrency(quotePrice ? parseInt(quotePrice) : 0)} + ${formatCurrency(platformFee)} tarifa de plataforma)` : isPortuguese ? `(seu preço de ${formatCurrency(quotePrice ? parseInt(quotePrice) : 0)} + ${formatCurrency(platformFee)} taxa de plataforma)` : isFrench ? `(votre prix de ${formatCurrency(quotePrice ? parseInt(quotePrice) : 0)} + ${formatCurrency(platformFee)} frais de plateforme)` : `(your price of ${formatCurrency(quotePrice ? parseInt(quotePrice) : 0)} + ${formatCurrency(platformFee)} platform fee)`}
+                                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-1.5">
+                                                    <p className="text-xs font-black text-blue-800 uppercase tracking-wider text-center mb-2">{isSpanish ? 'Desglose del Presupuesto' : isPortuguese ? 'Detalhes do Orçamento' : isFrench ? 'Détail du Devis' : 'Quote Breakdown'}</p>
+                                                    <div className="flex justify-between text-xs">
+                                                        <span className="text-blue-700">{isSpanish ? 'Tu presupuesto' : isPortuguese ? 'Seu orçamento' : isFrench ? 'Votre devis' : 'Your quote'}</span>
+                                                        <span className="text-blue-800 font-bold">{formatCurrency(quotePrice ? parseInt(quotePrice) : 0)}</span>
+                                                    </div>
+                                                    <div className="flex justify-between text-xs">
+                                                        <span className="text-blue-600">{isSpanish ? 'Tasa de plataforma' : isPortuguese ? 'Taxa de plataforma' : isFrench ? 'Frais de plateforme' : 'Platform fee'} (-)</span>
+                                                        <span className="text-blue-600 font-bold">-{formatCurrency(assessorFee)}</span>
+                                                    </div>
+                                                    {vatSeaiFee > 0 && (
+                                                        <div className="flex justify-between text-xs">
+                                                            <span className="text-blue-600">{isSpanish ? 'IVA/SEAI' : isPortuguese ? 'IVA/SEAI' : isFrench ? 'TVA/SEAI' : 'VAT/SEAI fee'} (-)</span>
+                                                            <span className="text-blue-600 font-bold">-{formatCurrency(vatSeaiFee)}</span>
+                                                        </div>
+                                                    )}
+                                                    <div className="border-t border-blue-200 pt-1.5 flex justify-between text-xs">
+                                                        <span className="text-blue-700 font-bold">{isSpanish ? 'Recibirás' : isPortuguese ? 'Receberá' : isFrench ? 'Vous recevrez' : 'You receive'}</span>
+                                                        <span className="text-blue-800 font-black">{formatCurrency(quotePrice ? parseInt(quotePrice) - assessorFee - vatSeaiFee : 0)}</span>
+                                                    </div>
+                                                    <div className="border-t border-blue-200 pt-1.5 flex justify-between text-xs">
+                                                        <span className="text-blue-700 font-bold">{isSpanish ? 'Propietario ve' : isPortuguese ? 'Proprietário vê' : isFrench ? 'Propriétaire voit' : 'Homeowner sees'}</span>
+                                                        <span className="text-blue-800 font-black">{formatCurrency(quotePrice ? parseInt(quotePrice) + hiddenFee : 0)}</span>
+                                                    </div>
+                                                    <p className="text-[10px] text-blue-500 text-center mt-1">
+                                                        {isSpanish ? `(tu presupuesto + ${formatCurrency(hiddenFee)} tarifa oculta)` : isPortuguese ? `(seu orçamento + ${formatCurrency(hiddenFee)} taxa oculta)` : isFrench ? `(votre devis + ${formatCurrency(hiddenFee)} frais cachés)` : `(your quote + ${formatCurrency(hiddenFee)} hidden fee)`}
                                                     </p>
                                                 </div>
                                                 <p className="text-xs text-gray-400 text-center">{isSpanish ? 'Ej. 170, sin símbolo de moneda ni céntimos.' : isPortuguese ? 'Ex. 170, sem símbolo de moeda nem cêntimos.' : isFrench ? 'Ex. 170, sans symbole monétaire ni centimes.' : 'Eg. 170, no currency symbol or cents.'}</p>
