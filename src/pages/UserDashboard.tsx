@@ -883,7 +883,7 @@ const UserDashboard = () => {
                                                                     </td>
                                                                     <td className="py-4 px-6">
                                                                         <div className="flex flex-col">
-                                                                            <div className="text-lg font-black text-gray-900">{formatCurrency(quote.price + bookingDepositAmount)}</div>
+                                                                            <div className="text-lg font-black text-gray-900">{formatCurrency(quote.price)}</div>
                                                                             <div className="text-[10px] text-gray-500 font-medium">
                                                                                 {isSpanish ? 'Depósito: ' : 'Deposit: '}{formatCurrency(bookingDepositAmount)}{isSpanish ? ' | Saldo: ' : ' | Balance: '}{formatCurrency(quote.price)}
                                                                             </div>
@@ -898,7 +898,7 @@ const UserDashboard = () => {
                                                                                 <span className="font-bold text-gray-700">
                                                                                     {quote.status === 'accepted'
                                                                                         ? quote.contractor.full_name
-                                                                                        : `#${quote.contractor.seai_number || quote.created_by.slice(0, 6)}`}
+                                                                                        : (isSpanish ? 'Certificador' : isPortuguese ? 'Perito' : isFrench ? 'Diagnostiqueur' : 'Assessor')}
                                                                                 </span>
                                                                                 {quote.status === 'accepted' && (
                                                                                     <Link
@@ -998,7 +998,7 @@ const UserDashboard = () => {
                                                                 </p>
                                                             </div>
                                                             <div className="text-right">
-                                                                <p className="text-xl font-black text-gray-900">{formatCurrency(quote.price + bookingDepositAmount)}</p>
+                                                                <p className="text-xl font-black text-gray-900">{formatCurrency(quote.price)}</p>
                                                                 <div className="text-[9px] text-gray-500 font-medium mt-0.5">
                                                                     {isSpanish ? `Depósito: ${formatCurrency(bookingDepositAmount)} / Saldo: ` : `Deposit: ${formatCurrency(bookingDepositAmount)} / Balance: `}{formatCurrency(quote.price)}
                                                                 </div>
@@ -1020,9 +1020,9 @@ const UserDashboard = () => {
                                                                     <p className="text-[10px] font-bold text-gray-900">
                                                                         {quote.status === 'accepted'
                                                                             ? quote.contractor.full_name
-                                                                            : (isSpanish ? `Certificador #${quote.contractor.seai_number || quote.created_by.slice(0, 6)}` : isPortuguese ? `Perito #${quote.contractor.seai_number || quote.created_by.slice(0, 6)}` : isFrench ? `Diagnostiqueur #${quote.contractor.seai_number || quote.created_by.slice(0, 6)}` : `Assessor #${quote.contractor.seai_number || quote.created_by.slice(0, 6)}`)}
+                                                                            : (isSpanish ? 'Certificador' : isPortuguese ? 'Perito' : isFrench ? 'Diagnostiqueur' : 'Assessor')}
                                                                     </p>
-                                                                    <p className="text-[9px] text-gray-400">{isSpanish ? 'CEE CAT:' : isEngland ? 'Assessor ID:' : 'SEAI:'} {quote.contractor.seai_number || (isSpanish ? 'Pendiente' : 'Pending')}</p>
+                                                                    <p className="text-[9px] text-gray-400">{quote.status === 'accepted' ? quote.contractor.full_name : (isSpanish ? 'Pendiente de aceptación' : 'Pending acceptance')}</p>
                                                                 </div>
                                                             </div>
                                                         )}
@@ -1157,7 +1157,7 @@ const UserDashboard = () => {
                         {/* Header */}
                         <div className="mb-8">
                             <h3 className="text-xl font-bold mb-1">
-                                BER Assessor #{selectedDetailsQuote.contractor?.seai_number || selectedDetailsQuote.created_by.slice(0, 6)}
+                                {selectedDetailsQuote.contractor?.full_name || (isSpanish ? 'Certificador' : isPortuguese ? 'Perito' : isFrench ? 'Diagnostiqueur' : 'Assessor')}
                             </h3>
                         </div>
 
@@ -1165,7 +1165,7 @@ const UserDashboard = () => {
                         <div className="space-y-6">
                             <div className="flex justify-between items-center group">
                                 <span className="text-gray-500 font-medium text-sm">Quote</span>
-                                <span className="text-gray-900 font-black text-lg">{formatCurrency(selectedDetailsQuote.price + bookingDepositAmount)}</span>
+                                <span className="text-gray-900 font-black text-lg">{formatCurrency(selectedDetailsQuote.price)}</span>
                             </div>
 
                             <div className="flex justify-between items-center">

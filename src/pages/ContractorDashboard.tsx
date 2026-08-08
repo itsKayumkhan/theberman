@@ -44,6 +44,7 @@ interface Quote {
     id: string;
     price: number;
     notes: string;
+    estimated_date: string | null;
     status: 'pending' | 'accepted' | 'rejected';
     created_at: string;
     assessment_id: string;
@@ -516,7 +517,7 @@ const ContractorDashboard = () => {
         setSelectedJob(jobData);
         setQuoteModalOpen(true);
         setQuoteStep(1);
-        setSelectedAvailabilityDate(null);
+        setSelectedAvailabilityDate(quote.estimated_date || null);
         setTermsAgreed(false);
         setQuotePrice('');
         setQuoteNotes('');
@@ -553,6 +554,7 @@ const ContractorDashboard = () => {
                     .update({
                         price: parseFloat(quotePrice),
                         notes: quoteNotes,
+                        estimated_date: selectedAvailabilityDate,
                         status: 'pending' // Reset status to pending on re-quote
                     })
                     .eq('id', existingQuote.id);
@@ -563,6 +565,7 @@ const ContractorDashboard = () => {
                     assessment_id: selectedJob.id,
                     price: parseFloat(quotePrice),
                     notes: quoteNotes,
+                    estimated_date: selectedAvailabilityDate,
                     created_by: user?.id,
                     status: 'pending',
                     is_loyalty_payout: isLoyaltyJob
