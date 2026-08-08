@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useTranslation } from '../hooks/useTranslation';
 import { supabase } from '../lib/supabase';
 import { formatCurrency, getTenantFromDomain, getTenantCurrency } from '../lib/tenant';
-import { LogOut, FileText, User, Home, AlertCircle, X, Menu, Trash2, Search, Clock } from 'lucide-react';
+import { LogOut, FileText, User, Home, AlertCircle, X, Menu, Trash2, Search, Clock, Filter } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import QuoteModal from '../components/QuoteModal';
@@ -135,6 +135,7 @@ const UserDashboard = () => {
     const [selectedDetailsQuote, setSelectedDetailsQuote] = useState<Quote | null>(null); // New state for quote details modal
     const [view, setView] = useState<'assessments' | 'quotes'>('assessments');
     const [searchQuery, setSearchQuery] = useState('');
+    const [filteredAssessmentId, setFilteredAssessmentId] = useState<string | null>(null);
     const [confirmReject, setConfirmReject] = useState<{ assessmentId: string, quoteId: string } | null>(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -656,7 +657,10 @@ const UserDashboard = () => {
                                                                     key={assessment.id}
                                                                     className={`border-b border-gray-50 hover:bg-green-50/20 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/10'} ${hasPendingQuotes ? 'cursor-pointer' : ''}`}
                                                                     onClick={() => {
-                                                                        if (hasPendingQuotes) setView('quotes');
+                                                                        if (hasPendingQuotes) {
+                                                                            setFilteredAssessmentId(assessment.id);
+                                                                            setView('quotes');
+                                                                        }
                                                                     }}
                                                                 >
                                                                     <td className="py-4 px-6">
@@ -768,7 +772,10 @@ const UserDashboard = () => {
                                                             key={assessment.id}
                                                             className={`p-5 ${hasPendingQuotes ? 'cursor-pointer active:bg-green-50/40 transition-colors' : ''}`}
                                                             onClick={() => {
-                                                                if (hasPendingQuotes) setView('quotes');
+                                                                if (hasPendingQuotes) {
+                                                                    setFilteredAssessmentId(assessment.id);
+                                                                    setView('quotes');
+                                                                }
                                                             }}
                                                         >
                                                             <div className="flex justify-between items-start mb-3">
@@ -797,6 +804,7 @@ const UserDashboard = () => {
                                                                     <button
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
+                                                                            setFilteredAssessmentId(assessment.id);
                                                                             setView('quotes');
                                                                         }}
                                                                         className={`text-[10px] font-black flex items-center gap-1 px-2 py-1 rounded-lg border ${isCommercial ? 'text-purple-600 border-purple-200 bg-purple-50' : 'text-[#007F00] border-green-200 bg-green-50'}`}
@@ -847,36 +855,70 @@ const UserDashboard = () => {
 
                         ) : (
                             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                {assessments.flatMap(a => (a.quotes || []).map(q => ({ ...q, assessment: a })))
-                                    .length === 0 ? (
-                                    <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-                                        <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
-                                            <FileText size={32} />
-                                        </div>
-                                        <h3 className="text-xl font-bold text-gray-900 mb-2">{isSpanish ? 'Aún no hay presupuestos' : 'No quotes received yet'}</h3>
-                                        <p className="text-gray-500 max-w-sm mx-auto">{isSpanish ? 'Cuando los certificadores revisen tus solicitudes, sus presupuestos aparecerán aquí.' : 'Once BER Assessors review your submitted assessments, their quotes will appear here.'}</p>
-                                    </div>
-                                ) : (
-                                    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                                        {/* Desktop Table View */}
-                                        <div className="overflow-x-auto hidden md:block">
-                                            <table className="w-full text-sm">
-                                                <thead>
-                                                    <tr className="bg-gray-50 border-b border-gray-200">
-                                                        <th className="text-left py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-widest">{isSpanish ? 'Propiedad' : 'Property'}</th>
-                                                        <th className="text-left py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-widest">{isSpanish ? 'Presupuesto' : 'Quote'}</th>
-                                                        <th className="text-left py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-widest">{isSpanish ? 'Disponibilidad' : 'Earliest Availability'}</th>
-                                                        <th className="text-left py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-widest">{isSpanish ? 'ID Certificador' : 'Assessor ID'}</th>
-                                                        <th className="text-left py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-widest">{isSpanish ? 'Expira' : 'Expires'}</th>
-                                                        <th className="text-right py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-widest">{isSpanish ? 'Acciones' : 'Actions'}</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {assessments.flatMap(a => (a.quotes || []).map(q => ({ ...q, assessment: a })))
-                                                        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                                                        .map((quote, index) => {
-                                                            const { isExpired, daysLeft } = getQuoteExpiry(quote.created_at);
-                                                            return (
+                                {(() => {
+                                    const allQuotes = assessments.flatMap(a => (a.quotes || []).map(q => ({ ...q, assessment: a })))
+                                        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+                                    const filteredQuotes = filteredAssessmentId
+                                        ? allQuotes.filter(q => q.assessment.id === filteredAssessmentId)
+                                        : allQuotes;
+                                    const filteredAssessment = filteredAssessmentId
+                                        ? assessments.find(a => a.id === filteredAssessmentId)
+                                        : null;
+
+                                    if (allQuotes.length === 0) {
+                                        return (
+                                            <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+                                                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                                                    <FileText size={32} />
+                                                </div>
+                                                <h3 className="text-xl font-bold text-gray-900 mb-2">{isSpanish ? 'Aún no hay presupuestos' : 'No quotes received yet'}</h3>
+                                                <p className="text-gray-500 max-w-sm mx-auto">{isSpanish ? 'Cuando los certificadores revisen tus solicitudes, sus presupuestos aparecerán aquí.' : 'Once BER Assessors review your submitted assessments, their quotes will appear here.'}</p>
+                                            </div>
+                                        );
+                                    }
+
+                                    return (
+                                        <>
+                                            {filteredAssessmentId && (
+                                                <div className="bg-green-50 border border-green-200 rounded-2xl p-4 flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                                            <Filter size={16} className="text-green-600" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-black text-green-800">
+                                                                {isSpanish ? 'Presupuestos filtrados para:' : 'Quotes filtered for:'} {filteredAssessment?.property_address || filteredAssessment?.town || 'this job'}
+                                                            </p>
+                                                            <p className="text-xs text-green-600 font-medium">{filteredQuotes.length} {isSpanish ? 'presupuesto(s)' : 'quote(s)'}</p>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => setFilteredAssessmentId(null)}
+                                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-green-700 rounded-lg text-xs font-bold hover:bg-green-100 transition-all border border-green-200"
+                                                    >
+                                                        <X size={14} />
+                                                        {isSpanish ? 'Ver todos' : 'Clear filter'}
+                                                    </button>
+                                                </div>
+                                            )}
+                                            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                                                {/* Desktop Table View */}
+                                                <div className="overflow-x-auto hidden md:block">
+                                                    <table className="w-full text-sm">
+                                                        <thead>
+                                                            <tr className="bg-gray-50 border-b border-gray-200">
+                                                                <th className="text-left py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-widest">{isSpanish ? 'Propiedad' : 'Property'}</th>
+                                                                <th className="text-left py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-widest">{isSpanish ? 'Presupuesto' : 'Quote'}</th>
+                                                                <th className="text-left py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-widest">{isSpanish ? 'Disponibilidad' : 'Earliest Availability'}</th>
+                                                                <th className="text-left py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-widest">{isSpanish ? 'ID Certificador' : 'Assessor ID'}</th>
+                                                                <th className="text-left py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-widest">{isSpanish ? 'Expira' : 'Expires'}</th>
+                                                                <th className="text-right py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-widest">{isSpanish ? 'Acciones' : 'Actions'}</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {filteredQuotes.map((quote, index) => {
+                                                                const { isExpired, daysLeft } = getQuoteExpiry(quote.created_at);
+                                                                return (
                                                                 <tr
                                                                     key={quote.id}
                                                                     className={`border-b border-gray-50 hover:bg-green-50/30 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/20'}`}
@@ -989,9 +1031,7 @@ const UserDashboard = () => {
 
                                         {/* Mobile Card View */}
                                         <div className="md:hidden divide-y divide-gray-100">
-                                            {assessments.flatMap(a => (a.quotes || []).map(q => ({ ...q, assessment: a })))
-                                                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                                                .map((quote) => (
+                                            {filteredQuotes.map((quote) => (
                                                     <div key={quote.id} className="p-5">
                                                         <div className="flex justify-between items-start mb-4">
                                                             <div>
@@ -1086,7 +1126,9 @@ const UserDashboard = () => {
                                                 ))}
                                         </div>
                                     </div>
-                                )}
+                                </>
+                                );
+                                })()}
                             </div>
                         )}
                     </div>
