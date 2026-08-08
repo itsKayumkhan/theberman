@@ -883,7 +883,7 @@ const UserDashboard = () => {
                                                                     </td>
                                                                     <td className="py-4 px-6">
                                                                         <div className="flex flex-col">
-                                                                            <div className="text-lg font-black text-gray-900">{formatCurrency(quote.price)}</div>
+                                                                            <div className="text-lg font-black text-gray-900">{formatCurrency(quote.price + bookingDepositAmount)}</div>
                                                                             <div className="text-[10px] text-gray-500 font-medium">
                                                                                 {isSpanish ? 'Depósito: ' : 'Deposit: '}{formatCurrency(bookingDepositAmount)}{isSpanish ? ' | Saldo: ' : ' | Balance: '}{formatCurrency(quote.price)}
                                                                             </div>
@@ -998,7 +998,7 @@ const UserDashboard = () => {
                                                                 </p>
                                                             </div>
                                                             <div className="text-right">
-                                                                <p className="text-xl font-black text-gray-900">{formatCurrency(quote.price)}</p>
+                                                                <p className="text-xl font-black text-gray-900">{formatCurrency(quote.price + bookingDepositAmount)}</p>
                                                                 <div className="text-[9px] text-gray-500 font-medium mt-0.5">
                                                                     {isSpanish ? `Depósito: ${formatCurrency(bookingDepositAmount)} / Saldo: ` : `Deposit: ${formatCurrency(bookingDepositAmount)} / Balance: `}{formatCurrency(quote.price)}
                                                                 </div>
@@ -1165,7 +1165,7 @@ const UserDashboard = () => {
                         <div className="space-y-6">
                             <div className="flex justify-between items-center group">
                                 <span className="text-gray-500 font-medium text-sm">Quote</span>
-                                <span className="text-gray-900 font-black text-lg">{formatCurrency(selectedDetailsQuote.price)}</span>
+                                <span className="text-gray-900 font-black text-lg">{formatCurrency(selectedDetailsQuote.price + bookingDepositAmount)}</span>
                             </div>
 
                             <div className="flex justify-between items-center">

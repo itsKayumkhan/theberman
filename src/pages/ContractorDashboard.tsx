@@ -229,6 +229,8 @@ const ContractorDashboard = () => {
     const [termsAgreed, setTermsAgreed] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [platformFee, setPlatformFee] = useState<number>(35);
+    const [assessorFee, setAssessorFee] = useState<number>(25);
 
 
 
@@ -281,6 +283,20 @@ const ContractorDashboard = () => {
 
             if (!listingError && listingData) {
                 setCatalogueListing(listingData);
+            }
+
+            // 1c. Fetch platform fee from app_settings
+            const contractorTenantForSettings = profileData?.tenant || 'ireland';
+            const { data: settingsData } = await supabase
+                .from('app_settings')
+                .select('platform_fee_amount, hidden_fee_amount')
+                .eq('tenant', contractorTenantForSettings)
+                .single();
+            if (settingsData) {
+                const platform = parseFloat(settingsData.platform_fee_amount) || 25;
+                const hidden = parseFloat(settingsData.hidden_fee_amount) || 10;
+                setAssessorFee(platform);
+                setPlatformFee(platform + hidden);
             }
 
             // 2. Fetch Available Jobs (submitted status, no quote from this contractor yet)
@@ -1158,6 +1174,7 @@ const ContractorDashboard = () => {
                                                                 <td className="py-3 px-3 text-gray-900 font-bold">{quote.lowestPrice != null ? formatCurrency(quote.lowestPrice) : '-'}</td>
                                                                 <td className={`py-3 px-3 font-bold ${isCompetitive ? 'text-green-700' : 'text-red-600'}`}>
                                                                     {formatCurrency(quote.price)}
+                                                                    <p className="text-[10px] font-normal text-gray-400">{isSpanish ? 'Propietario ve:' : isPortuguese ? 'Proprietário vê:' : isFrench ? 'Propriétaire voit :' : 'Homeowner sees:'} {formatCurrency(quote.price + platformFee)}</p>
                                                                 </td>
                                                                 <td className="py-3 px-3">
                                                                     <button
@@ -1239,6 +1256,7 @@ const ContractorDashboard = () => {
                                                             <div>
                                                                 <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">{isSpanish ? 'Mi Presupuesto' : isPortuguese ? 'O Meu Orçamento' : isFrench ? 'Mon Devis' : 'My Quote'}</p>
                                                                 <p className="text-lg font-bold text-green-700">{formatCurrency(quote.price)}</p>
+                                                                <p className="text-[10px] text-gray-400">{isSpanish ? 'Propietario ve:' : isPortuguese ? 'Proprietário vê:' : isFrench ? 'Propriétaire voit :' : 'Homeowner sees:'} {formatCurrency(quote.price + platformFee)}</p>
                                                             </div>
                                                         </div>
                                                         <button
@@ -2260,7 +2278,7 @@ const ContractorDashboard = () => {
                                                 <p className="text-sm text-green-700 text-center italic">{isSpanish ? 'Incluye tarifas de' : isPortuguese ? 'Inclui taxas de' : isFrench ? 'Inclut les frais de' : 'Includes fees for'} {regAuthority}.</p>
                                                 <p className="text-sm text-green-700 text-center italic">{isSpanish ? 'Incluye IVA (si estás registrado).' : isPortuguese ? 'Inclui IVA (se registado).' : isFrench ? 'Inclut la TVA (si enregistré).' : 'Include VAT (if registered).'}</p>
                                                 <p className="text-sm text-green-700 text-center font-bold">
-                                                    <span className="italic">{isSpanish ? 'Incluye' : isPortuguese ? 'Inclui' : isFrench ? 'Inclut' : 'Includes'} {formatCurrency(25)} {isSpanish ? 'tasa de plataforma.' : isPortuguese ? 'taxa de plataforma.' : isFrench ? 'de frais de plateforme.' : 'platform fee.'}</span>
+                                                    <span className="italic">{isSpanish ? 'Incluye' : isPortuguese ? 'Inclui' : isFrench ? 'Inclut' : 'Includes'} {formatCurrency(assessorFee)} {isSpanish ? 'tasa de plataforma.' : isPortuguese ? 'taxa de plataforma.' : isFrench ? 'de frais de plateforme.' : 'platform fee.'}</span>
                                                 </p>
 
                                                 <div className="relative mt-4">
@@ -2273,8 +2291,16 @@ const ContractorDashboard = () => {
                                                     />
                                                 </div>
                                                 <p className="text-sm text-center font-bold text-gray-600">
-                                                    {isSpanish ? 'Recibirás:' : isPortuguese ? 'Receberá:' : isFrench ? 'Vous recevrez :' : 'You will receive:'} {formatCurrency(quotePrice ? (parseInt(quotePrice) - ((profile?.completed_jobs_count || 0) % 11 === 10 ? 0 : 25)) : 0)} {isSpanish ? '(directo del cliente)' : isPortuguese ? '(direto do cliente)' : isFrench ? '(directement du client)' : '(direct from customer)'}
+                                                    {isSpanish ? 'Recibirás:' : isPortuguese ? 'Receberá:' : isFrench ? 'Vous recevrez :' : 'You will receive:'} {formatCurrency(quotePrice ? (parseInt(quotePrice) - ((profile?.completed_jobs_count || 0) % 11 === 10 ? 0 : assessorFee)) : 0)} {isSpanish ? '(directo del cliente)' : isPortuguese ? '(direto do cliente)' : isFrench ? '(directement du client)' : '(direct from customer)'}
                                                 </p>
+                                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+                                                    <p className="text-sm font-bold text-blue-800">
+                                                        {isSpanish ? 'El propietario verá:' : isPortuguese ? 'O proprietário verá:' : isFrench ? 'Le propriétaire verra :' : 'Homeowner sees:'} {formatCurrency(quotePrice ? parseInt(quotePrice) + platformFee : 0)}
+                                                    </p>
+                                                    <p className="text-[11px] text-blue-600 mt-0.5">
+                                                        {isSpanish ? `(tu precio de ${formatCurrency(quotePrice ? parseInt(quotePrice) : 0)} + ${formatCurrency(platformFee)} tarifa de plataforma)` : isPortuguese ? `(seu preço de ${formatCurrency(quotePrice ? parseInt(quotePrice) : 0)} + ${formatCurrency(platformFee)} taxa de plataforma)` : isFrench ? `(votre prix de ${formatCurrency(quotePrice ? parseInt(quotePrice) : 0)} + ${formatCurrency(platformFee)} frais de plateforme)` : `(your price of ${formatCurrency(quotePrice ? parseInt(quotePrice) : 0)} + ${formatCurrency(platformFee)} platform fee)`}
+                                                    </p>
+                                                </div>
                                                 <p className="text-xs text-gray-400 text-center">{isSpanish ? 'Ej. 170, sin símbolo de moneda ni céntimos.' : isPortuguese ? 'Ex. 170, sem símbolo de moeda nem cêntimos.' : isFrench ? 'Ex. 170, sans symbole monétaire ni centimes.' : 'Eg. 170, no currency symbol or cents.'}</p>
 
                                                 <div className="flex items-start gap-2 mt-4">
