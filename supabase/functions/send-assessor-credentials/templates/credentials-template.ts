@@ -262,8 +262,7 @@ export const generateCredentialsHtml = (fullName: string, email: string, passwor
                 <p class="greeting">Bonjour ${fullName.split(' ')[0]},</p>
                 
                 <p class="body-text">
-                    Vous avez été inscrit comme <strong>${roleName}</strong> sur la plateforme
-                    <strong>${brandName}</strong>. Voici vos identifiants de connexion pour commencer.
+                    Merci beaucoup pour la conversation au téléphone. Dès que vous pouvez, je vous prie de bien vouloir enregistrer vos coordonnées afin que nous puissions vous envoyer des demandes de devis DPE au plus tôt. Voici vos identifiants de connexion pour commencer.
                 </p>
 
                 <div class="credentials-box">
@@ -298,8 +297,8 @@ export const generateCredentialsHtml = (fullName: string, email: string, passwor
                 </p>
 
                 <p class="body-text">
-                    Cordialement,<br>
-                    <strong>L'équipe ${brandName}</strong>
+                    Merci et Salutations,<br>
+                    <strong>L'équipe de DPEcert.fr</strong>
                 </p>
             </div>
             <div class="footer">
