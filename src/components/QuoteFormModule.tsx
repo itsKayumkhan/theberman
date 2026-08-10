@@ -445,7 +445,19 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
         setIsSubmitting(true);
         try {
             const { data: { session } } = await supabase.auth.getSession();
-            const currentUserId = session?.user?.id || user?.id;
+            let currentUserId = session?.user?.id || user?.id;
+
+            // If no user ID found, try refreshing the session before giving up
+            if (!currentUserId) {
+                const { data: refreshData } = await supabase.auth.refreshSession();
+                currentUserId = refreshData.session?.user?.id || user?.id;
+            }
+
+            if (!currentUserId) {
+                toast.error('Your session has expired. Please log in again to submit your assessment.');
+                setIsSubmitting(false);
+                return;
+            }
 
             const lastReferralStr = localStorage.getItem('last_referral');
             let referredByListingId = null;
