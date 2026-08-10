@@ -600,32 +600,65 @@ const HomePage = () => {
                         </>
                     ) : (!isSpanish && tenant !== 'england') ? (
                         <>
-                            <h2 className="text-3xl md:text-4xl font-black text-center text-[#007F00] mb-4">
-                                BER Assessment Services Across Ireland
-                            </h2>
-                            <p className="text-center text-gray-600 font-medium mb-12 max-w-2xl mx-auto">
-                                Serving property owners across all 26 counties, The BER Man helps you connect with qualified BER assessors in your local area.
-                            </p>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                                {[
-                                    { name: 'Leinster', count: '12 Counties', counties: 'Dublin, Kildare, Wicklow & more' },
-                                    { name: 'Munster', count: '6 Counties', counties: 'Cork, Kerry, Limerick & more' },
-                                    { name: 'Connacht', count: '5 Counties', counties: 'Galway, Mayo, Sligo & more' },
-                                    { name: 'Ulster', count: '3 Counties', counties: 'Donegal, Cavan & Monaghan' },
-                                ].map((province) => (
-                                    <Link key={province.name} to="/get-quote" className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all hover:border-[#007F00]/30 group">
-                                        <div className="flex items-start gap-3">
-                                            <span className="text-xl">📍</span>
-                                            <div>
-                                                <h3 className="text-lg font-black text-gray-900 group-hover:text-[#007F00] transition-colors">{province.name}</h3>
-                                                <p className="text-sm font-bold text-[#007F00]">{province.count}</p>
-                                                <p className="text-sm text-gray-500 font-medium">{province.counties}</p>
-                                                <span className="text-sm text-[#007F00] font-bold mt-2 inline-block group-hover:underline">View Counties →</span>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
+                            {tenant === 'france' ? (
+                                <>
+                                    <h2 className="text-3xl md:text-4xl font-black text-center text-[#007F00] mb-4">
+                                        Services de DPE en France
+                                    </h2>
+                                    <p className="text-center text-gray-600 font-medium mb-12 max-w-2xl mx-auto">
+                                        Accompagnement des propriétaires en France pour les diagnostics de performance énergétique (DPE) et études énergétiques.
+                                    </p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                                        {[
+                                            { name: 'Île-de-France', count: 'Paris & région', counties: 'Paris, Hauts-de-Seine, Seine-Saint-Denis & plus' },
+                                            { name: 'Provence-Alpes-Côte d\'Azur', count: 'Sud-Est', counties: 'Marseille, Nice, Aix-en-Provence & plus' },
+                                            { name: 'Auvergne-Rhône-Alpes', count: 'Centre-Est', counties: 'Lyon, Grenoble, Saint-Étienne & plus' },
+                                            { name: 'Hauts-de-France', count: 'Nord', counties: 'Lille, Amiens, Roubaix & plus' },
+                                        ].map((province) => (
+                                            <Link key={province.name} to="/get-quote" className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all hover:border-[#007F00]/30 group">
+                                                <div className="flex items-start gap-3">
+                                                    <span className="text-xl">📍</span>
+                                                    <div>
+                                                        <h3 className="text-lg font-black text-gray-900 group-hover:text-[#007F00] transition-colors">{province.name}</h3>
+                                                        <p className="text-sm font-bold text-[#007F00]">{province.count}</p>
+                                                        <p className="text-sm text-gray-500 font-medium">{province.counties}</p>
+                                                        <span className="text-sm text-[#007F00] font-bold mt-2 inline-block group-hover:underline">Voir les départements →</span>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <h2 className="text-3xl md:text-4xl font-black text-center text-[#007F00] mb-4">
+                                        BER Assessment Services Across Ireland
+                                    </h2>
+                                    <p className="text-center text-gray-600 font-medium mb-12 max-w-2xl mx-auto">
+                                        Serving property owners across all 26 counties, The BER Man helps you connect with qualified BER assessors in your local area.
+                                    </p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                                        {[
+                                            { name: 'Leinster', count: '12 Counties', counties: 'Dublin, Kildare, Wicklow & more' },
+                                            { name: 'Munster', count: '6 Counties', counties: 'Cork, Kerry, Limerick & more' },
+                                            { name: 'Connacht', count: '5 Counties', counties: 'Galway, Mayo, Sligo & more' },
+                                            { name: 'Ulster', count: '3 Counties', counties: 'Donegal, Cavan & Monaghan' },
+                                        ].map((province) => (
+                                            <Link key={province.name} to="/get-quote" className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all hover:border-[#007F00]/30 group">
+                                                <div className="flex items-start gap-3">
+                                                    <span className="text-xl">📍</span>
+                                                    <div>
+                                                        <h3 className="text-lg font-black text-gray-900 group-hover:text-[#007F00] transition-colors">{province.name}</h3>
+                                                        <p className="text-sm font-bold text-[#007F00]">{province.count}</p>
+                                                        <p className="text-sm text-gray-500 font-medium">{province.counties}</p>
+                                                        <span className="text-sm text-[#007F00] font-bold mt-2 inline-block group-hover:underline">View Counties →</span>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
                         </>
                     ) : (
                         <>
