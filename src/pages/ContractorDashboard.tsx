@@ -2321,13 +2321,6 @@ const ContractorDashboard = () => {
                                                         <span className="text-blue-700 font-bold">{isSpanish ? 'Recibirás' : isPortuguese ? 'Receberá' : isFrench ? 'Vous recevrez' : 'You receive'}</span>
                                                         <span className="text-blue-800 font-black">{formatCurrency(quotePrice ? parseInt(quotePrice) - assessorFee - vatSeaiFee : 0)}</span>
                                                     </div>
-                                                    <div className="border-t border-blue-200 pt-1.5 flex justify-between text-xs">
-                                                        <span className="text-blue-700 font-bold">{isSpanish ? 'Propietario ve' : isPortuguese ? 'Proprietário vê' : isFrench ? 'Propriétaire voit' : 'Homeowner sees'}</span>
-                                                        <span className="text-blue-800 font-black">{formatCurrency(quotePrice ? parseInt(quotePrice) + hiddenFee : 0)}</span>
-                                                    </div>
-                                                    <p className="text-[10px] text-blue-500 text-center mt-1">
-                                                        {isSpanish ? `(tu presupuesto + ${formatCurrency(hiddenFee)} tarifa oculta)` : isPortuguese ? `(seu orçamento + ${formatCurrency(hiddenFee)} taxa oculta)` : isFrench ? `(votre devis + ${formatCurrency(hiddenFee)} frais cachés)` : `(your quote + ${formatCurrency(hiddenFee)} hidden fee)`}
-                                                    </p>
                                                 </div>
                                                 <p className="text-xs text-gray-400 text-center">{isSpanish ? 'Ej. 170, sin símbolo de moneda ni céntimos.' : isPortuguese ? 'Ex. 170, sem símbolo de moeda nem cêntimos.' : isFrench ? 'Ex. 170, sans symbole monétaire ni centimes.' : 'Eg. 170, no currency symbol or cents.'}</p>
 
