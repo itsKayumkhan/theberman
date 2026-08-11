@@ -576,13 +576,15 @@ const HomePage = () => {
                             </p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl mx-auto">
                                 {[
-                                    { name: 'Lisboa', count: 'Grande Lisboa', counties: 'Lisboa, Sintra, Cascais & mais' },
-                                    { name: 'Norte', count: 'Região Norte', counties: 'Porto, Braga, Guimarães & mais' },
-                                    { name: 'Centro', count: 'Região Centro', counties: 'Coimbra, Aveiro, Leiria & mais' },
-                                    { name: 'Alentejo', count: 'Região do Alentejo', counties: 'Évora, Beja, Portalegre & mais' },
-                                    { name: 'Algarve', count: 'Região do Algarve', counties: 'Faro, Portimão, Albufeira & mais' },
-                                    { name: 'Açores', count: 'Região Autónoma dos Açores', counties: 'Ponta Delgada, Angra do Heroísmo & mais' },
-                                    { name: 'Madeira', count: 'Região Autónoma da Madeira', counties: 'Funchal, Câmara de Lobos & mais' },
+                                    { name: 'Norte', count: '86 Municípios', counties: 'Porto, Braga, Guimarães, Vila Nova de Gaia & mais' },
+                                    { name: 'Centro', count: '77 Municípios', counties: 'Coimbra, Aveiro, Leiria, Viseu & mais' },
+                                    { name: 'Oeste e Vale do Tejo', count: '34 Municípios', counties: 'Santarém, Torres Vedras, Tomar & mais' },
+                                    { name: 'Grande Lisboa', count: '9 Municípios', counties: 'Lisboa, Sintra, Cascais, Loures & mais' },
+                                    { name: 'Península de Setúbal', count: '9 Municípios', counties: 'Setúbal, Almada, Barreiro, Seixal & mais' },
+                                    { name: 'Alentejo', count: '47 Municípios', counties: 'Évora, Beja, Portalegre, Elvas & mais' },
+                                    { name: 'Algarve', count: '16 Municípios', counties: 'Faro, Portimão, Albufeira, Lagos & mais' },
+                                    { name: 'Região Autónoma dos Açores', count: '19 Municípios', counties: 'Ponta Delgada, Angra do Heroísmo, Horta & mais' },
+                                    { name: 'Região Autónoma da Madeira', count: '11 Municípios', counties: 'Funchal, Câmara de Lobos, Machico & mais' },
                                 ].map((province) => (
                                     <Link key={province.name} to="/get-quote" className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all hover:border-[#007F00]/30 group">
                                         <div className="flex items-start gap-3">

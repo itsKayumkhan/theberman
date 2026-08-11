@@ -80,13 +80,15 @@ const PROVINCES_FRANCE: Record<string, string[]> = {
 };
 
 const PROVINCES_PORTUGAL: Record<string, string[]> = {
-    'Lisboa': ['Lisboa', 'Sintra', 'Cascais'],
-    'Norte': ['Porto', 'Braga', 'Guimarães'],
-    'Centro': ['Coimbra', 'Aveiro', 'Leiria'],
-    'Algarve': ['Faro', 'Portimão', 'Albufeira'],
-    'Alentejo': ['Évora', 'Beja'],
-    'Açores': ['Ponta Delgada', 'Angra do Heroísmo'],
-    'Madeira': ['Funchal'],
+    'Norte': ['Porto', 'Braga', 'Vila Nova de Gaia', 'Guimarães', 'Barcelos', 'Viana do Castelo', 'Matosinhos', 'Maia', 'Vila Nova de Famalicão', 'Penafiel', 'Póvoa de Varzim', 'Santo Tirso', 'Trofa', 'Fafe', 'Amarante', 'Marco de Canaveses', 'Lousada', 'Paços de Ferreira', 'Felgueiras', 'Chaves', 'Vila Real', 'Lamego', 'Bragança', 'Mirandela'],
+    'Centro': ['Coimbra', 'Aveiro', 'Leiria', 'Viseu', 'Guarda', 'Castelo Branco', 'Figueira da Foz', 'Caldas da Rainha', 'Pombal', 'Marinha Grande', 'Ílhavo', 'Águeda', 'Oliveira do Hospital', 'Mealhada', 'Cantanhede', 'Estarreja', 'Seia', 'Gouveia', 'Trancoso', 'Pinhel', 'Sabugal', 'Fundão', 'Covilhã'],
+    'Oeste e Vale do Tejo': ['Santarém', 'Torres Vedras', 'Tomar', 'Abrantes', 'Alcobaça', 'Caldas da Rainha', 'Peniche', 'Óbidos', 'Nazaré', 'Alenquer', 'Rio Maior', 'Cartaxo', 'Ourém', 'Torres Novas', 'Entroncamento', 'Alcanena', 'Benavente', 'Coruche'],
+    'Grande Lisboa': ['Lisboa', 'Sintra', 'Cascais', 'Loures', 'Odivelas', 'Amadora', 'Oeiras', 'Mafra', 'Vila Franca de Xira'],
+    'Península de Setúbal': ['Setúbal', 'Almada', 'Barreiro', 'Seixal', 'Montijo', 'Palmela', 'Sesimbra', 'Moita', 'Alcochete'],
+    'Alentejo': ['Évora', 'Beja', 'Portalegre', 'Sines', 'Elvas', 'Estremoz', 'Montemor-o-Novo', 'Reguengos de Monsaraz', 'Arraiolos', 'Vila Viçosa', 'Moura', 'Serpa', 'Aljustrel', 'Mértola', 'Santiago do Cacém', 'Alcácer do Sal', 'Grândola', 'Vidigueira', 'Ponte de Sor', 'Campo Maior'],
+    'Algarve': ['Faro', 'Portimão', 'Loulé', 'Albufeira', 'Tavira', 'Lagos', 'Olhão', 'Silves', 'Vila Real de Santo António', 'Lagoa', 'São Brás de Alportel', 'Monchique', 'Aljezur', 'Castro Marim', 'Alcoutim', 'Vila do Bispo'],
+    'Região Autónoma dos Açores': ['Ponta Delgada', 'Angra do Heroísmo', 'Horta', 'Ribeira Grande', 'Lagoa', 'Vila Franca do Campo', 'Praia da Vitória', 'Velas', 'Madalena', 'São Roque do Pico', 'Vila do Porto', 'Santa Cruz das Flores', 'Lajes das Flores', 'Corvo'],
+    'Região Autónoma da Madeira': ['Funchal', 'Câmara de Lobos', 'Machico', 'Santa Cruz', 'Santana', 'Porto Moniz', 'São Vicente', 'Ribeira Brava', 'Calheta', 'Ponta do Sol', 'Porto Santo'],
 };
 
 const Layout = () => {
