@@ -1197,7 +1197,8 @@ const Admin = () => {
                     fullName: u.full_name,
                     email: u.email,
                     expiryDate: expiryDate,
-                    role: u.role
+                    role: u.role,
+                    tenant: u.tenant || selectedTenant
                 }
             });
 

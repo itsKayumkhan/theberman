@@ -45,16 +45,16 @@ serve(async (req: Request) => {
         const htmlBody = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#333;line-height:1.6;">
             <div style="border-bottom:2px solid #007F00;padding-bottom:16px;margin-bottom:24px;">
                 <h2 style="margin:0;color:#007F00;font-weight:700;">${config.display_name}</h2>
-                <p style="margin:4px 0 0 0;font-size:13px;color:#666;">${pick(lang, { en: 'Platform Update', es: 'Actualización de la Plataforma', pt: 'Atualização da Plataforma' })}</p>
+                <p style="margin:4px 0 0 0;font-size:13px;color:#666;">${pick(lang, { en: 'Platform Update', es: 'Actualización de la Plataforma', pt: 'Atualização da Plataforma', fr: 'Mise à Jour de la Plateforme' })}</p>
             </div>
             <div style="white-space:pre-wrap;font-size:15px;">${body.replace(/\n/g, '<br>')}</div>
             <div style="margin-top:32px;padding-top:16px;border-top:1px solid #eee;font-size:13px;color:#888;">
-                <p style="margin:0;">${pick(lang, { en: 'Best regards,', es: 'Un saludo,', pt: 'Com os melhores cumprimentos,' })}</p>
+                <p style="margin:0;">${pick(lang, { en: 'Best regards,', es: 'Un saludo,', pt: 'Com os melhores cumprimentos,', fr: 'Cordialement,' })}</p>
                 <p style="margin:4px 0 0 0;font-weight:600;">
-                    ${lang === 'es' ? 'El Equipo de' : lang === 'pt' ? 'A Equipa' : 'The'} ${config.display_name} ${lang === 'es' || lang === 'pt' ? '' : 'Team'}
+                    ${lang === 'es' ? 'El Equipo de' : lang === 'pt' ? 'A Equipa' : lang === 'fr' ? "L'équipe" : 'The'} ${config.display_name} ${lang === 'es' || lang === 'pt' || lang === 'fr' ? '' : 'Team'}
                 </p>
                 <p style="margin:4px 0 0 0;"><a href="${config.website_url}" style="color:#007F00;text-decoration:none;">${config.website_url}</a></p>
-                <p style="margin:4px 0 0 0;">${pick(lang, { en: 'Email:', es: 'Correo:', pt: 'Email:' })} <a href="mailto:${config.smtp_from}" style="color:#007F00;text-decoration:none;">${config.smtp_from}</a></p>
+                <p style="margin:4px 0 0 0;">${pick(lang, { en: 'Email:', es: 'Correo:', pt: 'Email:', fr: 'E-mail :' })} <a href="mailto:${config.smtp_from}" style="color:#007F00;text-decoration:none;">${config.smtp_from}</a></p>
             </div>
         </div>`;
 

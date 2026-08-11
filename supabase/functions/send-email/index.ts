@@ -41,7 +41,7 @@ serve(async (req: Request) => {
             .eq('is_active', true)
             .limit(3);
 
-        const promoHtml = generatePromoHtml(sponsors || []);
+        const promoHtml = generatePromoHtml(sponsors || [], tenant);
 
         const client = new CustomSmtpClient(config.domain);
         console.log(`[send-email] Tenant=${tenant}, sending to ${record.email} and admin ${adminEmail}`);

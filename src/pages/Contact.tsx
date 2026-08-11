@@ -168,7 +168,7 @@ const Contact = () => {
 
             // Trigger Supabase Edge Function for Email Notification
             await supabase.functions.invoke('send-email', {
-                body: { record: data }
+                body: { record: data, tenant }
             });
 
             toast.success(tr.toastSuccess);

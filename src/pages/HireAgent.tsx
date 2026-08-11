@@ -435,7 +435,7 @@ const HireAgent = () => {
 
             // Trigger Supabase Edge Function for Email Notification
             await supabase.functions.invoke('send-email', {
-                body: { record: { ...data, message: `[HIRE AGENT INQUIRY]: ${data.message}` } }
+                body: { record: { ...data, message: `[HIRE AGENT INQUIRY]: ${data.message}` }, tenant }
             });
 
             toast.success(tr.toastSuccess);

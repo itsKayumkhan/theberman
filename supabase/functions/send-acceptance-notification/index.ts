@@ -78,7 +78,7 @@ Deno.serve(async (req: Request) => {
             await client.authenticate(smtpUsername, smtpPassword);
 
             const { data: sponsors } = await supabase.from('sponsors').select('*').eq('is_active', true).eq('tenant', tenant).limit(3);
-            const promoHtml = generatePromoHtml(sponsors || []);
+            const promoHtml = generatePromoHtml(sponsors || [], tenant);
 
             const isSpanish = tenant === 'spain';
             const isEngland = tenant === 'england';

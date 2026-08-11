@@ -31,14 +31,15 @@ function generateQuotesSummaryEmail(
         const contractorName = q.contractor?.full_name || 'Assessor';
         const companyName = q.contractor?.company_name || '';
         const seaiNumber = q.contractor?.seai_number || '';
-        const date = new Date(q.created_at).toLocaleDateString('en-GB');
+        const dateLocale = isSpanish ? 'es-ES' : isPortuguese ? 'pt-PT' : isFrench ? 'fr-FR' : 'en-GB';
+        const date = new Date(q.created_at).toLocaleDateString(dateLocale);
         return `
         <div style="background-color: #f9fff9; border: 1px solid #d4edda; border-radius: 8px; padding: 20px; margin-bottom: 15px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <div>
                     <strong style="font-size: 16px; color: #1a1a1a;">${contractorName}</strong>
                     ${companyName ? `<br><span style="font-size: 13px; color: #666;">${companyName}</span>` : ''}
-                    ${seaiNumber ? `<br><span style="font-size: 12px; color: #999;">Reg: ${seaiNumber}</span>` : ''}
+                    ${seaiNumber ? `<br><span style="font-size: 12px; color: #999;">${isSpanish ? 'Registro' : isPortuguese ? 'Reg' : isFrench ? 'N°' : 'Reg'}: ${seaiNumber}</span>` : ''}
                 </div>
                 <div style="text-align: right;">
                     <span style="font-size: 24px; font-weight: 800; color: #007F00;">${currency}${q.price}</span>
@@ -95,7 +96,7 @@ function generateQuotesSummaryEmail(
         <div style="padding: 30px; background-color: #fafafa; border-top: 1px solid #eee;">
             ${promoHtml}
             <div style="margin-top: 25px; text-align: center; font-size: 12px; color: #999;">
-                &copy; ${new Date().getFullYear()} ${brandName}. All rights reserved.
+                &copy; ${new Date().getFullYear()} ${brandName}. ${isSpanish ? 'Todos los derechos reservados.' : isPortuguese ? 'Todos os direitos reservados.' : isFrench ? 'Tous droits réservés.' : 'All rights reserved.'}
             </div>
         </div>
     </div>
@@ -165,7 +166,7 @@ Deno.serve(async (req: Request) => {
         }
 
         const { data: sponsors } = await supabase.from('sponsors').select('*').eq('is_active', true).eq('tenant', tenant).limit(3);
-        const promoHtml = generatePromoHtml(sponsors || []);
+        const promoHtml = generatePromoHtml(sponsors || [], tenant);
 
         const isSpanish = tenant === 'spain';
         const isPortuguese = tenant === 'portugal';

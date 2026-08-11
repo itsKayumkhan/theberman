@@ -192,7 +192,7 @@ Deno.serve(async (req: Request) => {
                 .eq('is_active', true)
                 .eq('tenant', tenant)
                 .limit(3);
-            const promoHtml = generatePromoHtml(sponsors || []);
+            const promoHtml = generatePromoHtml(sponsors || [], tenant);
 
             const client = new CustomSmtpClient(config.domain);
             try {

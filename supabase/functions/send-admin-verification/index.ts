@@ -18,6 +18,7 @@ serve(async (req: Request) => {
 
         const isSpanish = tenant === 'spain';
         const isPortuguese = tenant === 'portugal';
+        const isFrench = tenant === 'france';
 
         const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
         const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -43,7 +44,7 @@ serve(async (req: Request) => {
             await client.send(
                 config.smtp_from,
                 email,
-                subject || (isSpanish ? 'Código de Verificación de Seguridad de Administrador' : isPortuguese ? 'Código de Verificação de Segurança de Administrador' : 'Admin Security Verification Code'),
+                subject || (isSpanish ? 'Código de Verificación de Seguridad de Administrador' : isPortuguese ? 'Código de Verificação de Segurança de Administrador' : isFrench ? 'Code de Vérification de Sécurité Administrateur' : 'Admin Security Verification Code'),
                 message
             );
 

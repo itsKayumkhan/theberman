@@ -91,12 +91,15 @@ Deno.serve(async (req: Request) => {
         const smsPhone = customerPhone || asmnt?.contact_phone || null;
         const isPortuguese = tenant === 'portugal';
         const isSpanish = tenant === 'spain';
+        const isFrench = tenant === 'france';
         if (smsPhone) {
             const customerSms = isSpanish
                 ? `Hola ${customerName}, tu solicitud de certificado energético en ${town || county} ya está activa en ${websiteUrl.replace('https://', '')}.`
                 : isPortuguese
                     ? `Olá ${customerName}, o seu pedido de certificado energético em ${town || county} está agora ativo em ${websiteUrl.replace('https://', '')}.`
-                    : `Hi ${customerName}, your BER assessment request in ${town || county} is now live on ${websiteUrl.replace('https://', '')}!`;
+                    : isFrench
+                        ? `Bonjour ${customerName}, votre demande de DPE à ${town || county} est maintenant active sur ${websiteUrl.replace('https://', '')}.`
+                        : `Hi ${customerName}, your BER assessment request in ${town || county} is now live on ${websiteUrl.replace('https://', '')}!`;
             smsSent = await trySendSms(smsPhone, customerSms, config.phone_country_code, config.twilio_account_sid, config.twilio_auth_token, config.twilio_messaging_service_sid);
         }
 
@@ -109,7 +112,9 @@ Deno.serve(async (req: Request) => {
                     ? `Hola ${name}, nuevo trabajo en ${loc}. Presupuesta aquí: ${link}`
                     : isPortuguese
                         ? `Olá ${name}, novo trabalho em ${loc}. Orçamente aqui: ${link}`
-                        : `Hi ${name}, new job in ${loc}! Quote here: ${link}`;
+                        : isFrench
+                            ? `Bonjour ${name}, nouvelle mission à ${loc}. Envoyez un devis ici : ${link}`
+                            : `Hi ${name}, new job in ${loc}! Quote here: ${link}`;
                 await trySendSms(c.phone, contractorSms, config.phone_country_code, config.twilio_account_sid, config.twilio_auth_token, config.twilio_messaging_service_sid);
             }
         }
