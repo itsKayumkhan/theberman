@@ -57,7 +57,7 @@ const HomePage = () => {
                             ? 'DPE France | Diagnostic de Performance Énergétique'
                         : tenant === 'portugal'
                             ? 'Certificado Energia Portugal | Certificados de Eficiência Energética'
-                            : 'BER Cert Ireland | The BER Man'
+                            : 'BER Certificates Ireland | Largest BER Certificate Platform'
                 }
                 description={isSpanish
                     ? `El sitio web más grande de ${ratingName} en ${country}. Evaluaciones de ${ratingName} rápidas, fiables y sin complicaciones. Obtenga cotizaciones competitivas de certificadores locales hoy.`
@@ -67,8 +67,13 @@ const HomePage = () => {
                             ? 'Le plus grand site de DPE en France. Diagnostics de performance énergétique rapides, fiables et sans tracas. Obtenez des devis compétitifs de diagnostiqueurs locaux dès aujourd\'hui.'
                         : tenant === 'portugal'
                             ? 'A plataforma líder de certificação energética em Portugal. Obtenha o seu Certificado Energético com peritos qualificados. Peça um orçamento grátis online.'
-                            : "Need a BER Cert in Ireland? The BER Man Connects You with Local, SEAI-Registered Assessors Nationwide. Get a Free Quote Online Today!"
+                            : "Ireland's largest BER marketplace. Instantly compare quotes from trusted SEAI-registered assessors near you and book your BER assessment in minutes."
                 }
+                ogTitle={tenant === 'ireland' ? 'Get a BER Certificate | SEAI Registered Assessors Nationwide.' : undefined}
+                ogDescription={tenant === 'ireland' ? "Ireland's largest BER platform. Compare quotes from trusted local assessors and book your Building Energy Rating assessment online today." : undefined}
+                twitterTitle={tenant === 'ireland' ? 'BER Certificate Ireland | Compare Quotes Instantly' : undefined}
+                twitterDescription={tenant === 'ireland' ? 'Compare BER quotes from SEAI-registered assessors nationwide. Fast, reliable, and easy to book online.' : undefined}
+                skipSiteNameSuffix={tenant === 'ireland'}
                 canonical="/"
                 jsonLd={[
                     {
@@ -115,12 +120,17 @@ const HomePage = () => {
             ) : (
             <>
             {/* 1. HERO SECTION - BERcert Conversion Style */}
-            <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 bg-white overflow-hidden">
+            <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 bg-white overflow-hidden">
+                {/* Subtle background accents */}
+                <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute top-20 left-10 w-72 h-72 bg-green-50 rounded-full blur-3xl opacity-60"></div>
+                    <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-50 rounded-full blur-3xl opacity-40"></div>
+                </div>
                 <div className="container mx-auto px-6 relative z-10">
                     <div className="max-w-4xl mx-auto text-center">
                         <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-100 rounded-full mb-8 animate-fade-in">
                             <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
-                            <p className="text-sm font-bold text-green-700">{c('hero', 'badge_text', isSpanish ? 'La Mayor Plataforma de Certificados Energéticos' : tenant === 'france' ? 'La Plus Grande Plateforme de DPE en France' : tenant === 'portugal' ? 'A Plataforma Líder de Certificação Energética em Portugal' : "Trusted by 1,000+ Irish homeowners")}</p>
+                            <p className="text-sm font-bold text-green-700">{c('hero', 'badge_text', isSpanish ? 'La Mayor Plataforma de Certificados Energéticos' : tenant === 'france' ? 'La Plus Grande Plateforme de DPE en France' : tenant === 'portugal' ? 'A Plataforma Líder de Certificação Energética em Portugal' : "Ireland's Largest BER Marketplace")}</p>
                         </div>
 
                         <h1 className={`font-black mb-6 md:mb-8 leading-[1.1] tracking-tight ${isSpanish ? 'text-4xl md:text-5xl lg:text-6xl' : 'text-5xl md:text-7xl lg:text-8xl'}`} style={{ color: c('hero', 'heading_color', '#111827') }}>
@@ -137,15 +147,33 @@ const HomePage = () => {
                                         ? 'Le moyen le plus rapide et le plus fiable d\'obtenir votre DPE. Comparez les devis compétitifs de diagnostiqueurs certifiés près de chez vous.'
                                     : tenant === 'portugal'
                                         ? 'A forma mais rápida e fiável de obter o seu Certificado Energético. Compare orçamentos competitivos de peritos qualificados na sua zona.'
-                                        : 'The fastest, most reliable way to get your official Building Energy Rating. Compare competing quotes from local, SEAI-registered assessors today.'))}
+                                        : "Ireland's largest BER marketplace. Instantly compare quotes from trusted SEAI-registered assessors near you and book your BER assessment in minutes."))}
                         </p>
 
                         {(tenant === 'ireland' || tenant === 'england') && (
                             <p className="text-gray-500 max-w-2xl mx-auto leading-relaxed text-sm md:text-base mb-6 md:mb-8">
                                 {tenant === 'england'
                                     ? "Looking for a trusted EPC Certificate provider in England? EPCCert connects you with accredited energy assessors for fast, affordable domestic and commercial EPC assessments. Compare quotes, book online, and get your Energy Performance Certificate in days."
-                                    : "The Berman is Ireland's largest BER website, connecting property owners with 100+ SEAI-registered assessors nationwide. Whether you need a BER certificate for selling, renting, or SEAI grant applications — we make it fast, affordable and completely online."}
+                                    : "The Berman is Ireland's largest BER website, built to make finding a BER certificate simple, fast and affordable. Whether you need an energy certificate for a house sale, a rental property, a new build, or an SEAI grant application, we connect you directly with qualified, SEAI registered assessors across every county in the country."}
                             </p>
+                        )}
+
+                        {/* Trust indicators - Ireland only */}
+                        {tenant === 'ireland' && (
+                            <div className="flex flex-wrap items-center justify-center gap-4 mb-8 md:mb-10">
+                                <div className="flex items-center gap-2 text-sm font-bold text-gray-700">
+                                    <CheckCircle2 size={18} className="text-[#007F00]" />
+                                    100+ SEAI Assessors
+                                </div>
+                                <div className="flex items-center gap-2 text-sm font-bold text-gray-700">
+                                    <CheckCircle2 size={18} className="text-[#007F00]" />
+                                    Compare Quotes Instantly
+                                </div>
+                                <div className="flex items-center gap-2 text-sm font-bold text-gray-700">
+                                    <CheckCircle2 size={18} className="text-[#007F00]" />
+                                    Book Online in Minutes
+                                </div>
+                            </div>
                         )}
 
                         <p className={`font-bold animate-fade-in ${isSpanish ? 'my-4 text-lg md:text-xl' : 'my-6 text-2xl md:text-3xl'}`} style={{ color: c('hero', 'highlight_color', '#007F00') }}>

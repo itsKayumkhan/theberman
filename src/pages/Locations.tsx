@@ -42,8 +42,12 @@ const Locations = () => {
         subtitle: 'Compare quotes from accredited EPC assessors serving homeowners, landlords and businesses across England.',
         viewListings: 'View EPC Assessors',
     } : {
-        seoTitle: 'BER Assessors by Location',
-        seoDesc: 'Find BER assessors and energy upgrade professionals in your area across Ireland. Browse by county and region.',
+        seoTitle: 'BER Assessors By County | Find Local BER Providers',
+        seoDesc: 'Find SEAI-registered BER assessors in your county. Compare local BER certificate prices and book your energy assessment online across Ireland.',
+        ogTitle: 'BER Assessors Near You | Search By County',
+        ogDescription: 'Browse BER assessors by county across Ireland. Compare local prices and book a SEAI-registered assessor near you.',
+        twitterTitle: 'Find Local BER Assessors By County',
+        twitterDescription: 'Search SEAI-registered BER assessors near you, county by county, and compare prices.',
         heading: 'Browse by Location',
         subtitle: 'Find top-rated professionals and suppliers in your area. Select a region to see available listings.',
         viewListings: 'View Listings',
@@ -55,7 +59,11 @@ const Locations = () => {
                 title={tr.seoTitle}
                 description={tr.seoDesc}
                 canonical="/locations"
-                skipSiteNameSuffix={isEngland}
+                skipSiteNameSuffix={isEngland || (!isSpanish && !isFrance && !isPortugal)}
+                ogTitle={tr.ogTitle}
+                ogDescription={tr.ogDescription}
+                twitterTitle={tr.twitterTitle}
+                twitterDescription={tr.twitterDescription}
                 jsonLd={[
                     {
                         '@context': 'https://schema.org',

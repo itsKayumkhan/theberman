@@ -347,8 +347,12 @@ const HireAgent = () => {
         toastSuccess: 'Your inquiry has been sent! An Energy Advisor will contact you shortly.',
         toastError: 'Failed to send message. Please try again.',
     } : {
-        seoTitle: 'Energy Advisor Ireland - The BER Man',
-        seoDesc: 'Speak with an Independent Energy Advisor for Expert Guidance on BER Improvements, Retrofit Planning, Contractor Selection, and Home Energy Upgrades',
+        seoTitle: 'Become a BER Assessor | Join Our Network Ireland',
+        seoDesc: 'Register as a SEAI-registered BER assessor with The Berman and receive local job leads across Ireland. Grow your business with us.',
+        ogTitle: "Join Ireland's BER Assessor Network",
+        ogDescription: 'SEAI-registered assessors can register with The Berman to receive local BER job leads and grow their business.',
+        twitterTitle: 'Become a BER Assessor | Join The Berman',
+        twitterDescription: 'SEAI-registered assessors - register with The Berman to receive local job leads across Ireland.',
         badge: 'Expert Guidance',
         title1: 'Speak to an Independent',
         titleHighlight: 'Energy Advisor',
@@ -452,7 +456,11 @@ const HireAgent = () => {
                 title={tr.seoTitle}
                 description={tr.seoDesc}
                 canonical="/hire-agent"
-                skipSiteNameSuffix={isEngland}
+                skipSiteNameSuffix={isEngland || (!isSpanish && !isPortuguese && !isFrench)}
+                ogTitle={tr.ogTitle}
+                ogDescription={tr.ogDescription}
+                twitterTitle={tr.twitterTitle}
+                twitterDescription={tr.twitterDescription}
                 jsonLd={[
                     {
                         '@context': 'https://schema.org',
@@ -567,6 +575,17 @@ const HireAgent = () => {
                                         value={tenantDomain}
                                     />
                                 </div>
+
+                                {!isSpanish && !isEngland && !isFrench && !isPortuguese && (
+                                    <div className="pt-6 border-t border-gray-50">
+                                        <InfoItem
+                                            icon={<Globe size={20} />}
+                                            title="Energy Advisor"
+                                            value="theberman.eu/energy-advisor"
+                                            href="/energy-advisor"
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
 

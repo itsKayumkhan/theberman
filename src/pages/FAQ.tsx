@@ -97,8 +97,12 @@ const FAQ = () => {
         loading: 'Loading FAQ...',
         comingSoonH: 'FAQ Coming Soon',
         comingSoonP: "We're currently preparing our frequently asked questions. Check back shortly.",
-        seoTitle: 'BER Certificate FAQs Ireland | The BER Man',
-        seoDesc: 'Find Answers to Common BER Certificate Questions, Including Costs, Timelines, and Legal Requirements',
+        seoTitle: 'BER Certificate FAQs | Common Questions Answered',
+        seoDesc: 'Find answers to common questions about BER certificates, ratings, costs, validity and exemptions in Ireland.',
+        ogTitle: 'BER Certificate FAQs | The Berman',
+        ogDescription: 'Get clear answers to the most common BER certificate questions, from cost to validity and exemptions.',
+        twitterTitle: 'BER Certificate FAQs Answered',
+        twitterDescription: 'Common questions about BER certificates, ratings and costs in Ireland, answered simply.',
         needHelp: 'Need immediate help?',
         emailUs: `Email ${tenantEmail}`,
         getQuote: 'Get a Quote Now',
@@ -174,6 +178,11 @@ const FAQ = () => {
                 title={tr.seoTitle}
                 description={tr.seoDesc}
                 canonical={isEngland ? '/epc-faq' : isSpanish || isPortugal ? '/faq' : '/ber-faqs/'}
+                skipSiteNameSuffix={isEngland || (!isSpanish && !isFrance && !isPortugal)}
+                ogTitle={tr.ogTitle}
+                ogDescription={tr.ogDescription}
+                twitterTitle={tr.twitterTitle}
+                twitterDescription={tr.twitterDescription}
                 jsonLd={[
                     {
                         '@context': 'https://schema.org',

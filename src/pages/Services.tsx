@@ -16,7 +16,7 @@ const Services = () => {
     const locale = isEngland ? 'London' : isSpanish ? 'Madrid' : isFrance ? 'Paris' : isPortugal ? 'Portugal' : 'Dublin';
     const country = isEngland ? 'GB' : isSpanish ? 'ES' : isFrance ? 'FR' : isPortugal ? 'PT' : 'IE';
 
-    const title = isSpanish ? 'Nuestros Servicios - Certificados Energ\u00e9ticos Expertos' : isEngland ? 'Our Services - Expert EPC Certificates' : isFrance ? 'Nos Services - DPE Experts' : isPortugal ? 'Os nossos Serviços - Certificados Energéticos' : 'Our Services - Expert BER Assessments';
+    const title = isSpanish ? 'Nuestros Servicios - Certificados Energ\u00e9ticos Expertos' : isEngland ? 'Our Services - Expert EPC Certificates' : isFrance ? 'Nos Services - DPE Experts' : isPortugal ? 'Os nossos Serviços - Certificados Energéticos' : 'BER Services Ireland | Certificates, Ratings & Assessors';
     const description = isSpanish
         ? 'Servicios integrales de certificaci\u00f3n energ\u00e9tica incluyendo certificados CEE, calificaciones provisionales y auditor\u00edas energ\u00e9ticas.'
         : isEngland
@@ -25,7 +25,12 @@ const Services = () => {
                 ? 'Services complets de diagnostic de performance énergétique incluant DPE, audits énergétiques et certifications pour logements et bâtiments commerciaux.'
                 : isPortugal
                     ? 'Serviços completos de certificação energética incluindo certificados, avaliações e auditorias para propriedades residenciais e comerciais.'
-                    : 'Comprehensive energy rating services including BER certificates, provisional ratings, and energy audits.';
+                    : "The Berman covers every step of the BER process — instant quotes, verified SEAI assessors, rating lookups and nationwide booking, all in one place.";
+
+    const irelandOgTitle = !isSpanish && !isEngland && !isFrance && !isPortugal ? 'What We Offer | BER Certs, Ratings & Assessor Network' : undefined;
+    const irelandOgDesc = !isSpanish && !isEngland && !isFrance && !isPortugal ? 'One platform, every BER service — get quotes, connect with SEAI-registered assessors, and book your energy assessment without the hassle.' : undefined;
+    const irelandTwitterTitle = !isSpanish && !isEngland && !isFrance && !isPortugal ? 'Everything You Need for Your BER, In One Place' : undefined;
+    const irelandTwitterDesc = !isSpanish && !isEngland && !isFrance && !isPortugal ? 'One platform, every BER service — get quotes, connect with SEAI-registered assessors, and book your energy assessment without the hassle.' : undefined;
 
     const serviceSchema = {
         '@context': 'https://schema.org',
@@ -49,6 +54,11 @@ const Services = () => {
                 title={title}
                 description={description}
                 canonical="/services"
+                ogTitle={irelandOgTitle}
+                ogDescription={irelandOgDesc}
+                twitterTitle={irelandTwitterTitle}
+                twitterDescription={irelandTwitterDesc}
+                skipSiteNameSuffix={!isSpanish && !isEngland && !isFrance && !isPortugal}
                 jsonLd={[
                     serviceSchema,
                     {

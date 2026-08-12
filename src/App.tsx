@@ -113,6 +113,7 @@ function App() {
                         <Route path="blog" element={<Blog />} />
                         <Route path="blog/:slug" element={<BlogDetail />} />
                         <Route path="hire-agent" element={<HireAgent />} />
+                        <Route path="energy-advisor" element={<HireAgent />} />
                         <Route path="subscribe" element={<Subscribe />} />
                         <Route path="registration-pending" element={<RegistrationPending />} />
                     </Route>

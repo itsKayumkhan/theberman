@@ -104,12 +104,16 @@ const About = () => {
         joinP: '¿Preparado para tu certificación energética profesional? Nuestro equipo nacional está listo para ayudarte hoy mismo.',
         cta: 'Pedir mi Presupuesto',
     } : {
-        seoTitle: isEngland ? 'About EPC Cert | Energy Performance Certificate Experts' : 'About The BER Man | BER Experts Ireland',
-        seoDesc: isEngland ? 'Learn about EPC Cert, trusted Energy Performance Certificate experts helping property owners across England arrange EPC assessments' : "Learn About the BER Man and How We Connect Property Owners with Qualified BER Assessors. Trusted by Homeowners Across Ireland",
+        seoTitle: isEngland ? 'About EPC Cert | Energy Performance Certificate Experts' : 'About The Berman | Ireland\'s BER Certificate Platform',
+        seoDesc: isEngland ? 'Learn about EPC Cert, trusted Energy Performance Certificate experts helping property owners across England arrange EPC assessments' : "Learn about The Berman, Ireland's trusted platform connecting homeowners with 100+ SEAI-registered BER assessors nationwide for fast, reliable certificates.",
+        ogTitle: isEngland ? undefined : 'The Berman | SEAI registered BER assessor',
+        ogDescription: isEngland ? undefined : 'Discover how The Berman connects homeowners and businesses with qualified SEAI-registered BER assessors across Ireland.',
+        twitterTitle: isEngland ? undefined : 'About The Berman | Trusted BER Assessor Network',
+        twitterDescription: isEngland ? undefined : 'Find out how The Berman connects Irish homeowners with SEAI-registered BER assessors nationwide.',
         missionTag: 'Who We Are',
         title1: isEngland ? 'Helping Property Owners' : 'About The BER',
         title2: isEngland ? 'Arrange EPC Assessments Across England' : 'Man',
-        heroP: isEngland ? 'Expand to homeowners, landlords and businesses' : "The BER Man helps property owners connect with qualified BER assessors through a simple and transparent process. Our platform makes arranging BER assessments easier while helping users make informed energy decisions.",
+        heroP: isEngland ? 'Expand to homeowners, landlords and businesses' : "The Berman is Ireland's largest BER website, built to make finding a BER certificate simple, fast and affordable. Whether you need an energy certificate for a house sale, a rental property, a new build, or an SEAI grant application, we connect you directly with qualified, SEAI registered assessors across every county in the country.",
         storyH: isEngland ? 'Our Story' : 'Connecting Property Owners with Qualified BER Assessors',
         story: isEngland ? [
             "EPC Cert was established to receive Energy Performance Certificate (EPC) assessments easier for property owners, landlords, estate agents and businesses across England.",
@@ -202,6 +206,11 @@ const About = () => {
                 title={tr.seoTitle}
                 description={tr.seoDesc}
                 canonical="/about-us"
+                ogTitle={tr.ogTitle}
+                ogDescription={tr.ogDescription}
+                twitterTitle={tr.twitterTitle}
+                twitterDescription={tr.twitterDescription}
+                skipSiteNameSuffix={!isSpanish && !isPortugal && !isFrance}
                 jsonLd={[
                     breadcrumbSchema,
                     orgSchema,

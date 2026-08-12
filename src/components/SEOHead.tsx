@@ -11,6 +11,10 @@ interface SEOHeadProps {
     noindex?: boolean;
     breadcrumb?: { name: string; url: string }[];
     skipSiteNameSuffix?: boolean;
+    ogTitle?: string;
+    ogDescription?: string;
+    twitterTitle?: string;
+    twitterDescription?: string;
 }
 
 const TENANT_CONFIG: Record<string, { siteName: string; baseUrl: string; ogImage: string; locale: string; currency: string }> = {
@@ -100,6 +104,10 @@ const SEOHead = ({
     noindex = false,
     breadcrumb,
     skipSiteNameSuffix = false,
+    ogTitle,
+    ogDescription,
+    twitterTitle,
+    twitterDescription,
 }: SEOHeadProps) => {
     const tenantCfg = getTenantConfig();
     const siteName = tenantCfg.siteName;
@@ -145,8 +153,8 @@ gtag('config', 'G-BLJ6KWN29Y');`}</script>
 
             {/* Open Graph / Facebook */}
             <meta property="og:type" content={ogType} />
-            <meta property="og:title" content={fullTitle} />
-            <meta property="og:description" content={description} />
+            <meta property="og:title" content={ogTitle || fullTitle} />
+            <meta property="og:description" content={ogDescription || description} />
             <meta property="og:site_name" content={siteName} />
             {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
             <meta property="og:image" content={resolvedOgImage} />
@@ -154,8 +162,8 @@ gtag('config', 'G-BLJ6KWN29Y');`}</script>
 
             {/* Twitter Card */}
             <meta name="twitter:card" content="summary_large_image" />
-            <meta name="twitter:title" content={fullTitle} />
-            <meta name="twitter:description" content={description} />
+            <meta name="twitter:title" content={twitterTitle || ogTitle || fullTitle} />
+            <meta name="twitter:description" content={twitterDescription || ogDescription || description} />
             <meta name="twitter:image" content={resolvedOgImage} />
 
             {/* JSON-LD Structured Data */}

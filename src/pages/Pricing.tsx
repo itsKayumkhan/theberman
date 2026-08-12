@@ -21,9 +21,14 @@ const Pricing = () => {
     return (
         <div className="font-sans text-gray-900 bg-white min-h-screen">
             <SEOHead
-                title="Pricing - Transparent BER Rating Costs"
-                description="Clear, upfront pricing for Building Energy Ratings. Plans for apartments, houses, and commercial units."
+                title={isSpanish ? 'Precios - Costes Transparentes de Certificación Energética' : isEngland ? 'Pricing - Transparent EPC Costs' : isFrance ? 'Tarifs - Coûts Transparent du DPE' : isPortugal ? 'Preços - Custos Transparentes de Certificação Energética' : 'BER Certificate Cost Ireland 2026 | Compare Prices | The Berman'}
+                description={isSpanish ? 'Precios claros y por adelantado para certificados energéticos. Planes para apartamentos, casas y locales comerciales.' : isEngland ? 'Clear, upfront pricing for Energy Performance Certificates. Plans for apartments, houses, and commercial units.' : isFrance ? 'Tarifs clairs et transparents pour les diagnostics de performance énergétique. Formules pour appartements, maisons et locaux commerciaux.' : isPortugal ? 'Preços claros e transparentes para certificação energética. Planos para apartamentos, casas e espaços comerciais.' : 'How much does a BER certificate cost? Compare BER cert prices from €150, based on property size, from SEAI-registered assessors nationwide.'}
                 canonical="/pricing"
+                ogTitle={!isSpanish && !isEngland && !isFrance && !isPortugal ? 'BER Cert Cost Ireland | Compare Prices From €150' : undefined}
+                ogDescription={!isSpanish && !isEngland && !isFrance && !isPortugal ? 'See real BER certificate prices by property size and county. Compare quotes from SEAI-registered assessors and get the best price nationwide.' : undefined}
+                twitterTitle={!isSpanish && !isEngland && !isFrance && !isPortugal ? 'BER Cert Cost Ireland 2026 | From €150' : undefined}
+                twitterDescription={!isSpanish && !isEngland && !isFrance && !isPortugal ? 'Compare BER certificate prices by property size from SEAI-registered assessors across Ireland.' : undefined}
+                skipSiteNameSuffix={!isSpanish && !isEngland && !isFrance && !isPortugal}
                 jsonLd={{
                     '@context': 'https://schema.org',
                     '@type': 'Organization',
