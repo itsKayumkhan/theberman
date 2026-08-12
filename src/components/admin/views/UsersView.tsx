@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, TrendingUp, Briefcase, Home, Eye, AlertTriangle, Mail, Send, Edit2, Plus, CheckCircle2, X, Trash2 } from 'lucide-react';
+import { Search, TrendingUp, Briefcase, Home, Eye, AlertTriangle, Mail, Send, Edit2, Plus, CheckCircle2, X, Trash2, Layers } from 'lucide-react';
 import { Filter as FilterIcon } from 'lucide-react';
 import { getTenantFromDomain } from '../../../lib/tenant';
 import type { Profile, Assessment, AdminView, CatalogueListing } from '../../../types/admin';
@@ -28,6 +28,7 @@ interface Props {
     setShowAddUserModal: (v: boolean) => void;
     handleDeleteClick: (id: string, type: 'user') => void;
     onResendOnboarding?: (u: Profile) => void;
+    onBulkAddToCatalogue?: (users: Profile[]) => void;
 }
 
 
@@ -37,7 +38,7 @@ export const UsersView = React.memo(({
     isUpdating, handleSendRenewalReminder, handleOpenCatalogueView,
     updateRegistrationStatus, setSelectedUser, setItemToSuspend,
     setShowSuspendModal, setNewUserRole, setShowAddUserModal,
-    handleDeleteClick, onResendOnboarding
+    handleDeleteClick, onResendOnboarding, onBulkAddToCatalogue
 }: Props) => {
     const isAssessors = view === 'assessors';
     const [typeFilter, setTypeFilter] = useState('');
@@ -201,14 +202,26 @@ export const UsersView = React.memo(({
                 </div>
                 <div className="flex items-center gap-3">
                     {isAssessors && (
+                        <div className="relative w-full sm:w-44">
+                            <FilterIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={13} />
+                            <select
+                                className={`w-full pl-8 pr-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00] outline-none transition-all bg-gray-50 appearance-none ${catalogueFilter === 'in' ? 'text-blue-700 border-blue-300' : catalogueFilter === 'out' ? 'text-amber-700 border-amber-300' : 'text-gray-600 border-gray-200'}`}
+                                value={catalogueFilter}
+                                onChange={e => setCatalogueFilter(e.target.value)}
+                            >
+                                <option value="">All Catalogue ({activeGroup.length})</option>
+                                <option value="in">In Catalogue ({inCatalogueCount})</option>
+                                <option value="out">Not in Catalogue ({activeGroup.length - inCatalogueCount})</option>
+                            </select>
+                        </div>
+                    )}
+                    {isAssessors && catalogueFilter === 'out' && onBulkAddToCatalogue && (
                         <button
-                            onClick={() => setCatalogueFilter(prev => prev === '' ? 'in' : prev === 'in' ? 'out' : '')}
-                            title="Click to cycle: All → In catalogue → Not in catalogue"
-                            className={`text-[11px] font-bold px-2.5 py-1.5 rounded-lg border transition-all whitespace-nowrap ${catalogueFilter === 'in' ? 'bg-blue-600 text-white border-blue-600' : catalogueFilter === 'out' ? 'bg-amber-500 text-white border-amber-500' : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'}`}
+                            onClick={() => onBulkAddToCatalogue(filtered.filter(u => !listingOwnerIds.has(u.id) && (u.registration_status === 'active' || u.registration_status === 'completed')))}
+                            disabled={isUpdating || filtered.filter(u => !listingOwnerIds.has(u.id) && (u.registration_status === 'active' || u.registration_status === 'completed')).length === 0}
+                            className="flex items-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
                         >
-                            {catalogueFilter === 'out'
-                                ? `${activeGroup.length - inCatalogueCount} not in catalogue`
-                                : `${inCatalogueCount}/${activeGroup.length} in catalogue`}
+                            <Layers size={14} /> Bulk Add ({filtered.filter(u => !listingOwnerIds.has(u.id) && (u.registration_status === 'active' || u.registration_status === 'completed')).length})
                         </button>
                     )}
                     {isAssessors && (
@@ -337,7 +350,7 @@ export const UsersView = React.memo(({
                                                 ) : u.registration_status === 'active' || u.registration_status === 'completed' ? (
                                                     <div className="flex flex-col gap-1">
                                                         <span className="text-[11px] text-green-600 font-semibold flex items-center gap-1"><CheckCircle2 size={11} /> Active</span>
-                                                        {listing ? (
+                                                        {listingOwnerIds.has(u.id) ? (
                                                             <button onClick={() => handleOpenCatalogueView(u, listing)} className="text-[10px] text-blue-500 hover:text-blue-700 flex items-center gap-1">
                                                                 <Edit2 size={10} /> Edit Listing
                                                             </button>

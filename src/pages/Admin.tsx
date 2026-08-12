@@ -1845,6 +1845,50 @@ const Admin = () => {
         }));
     }, []);
 
+    const handleBulkAddToCatalogue = useCallback(async (users: Profile[]) => {
+        if (users.length === 0) return;
+        setIsUpdating(true);
+        let created = 0;
+        let skipped = 0;
+        try {
+            for (const u of users) {
+                const slugBase = (u.company_name || u.full_name || 'assessor')
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-|-$/g, '');
+                const slug = `${slugBase}-${u.id.slice(0, 6)}`;
+
+                const { error } = await supabase.from('catalogue_listings').insert({
+                    name: u.company_name || u.full_name,
+                    slug,
+                    description: u.assessor_type || 'BER Assessor',
+                    email: u.email,
+                    company_name: u.company_name || null,
+                    owner_id: u.id,
+                    tenant: u.tenant || selectedTenant,
+                    is_active: true,
+                    featured: false,
+                    social_media: {},
+                    features: [],
+                    additional_addresses: [],
+                });
+
+                if (error) {
+                    if (error.code === '23505') { skipped++; }
+                    else { console.error('Failed to create listing for', u.full_name, error); }
+                } else {
+                    created++;
+                }
+            }
+            await fetchListings();
+            toast.success(`${created} assessor${created !== 1 ? 's' : ''} added to catalogue${skipped > 0 ? `, ${skipped} already had listings` : ''}`);
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to bulk add to catalogue');
+        } finally {
+            setIsUpdating(false);
+        }
+    }, [selectedTenant, fetchListings]);
+
     const toggleCatalogueStatus = useCallback(async (id: string, currentStatus: boolean) => {
         try {
             const { error } = await supabase.from('catalogue_listings').update({ is_active: !currentStatus }).eq('id', id);
@@ -2369,6 +2413,7 @@ const Admin = () => {
                             setNewUserRole={setNewUserRole} setShowAddUserModal={setShowAddUserModal}
                             handleDeleteClick={handleDeleteClick}
                             onResendOnboarding={handleResendCredentials}
+                            onBulkAddToCatalogue={handleBulkAddToCatalogue}
                         />
                     ) : view === 'businesses' ? (
                         <BusinessesView
@@ -2387,6 +2432,7 @@ const Admin = () => {
                             setNewUserRole={setNewUserRole} setShowAddUserModal={setShowAddUserModal}
                             handleDeleteClick={handleDeleteClick}
                             onResendOnboarding={handleResendBusinessOnboarding}
+                            onBulkAddToCatalogue={handleBulkAddToCatalogue}
                         />
                     ) : view === 'catalogue' ? (
                         <CatalogueView

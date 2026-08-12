@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Briefcase, AlertTriangle, CheckCircle2, Mail, Pencil, Eye, RefreshCw, XCircle, X, Trash2, Send } from 'lucide-react';
+import { Search, Briefcase, AlertTriangle, CheckCircle2, Mail, Pencil, Eye, RefreshCw, XCircle, X, Trash2, Send, Layers } from 'lucide-react';
 import { Filter as FilterIcon } from 'lucide-react';
 import type { Profile, CatalogueListing } from '../../../types/admin';
 import { StatusCell, SubscriptionInfo } from '../StatusBadges';
@@ -27,6 +27,7 @@ interface Props {
     setShowAddUserModal: (v: boolean) => void;
     handleDeleteClick: (id: string, type: 'user') => void;
     onResendOnboarding?: (u: Profile) => void;
+    onBulkAddToCatalogue?: (users: Profile[]) => void;
 }
 
 export const BusinessesView = React.memo(({
@@ -39,20 +40,32 @@ export const BusinessesView = React.memo(({
     updateRegistrationStatus,
     setNewUserRole, setShowAddUserModal,
     handleDeleteClick,
-    onResendOnboarding
+    onResendOnboarding,
+    onBulkAddToCatalogue
 }: Props) => {
     const [regStatusFilter, setRegStatusFilter] = useState('');
     const [townFilter, setTownFilter] = useState('');
+    const [catalogueFilter, setCatalogueFilter] = useState('');
 
     const uniqueTowns = useMemo(() =>
         Array.from(new Set(users_list.filter(u => u.role === 'business').flatMap(u => [u.town, u.home_county, u.county]).filter(Boolean))).sort() as string[],
     [users_list]);
 
+    const listingOwnerIds = useMemo(() =>
+        new Set(listings.flatMap(l => [l.owner_id, l.user_id]).filter(Boolean)),
+    [listings]);
+    const inCatalogueCount = useMemo(() =>
+        filteredBusinessLeads.filter(u => listingOwnerIds.has(u.id)).length,
+    [filteredBusinessLeads, listingOwnerIds]);
+
     const filtered = useMemo(() => filteredBusinessLeads.filter(u => {
         const matchRegStatus = !regStatusFilter || u.registration_status === regStatusFilter;
         const matchTown = !townFilter || u.town === townFilter || u.home_county === townFilter || u.county === townFilter;
-        return matchRegStatus && matchTown;
-    }), [filteredBusinessLeads, regStatusFilter, townFilter]);
+        const matchCatalogue = !catalogueFilter
+            || (catalogueFilter === 'in' && listingOwnerIds.has(u.id))
+            || (catalogueFilter === 'out' && !listingOwnerIds.has(u.id));
+        return matchRegStatus && matchTown && matchCatalogue;
+    }), [filteredBusinessLeads, regStatusFilter, townFilter, catalogueFilter, listingOwnerIds]);
 
     return (
     <div className="space-y-4">
@@ -107,7 +120,28 @@ export const BusinessesView = React.memo(({
                 </div>
             </div>
             <div className="flex items-center gap-3">
-                <button
+                    <div className="relative w-full sm:w-44">
+                        <FilterIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={13} />
+                        <select
+                            className={`w-full pl-8 pr-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-[#007F00]/20 focus:border-[#007F00] outline-none transition-all bg-gray-50 appearance-none ${catalogueFilter === 'in' ? 'text-blue-700 border-blue-300' : catalogueFilter === 'out' ? 'text-amber-700 border-amber-300' : 'text-gray-600 border-gray-200'}`}
+                            value={catalogueFilter}
+                            onChange={e => setCatalogueFilter(e.target.value)}
+                        >
+                            <option value="">All Catalogue ({filteredBusinessLeads.length})</option>
+                            <option value="in">In Catalogue ({inCatalogueCount})</option>
+                            <option value="out">Not in Catalogue ({filteredBusinessLeads.length - inCatalogueCount})</option>
+                        </select>
+                    </div>
+                    {catalogueFilter === 'out' && onBulkAddToCatalogue && (
+                        <button
+                            onClick={() => onBulkAddToCatalogue(filtered.filter(u => !listingOwnerIds.has(u.id) && (u.registration_status === 'active' || u.registration_status === 'completed')))}
+                            disabled={isUpdating || filtered.filter(u => !listingOwnerIds.has(u.id) && (u.registration_status === 'active' || u.registration_status === 'completed')).length === 0}
+                            className="flex items-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                            <Layers size={14} /> Bulk Add ({filtered.filter(u => !listingOwnerIds.has(u.id) && (u.registration_status === 'active' || u.registration_status === 'completed')).length})
+                        </button>
+                    )}
+                    <button
                     onClick={() => { setNewUserRole('business'); setShowAddUserModal(true); }}
                     className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-all shadow-sm"
                 >
@@ -172,6 +206,11 @@ export const BusinessesView = React.memo(({
                                         {u.company_name && <div className="text-[11px] text-gray-500 mt-0.5">{u.full_name}</div>}
                                         <div className="text-[11px] text-gray-400">{u.email}</div>
                                         {u.county && <div className="text-[10px] text-gray-300 mt-0.5">Co. {u.county}</div>}
+                                        {listingOwnerIds.has(u.id) && (
+                                            <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-blue-50 text-blue-600">
+                                                In Catalogue
+                                            </span>
+                                        )}
                                     </td>
 
                                     {/* Joined */}
