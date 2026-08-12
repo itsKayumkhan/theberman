@@ -52,7 +52,7 @@ const HomePage = () => {
                 title={isSpanish
                     ? `Home | ${brandName} ${ratingName} Ratings`
                     : tenant === 'england'
-                        ? 'EPC Certificate England | Domestic & Commercial EPC'
+                        ? 'EPC Certificate England | Energy Performance Certificate & Assessors'
                         : tenant === 'france'
                             ? 'DPE France | Diagnostic de Performance Énergétique'
                         : tenant === 'portugal'
@@ -62,18 +62,18 @@ const HomePage = () => {
                 description={isSpanish
                     ? `El sitio web más grande de ${ratingName} en ${country}. Evaluaciones de ${ratingName} rápidas, fiables y sin complicaciones. Obtenga cotizaciones competitivas de certificadores locales hoy.`
                     : tenant === 'england'
-                        ? 'Book Accredited EPC Assessments Across England. Fast Domestic and Commercial EPC Certificates with Competitive Pricing and Nationwide Coverage'
+                        ? 'EPCCert.com provides fast, reliable, and affordable EPC Certificates across England for homeowners, landlords, property managers, and businesses.'
                         : tenant === 'france'
                             ? 'Le plus grand site de DPE en France. Diagnostics de performance énergétique rapides, fiables et sans tracas. Obtenez des devis compétitifs de diagnostiqueurs locaux dès aujourd\'hui.'
                         : tenant === 'portugal'
                             ? 'A plataforma líder de certificação energética em Portugal. Obtenha o seu Certificado Energético com peritos qualificados. Peça um orçamento grátis online.'
                             : "Ireland's largest BER marketplace. Instantly compare quotes from trusted SEAI-registered assessors near you and book your BER assessment in minutes."
                 }
-                ogTitle={tenant === 'ireland' ? 'Get a BER Certificate | SEAI Registered Assessors Nationwide.' : undefined}
-                ogDescription={tenant === 'ireland' ? "Ireland's largest BER platform. Compare quotes from trusted local assessors and book your Building Energy Rating assessment online today." : undefined}
-                twitterTitle={tenant === 'ireland' ? 'BER Certificate Ireland | Compare Quotes Instantly' : undefined}
-                twitterDescription={tenant === 'ireland' ? 'Compare BER quotes from SEAI-registered assessors nationwide. Fast, reliable, and easy to book online.' : undefined}
-                skipSiteNameSuffix={tenant === 'ireland'}
+                ogTitle={tenant === 'ireland' ? 'Get a BER Certificate | SEAI Registered Assessors Nationwide.' : tenant === 'england' ? "EPCCert.com | England's Trusted EPC Certificate & Energy Assessment Provider" : undefined}
+                ogDescription={tenant === 'ireland' ? "Ireland's largest BER platform. Compare quotes from trusted local assessors and book your Building Energy Rating assessment online today." : tenant === 'england' ? 'Book your EPC Certificate online with certified energy assessors across England. Reliable Domestic & Commercial Energy Performance Certificates.' : undefined}
+                twitterTitle={tenant === 'ireland' ? 'BER Certificate Ireland | Compare Quotes Instantly' : tenant === 'england' ? 'EPC Certificate England | Fast & Trusted Energy Performance Certificates' : undefined}
+                twitterDescription={tenant === 'ireland' ? 'Compare BER quotes from SEAI-registered assessors nationwide. Fast, reliable, and easy to book online.' : tenant === 'england' ? 'Need an Energy Performance Certificate in England? Get fast, affordable EPC assessments from qualified assessors. Book online with EPCCert today.' : undefined}
+                skipSiteNameSuffix={tenant === 'ireland' || tenant === 'england'}
                 canonical="/"
                 jsonLd={[
                     {
@@ -153,7 +153,7 @@ const HomePage = () => {
                         {(tenant === 'ireland' || tenant === 'england') && (
                             <p className="text-gray-500 max-w-2xl mx-auto leading-relaxed text-sm md:text-base mb-6 md:mb-8">
                                 {tenant === 'england'
-                                    ? "Looking for a trusted EPC Certificate provider in England? EPCCert connects you with accredited energy assessors for fast, affordable domestic and commercial EPC assessments. Compare quotes, book online, and get your Energy Performance Certificate in days."
+                                    ? "Looking for a trusted EPC Certificate provider in England? EPCCert offers fast, affordable, and professional Energy Performance Certificate services for residential and commercial properties. Our certified energy assessors deliver accurate EPC assessments, transparent pricing, and quick turnaround times, making it easy to book your EPC online with confidence."
                                     : "The Berman is Ireland's largest BER website, built to make finding a BER certificate simple, fast and affordable. Whether you need an energy certificate for a house sale, a rental property, a new build, or an SEAI grant application, we connect you directly with qualified, SEAI registered assessors across every county in the country."}
                             </p>
                         )}

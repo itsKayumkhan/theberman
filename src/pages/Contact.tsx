@@ -61,16 +61,20 @@ const Contact = () => {
     const { content: cms, loading: cmsLoading } = usePageContent('contact');
     const c = (section: string, key: string, fallback: string) => cmsValue(cms, section, key, fallback);
     const tr = {
-        seoTitle: isSpanish ? 'Contacto' : isEngland ? 'Book EPC Assessment England | Contact EPC Cert' : isPortuguese ? 'Contacto | Certificado Energia Portugal' : isFrench ? 'Contact | DPE Cert France' : 'Book a BER Assessment in Ireland | Contact The BER Man',
+        seoTitle: isSpanish ? 'Contacto' : isEngland ? 'Contact EPCCert | Book an EPC Assessment in England' : isPortuguese ? 'Contacto | Certificado Energia Portugal' : isFrench ? 'Contact | DPE Cert France' : 'Book a BER Assessment in Ireland | Contact The BER Man',
         seoDesc: isSpanish
             ? 'Contacta con Certificado Energético para tus certificados energéticos, calificaciones y mejoras en toda España.'
             : isEngland
-                ? 'Book an EPC assessment in England with accredited assessors. Contact EPC Cert to compare quotes and arrange your EPC today'
+                ? 'Get in touch with EPC Cert for fast, reliable EPC Certificate services across England. Contact our expert team to book or request a quote!'
                 : isPortuguese
                     ? 'Contacte a Certificado Energia para certificação energética em Portugal. Peritos qualificados e orçamentos competitivos.'
                     : isFrench
                         ? 'Contactez DPE Cert France pour vos diagnostics de performance énergétique. Diagnostiqueurs qualifiés et devis compétitifs.'
                         : 'Book a BER Assessment in Ireland or Contact the BER Man for Support. Connect with Qualified BER Assessors and Get Assistance with Your Enquiry',
+        ogTitle: isEngland ? 'Get in Touch with EPCCert | EPC Certificates England' : undefined,
+        ogDescription: isEngland ? 'Contact EPC Cert for reliable domestic and commercial EPC Certificate services across England. Get expert advice and fast booking!' : undefined,
+        twitterTitle: isEngland ? 'Contact EPCCert | Fast EPC Quotes & Support in England' : undefined,
+        twitterDescription: isEngland ? 'How much does an EPC certificate cost in England? Compare prices from accredited assessors. Get the best EPC quote with EPC Cert.' : undefined,
         badge: isSpanish ? 'Ponte en Contacto' : isPortuguese ? 'Contacto' : isFrench ? 'Contactez-nous' : 'Get In Touch',
         title1: isSpanish ? '¿En qué podemos' : isEngland ? 'Book an EPC Assessment' : isPortuguese ? 'Como podemos' : isFrench ? 'Planifier un' : 'Book a BER',
         title2: isSpanish ? 'ayudarte?' : isEngland ? 'in England' : isPortuguese ? 'ajudar?' : isFrench ? 'Diagnostic DPE' : 'Assessment in Ireland',
@@ -186,6 +190,11 @@ const Contact = () => {
                 title={tr.seoTitle}
                 description={tr.seoDesc}
                 canonical="/contact-us"
+                ogTitle={tr.ogTitle}
+                ogDescription={tr.ogDescription}
+                twitterTitle={tr.twitterTitle}
+                twitterDescription={tr.twitterDescription}
+                skipSiteNameSuffix={isEngland || (!isSpanish && !isFrench && !isPortuguese)}
                 jsonLd={[
                     {
                         '@context': 'https://schema.org',
@@ -301,7 +310,8 @@ const Contact = () => {
                                     <InfoItem
                                         icon={<Globe size={20} />}
                                         title={tr.website}
-                                        value={tenantDomain}
+                                        value={isEngland ? 'www.epccert.com' : tenantDomain}
+                                        href={isEngland ? 'https://www.epccert.com' : undefined}
                                     />
                                 </div>
                             </div>

@@ -16,11 +16,11 @@ const Services = () => {
     const locale = isEngland ? 'London' : isSpanish ? 'Madrid' : isFrance ? 'Paris' : isPortugal ? 'Portugal' : 'Dublin';
     const country = isEngland ? 'GB' : isSpanish ? 'ES' : isFrance ? 'FR' : isPortugal ? 'PT' : 'IE';
 
-    const title = isSpanish ? 'Nuestros Servicios - Certificados Energ\u00e9ticos Expertos' : isEngland ? 'Our Services - Expert EPC Certificates' : isFrance ? 'Nos Services - DPE Experts' : isPortugal ? 'Os nossos Serviços - Certificados Energéticos' : 'BER Services Ireland | Certificates, Ratings & Assessors';
+    const title = isSpanish ? 'Nuestros Servicios - Certificados Energ\u00e9ticos Expertos' : isEngland ? 'EPC Certificates | Domestic & Commercial EPC Assessments' : isFrance ? 'Nos Services - DPE Experts' : isPortugal ? 'Os nossos Serviços - Certificados Energéticos' : 'BER Services Ireland | Certificates, Ratings & Assessors';
     const description = isSpanish
         ? 'Servicios integrales de certificaci\u00f3n energ\u00e9tica incluyendo certificados CEE, calificaciones provisionales y auditor\u00edas energ\u00e9ticas.'
         : isEngland
-            ? 'Comprehensive EPC services including energy performance certificates, SAP assessments, and energy audits for residential and commercial properties.'
+            ? 'We provide fast, affordable Domestic and Commercial Energy Performance Certificates by certified energy assessors. Book your EPC online today.'
             : isFrance
                 ? 'Services complets de diagnostic de performance énergétique incluant DPE, audits énergétiques et certifications pour logements et bâtiments commerciaux.'
                 : isPortugal
@@ -31,6 +31,11 @@ const Services = () => {
     const irelandOgDesc = !isSpanish && !isEngland && !isFrance && !isPortugal ? 'One platform, every BER service — get quotes, connect with SEAI-registered assessors, and book your energy assessment without the hassle.' : undefined;
     const irelandTwitterTitle = !isSpanish && !isEngland && !isFrance && !isPortugal ? 'Everything You Need for Your BER, In One Place' : undefined;
     const irelandTwitterDesc = !isSpanish && !isEngland && !isFrance && !isPortugal ? 'One platform, every BER service — get quotes, connect with SEAI-registered assessors, and book your energy assessment without the hassle.' : undefined;
+
+    const englandOgTitle = isEngland ? 'Professional EPC Certificate Services Across England | EPCCert' : undefined;
+    const englandOgDesc = isEngland ? 'EPC Certificate services for residential and commercial properties across England. Qualified assessors, competitive prices, fast appointments, and reliable.' : undefined;
+    const englandTwitterTitle = isEngland ? 'EPC Certificate Services England | Fast & Trusted EPC Assessment' : undefined;
+    const englandTwitterDesc = isEngland ? 'Get Domestic and Commercial EPC Certificates across England with certified energy assessors. Fast booking, best pricing, and reliable nationwide service.' : undefined;
 
     const serviceSchema = {
         '@context': 'https://schema.org',
@@ -54,11 +59,11 @@ const Services = () => {
                 title={title}
                 description={description}
                 canonical="/services"
-                ogTitle={irelandOgTitle}
-                ogDescription={irelandOgDesc}
-                twitterTitle={irelandTwitterTitle}
-                twitterDescription={irelandTwitterDesc}
-                skipSiteNameSuffix={!isSpanish && !isEngland && !isFrance && !isPortugal}
+                ogTitle={irelandOgTitle || englandOgTitle}
+                ogDescription={irelandOgDesc || englandOgDesc}
+                twitterTitle={irelandTwitterTitle || englandTwitterTitle}
+                twitterDescription={irelandTwitterDesc || englandTwitterDesc}
+                skipSiteNameSuffix={!isSpanish && !isFrance && !isPortugal}
                 jsonLd={[
                     serviceSchema,
                     {

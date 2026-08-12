@@ -80,13 +80,13 @@ const Catalogue = () => {
     return (
         <div className="font-sans text-gray-900 bg-white min-h-screen">
             <SEOHead
-                title={isEngland ? 'EPC Assessors Directory England | EPC Cert' : (!isSpanish && !isFrance && !isPortugal) ? 'Find BER Assessors Ireland | Browse & Compare Quotes' : 'Energy Upgrade Catalogue'}
-                description={isEngland ? 'Browse accredited EPC assessors across England. Search by location, property type and assessment requirements to find qualified professional' : (!isSpanish && !isFrance && !isPortugal) ? 'Browse SEAI-registered BER assessors across Ireland. Compare quotes, check availability and book your BER certificate online instantly with The Berman.' : 'Explore our curated collection of home energy upgrades. Professional solutions for thermal comfort and efficiency.'}
+                title={isEngland ? 'EPC Certificate Services England | EPCCert' : (!isSpanish && !isFrance && !isPortugal) ? 'Find BER Assessors Ireland | Browse & Compare Quotes' : 'Energy Upgrade Catalogue'}
+                description={isEngland ? 'Book trusted EPC Certificate services in England with qualified assessors, competitive prices, and quick turnaround.' : (!isSpanish && !isFrance && !isPortugal) ? 'Browse SEAI-registered BER assessors across Ireland. Compare quotes, check availability and book your BER certificate online instantly with The Berman.' : 'Explore our curated collection of home energy upgrades. Professional solutions for thermal comfort and efficiency.'}
                 canonical="/catalogue"
-                ogTitle={(!isSpanish && !isEngland && !isFrance && !isPortugal) ? 'Find & Compare BER Assessors Near You | The Berman' : undefined}
-                ogDescription={(!isSpanish && !isEngland && !isFrance && !isPortugal) ? 'Search hundreds of SEAI-registered BER assessors by location. Compare quotes and book your Building Energy Rating certificate today.' : undefined}
-                twitterTitle={(!isSpanish && !isEngland && !isFrance && !isPortugal) ? 'Browse BER Assessors Ireland | Compare Quotes' : undefined}
-                twitterDescription={(!isSpanish && !isEngland && !isFrance && !isPortugal) ? 'Search SEAI-registered BER assessors near you and compare quotes before booking.' : undefined}
+                ogTitle={(!isSpanish && !isEngland && !isFrance && !isPortugal) ? 'Find & Compare BER Assessors Near You | The Berman' : isEngland ? 'Your Local EPC Certificate Experts Across England' : undefined}
+                ogDescription={(!isSpanish && !isEngland && !isFrance && !isPortugal) ? 'Search hundreds of SEAI-registered BER assessors by location. Compare quotes and book your Building Energy Rating certificate today.' : isEngland ? 'Choose EPC Cert for trusted Energy Performance Certificates across England. Book your Domestic or Commercial EPC with experienced assessors today.' : undefined}
+                twitterTitle={(!isSpanish && !isEngland && !isFrance && !isPortugal) ? 'Browse BER Assessors Ireland | Compare Quotes' : isEngland ? 'Professional Energy Performance Certificates England' : undefined}
+                twitterDescription={(!isSpanish && !isEngland && !isFrance && !isPortugal) ? 'Search SEAI-registered BER assessors near you and compare quotes before booking.' : isEngland ? 'Choose EPC Cert for trusted Energy Performance Certificates across England. Book your Domestic or Commercial EPC with experienced assessors today.' : undefined}
                 skipSiteNameSuffix={!isSpanish && !isFrance && !isPortugal}
             />
 
