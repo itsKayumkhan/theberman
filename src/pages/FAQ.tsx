@@ -27,6 +27,19 @@ const DEFAULT_PORTUGAL_FAQS: FaqItem[] = [
     { id: 'sce-8', slug: 'como-reservar', title: 'Como reservo um perito qualificado?', content: '<p>Peça um orçamento grátis na Certificado Energia, compare propostas de peritos qualificados registados na ADENE e reserve online a data e hora que mais lhe convier.</p>', category: 'SCE / ADENE', sort_order: 8 },
 ];
 
+const DEFAULT_IRELAND_FAQS: FaqItem[] = [
+    { id: 'ber-1', slug: 'what-is-a-ber-certificate', title: 'What is a BER certificate?', content: '<p>A BER certificate (Building Energy Rating) rates a home\'s energy efficiency from A1 to G, based on an energy assessment by a SEAI registered assessor.</p>', category: 'BER Certificates', sort_order: 1 },
+    { id: 'ber-2', slug: 'do-i-need-one-to-sell-or-rent', title: 'Do I need one to sell or rent?', content: '<p>Yes — a valid energy certificate is legally required before advertising a property for sale or rent anywhere in Ireland, including BER cert Dublin and every other county.</p>', category: 'BER Certificates', sort_order: 2 },
+    { id: 'ber-3', slug: 'how-do-i-find-a-ber-assessor-near-me', title: 'How do I find a BER assessor near me?', content: '<p>Enter your address and we\'ll match you with a BER assessor near you from our BER assessor directory of 100+ SEAI registered assessors nationwide.</p>', category: 'BER Assessors', sort_order: 3 },
+    { id: 'ber-4', slug: 'how-much-does-a-ber-cert-cost', title: 'How much does a BER cert cost?', content: '<p>It depends on property size and location. Comparing assessors on The Berman gets you cheap BER Dublin and lowest priced BER cert options, all fully SEAI registered.</p>', category: 'BER Pricing', sort_order: 4 },
+    { id: 'ber-5', slug: 'do-you-cover-areas-outside-dublin', title: 'Do you cover areas outside Dublin?', content: '<p>Yes — beyond BER rating Dublin, our network covers every county in Ireland.</p>', category: 'BER Coverage', sort_order: 5 },
+    { id: 'ber-6', slug: 'how-long-is-a-ber-valid-for', title: 'How long is a BER valid for?', content: '<p>Up to 10 years, unless major upgrades change your home energy performance sooner.</p>', category: 'BER Validity', sort_order: 6 },
+    { id: 'ber-7', slug: 'how-fast-will-i-get-my-certificate', title: 'How fast will I get my certificate?', content: '<p>Most assessors issue your energy certificate within 24–48 hours of the visit.</p>', category: 'BER Process', sort_order: 7 },
+    { id: 'ber-8', slug: 'is-my-property-ber-exempt', title: 'Is my property BER-exempt?', content: '<p>Some buildings qualify for BER exemptions (e.g. protected structures, sub-50sqm standalone buildings). Ask an assessor to confirm.</p>', category: 'BER Exemptions', sort_order: 8 },
+    { id: 'ber-9', slug: 'are-seai-grants-available', title: 'Are SEAI grants available?', content: '<p>Yes. SEAI grants and BER assessments go together — most grants need a before/after BER cert.</p>', category: 'SEAI Grants', sort_order: 9 },
+    { id: 'ber-10', slug: 'how-does-the-a-g-rating-scale-work', title: 'How does the A–G rating scale work?', content: '<p>The BER rating scale reflects your home\'s calculated energy use — better insulation and heating systems mean a higher score.</p>', category: 'BER Ratings', sort_order: 10 },
+];
+
 const FAQ = () => {
     const [faqItems, setFaqItems] = useState<FaqItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -125,7 +138,7 @@ const FAQ = () => {
                     .eq('tenant', tenant)
                     .order('sort_order');
                 if (error) throw error;
-                const items = data && data.length > 0 ? data : (tenant === 'portugal' ? DEFAULT_PORTUGAL_FAQS : []);
+                const items = data && data.length > 0 ? data : (tenant === 'portugal' ? DEFAULT_PORTUGAL_FAQS : tenant === 'ireland' ? DEFAULT_IRELAND_FAQS : []);
                 setFaqItems(items);
                 if (items.length > 0) {
                     const hash = location.hash.replace('#', '');
