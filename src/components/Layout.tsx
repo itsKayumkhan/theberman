@@ -14,7 +14,7 @@ const NAV_LINKS = [
     { label: 'Pricing', path: '/pricing' },
     { label: 'About', path: '/about-us' },
     { label: 'Home Energy Upgrade Catalogue', path: '/catalogue' },
-    { label: 'Speak to an Energy Advisor', path: '/hire-agent', hideForEngland: true },
+    { label: 'Speak to an Energy Advisor', path: '/energy-advisor', hideForEngland: true },
     { label: 'Book Ber Assessors', path: '/contact-us', hideForEngland: true },
     { label: 'Our News', path: '/news' },
     { label: 'Blog', path: '/blog' },
@@ -173,7 +173,11 @@ const Layout = () => {
         ? (['Home', 'Services', 'Pricing', 'About', 'Location', 'Home Energy Upgrade Catalogue', 'Our News', 'Blog', 'FAQ', 'Contact']
             .map(label => visibleNavLinks.find(l => l.label === label))
             .filter((l): l is typeof NAV_LINKS[number] => Boolean(l)))
-        : visibleNavLinks;
+        : (!isSpanish && tenant !== 'france' && tenant !== 'portugal')
+            ? (['Home', 'Services', 'Pricing', 'About', 'Speak to an Energy Advisor', 'Our News', 'Contact']
+                .map(label => visibleNavLinks.find(l => l.label === label))
+                .filter((l): l is typeof NAV_LINKS[number] => Boolean(l)))
+            : visibleNavLinks;
     const [locations, setLocations] = useState<any[]>([]);
     const [isLocationsOpen, setIsLocationsOpen] = useState(false);
     const [expandedProvince, setExpandedProvince] = useState<string | null>(null);
@@ -609,7 +613,7 @@ const Layout = () => {
                                         <a href="https://www.facebook.com/profile.php?id=61578159843471" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#007F00] hover:text-white transition cursor-pointer"><Facebook size={16} /></a>
                                         <a href="https://www.instagram.com/thebermanireland?igsh=amtidXdjNmZrMWJz&utm_source=qr" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#007F00] hover:text-white transition cursor-pointer"><Instagram size={16} /></a>
                                         <a href="https://www.linkedin.com/company/the-berman/posts/?feedView=all" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#007F00] hover:text-white transition cursor-pointer"><Linkedin size={16} /></a>
-                                        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#007F00] hover:text-white transition cursor-pointer">
+                                        <a href="https://twitter.com/theberman_ie" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#007F00] hover:text-white transition cursor-pointer">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                                                 <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932L18.901 1.153zM17.61 20.644h2.039L6.486 3.24H4.298L17.61 20.644z" />
                                             </svg>
@@ -627,15 +631,41 @@ const Layout = () => {
                                     { label: isSpanish ? 'Servicios' : tenant === 'portugal' ? 'Serviços' : 'Services', path: '/services' },
                                     { label: isSpanish ? 'Precios' : tenant === 'portugal' ? 'Preços' : 'Pricing', path: '/pricing' },
                                     { label: isSpanish ? 'Sobre Nosotros' : tenant === 'portugal' ? 'Sobre Nós' : 'About Us', path: '/about-us' },
-                                    { label: isSpanish ? 'Catálogo de Eficiencia Energética' : tenant === 'portugal' ? 'Catálogo de Melhoria Energética' : 'Energy Upgrade Catalogue', path: '/catalogue' },
-                                    { label: isSpanish ? 'Habla con un Asesor Energético' : tenant === 'portugal' ? 'Fale com um Consultor Energético' : 'Speak to an Energy Advisor', path: '/hire-agent' },
-                                    { label: isSpanish ? 'Registro de Negocio' : tenant === 'portugal' ? 'Registo de Negócio' : 'Business Registration', path: '/signup?role=business' },
+                                    ...(!isSpanish && tenant !== 'portugal' && tenant !== 'france' && tenant !== 'england'
+                                        ? [{ label: 'Contact Us', path: '/contact-us' }]
+                                        : []
+                                    ),
+                                    ...(isSpanish
+                                        ? [{ label: 'Catálogo de Eficiencia Energética', path: '/catalogue' }]
+                                        : tenant === 'portugal'
+                                            ? [{ label: 'Catálogo de Melhoria Energética', path: '/catalogue' }]
+                                            : []
+                                    ),
+                                    ...(!isSpanish && tenant !== 'portugal' && tenant !== 'france'
+                                        ? [{ label: tenant === 'england' ? 'Speak to an Energy Advisor' : 'Speak to an Energy Advisor', path: '/energy-advisor' }]
+                                        : []
+                                    ),
+                                    ...(!isSpanish && tenant !== 'portugal' && tenant !== 'france' && tenant !== 'england'
+                                        ? [{ label: 'Business Registration', path: '/signup?role=business' }]
+                                        : []
+                                    ),
                                     { label: 'FAQ', path: tenant === 'portugal' ? '/faq' : '/ber-faqs/' }
                                 ].map(link => (
                                     <li key={link.path}>
                                         <Link to={link.path} className="text-gray-400 hover:text-white transition text-sm flex items-center gap-2">{link.label}</Link>
                                     </li>
                                 ))}
+                                {/* Twitter link for Ireland */}
+                                {!isSpanish && tenant !== 'portugal' && tenant !== 'france' && tenant !== 'england' && (
+                                    <li>
+                                        <a href="https://twitter.com/theberman_ie" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition text-sm flex items-center gap-2">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932L18.901 1.153zM17.61 20.644h2.039L6.486 3.24H4.298L17.61 20.644z" />
+                                            </svg>
+                                            Twitter / X
+                                        </a>
+                                    </li>
+                                )}
                             </ul>
                         </div>
 
@@ -643,13 +673,25 @@ const Layout = () => {
                             <h4 className="text-sm font-bold uppercase tracking-wider text-[#9ACD32] mb-6">{isSpanish ? 'Cuenta' : tenant === 'portugal' ? 'Conta' : 'Account'}</h4>
                             <ul className="space-y-3">
                                 {[
-                                    { label: isSpanish ? 'Reservar Certificadores' : tenant === 'portugal' ? 'Agendar Perito Certificador' : (tenant === 'england' ? 'Book EPC Assessors' : 'Book BER Assessors'), path: '/' },
-                                    { label: isSpanish ? 'Ubicaciones' : tenant === 'portugal' ? 'Localizações' : 'Locations', path: '/locations' },
-                                    { label: isSpanish ? 'Nuestras Noticias' : tenant === 'portugal' ? 'Notícias' : 'Our News', path: '/news' },
-                                    { label: 'Blog', path: '/blog' },
-                                    { label: isSpanish ? 'Contacto' : tenant === 'portugal' ? 'Contacto' : 'Contact Us', path: '/contact-us' },
-                                    { label: isSpanish ? 'Iniciar Sesión' : tenant === 'portugal' ? 'Iniciar Sessão' : 'Login to Portal', path: '/login' },
-                                    { label: isSpanish ? 'Registrarse' : tenant === 'portugal' ? 'Registar-se' : 'Sign Up', path: '/signup' }
+                                    ...(!isSpanish && tenant !== 'portugal' && tenant !== 'france' && tenant !== 'england'
+                                        ? [
+                                            { label: 'Location', path: '/locations' },
+                                            { label: 'Blog', path: '/blog' },
+                                            { label: 'Our News', path: '/news' },
+                                            { label: 'Login to Portal', path: '/login' },
+                                            { label: 'Sign Up', path: '/signup' },
+                                            { label: 'Catalogue', path: '/catalogue' },
+                                        ]
+                                        : [
+                                            { label: isSpanish ? 'Reservar Certificadores' : tenant === 'portugal' ? 'Agendar Perito Certificador' : (tenant === 'england' ? 'Book EPC Assessors' : 'Book BER Assessors'), path: '/' },
+                                            { label: isSpanish ? 'Ubicaciones' : tenant === 'portugal' ? 'Localizações' : 'Locations', path: '/locations' },
+                                            { label: isSpanish ? 'Nuestras Noticias' : tenant === 'portugal' ? 'Notícias' : 'Our News', path: '/news' },
+                                            { label: 'Blog', path: '/blog' },
+                                            { label: isSpanish ? 'Contacto' : tenant === 'portugal' ? 'Contacto' : 'Contact Us', path: '/contact-us' },
+                                            { label: isSpanish ? 'Iniciar Sesión' : tenant === 'portugal' ? 'Iniciar Sessão' : 'Login to Portal', path: '/login' },
+                                            { label: isSpanish ? 'Registrarse' : tenant === 'portugal' ? 'Registar-se' : 'Sign Up', path: '/signup' }
+                                        ]
+                                    )
                                 ].map(link => (
                                     <li key={link.label}>
                                         <Link to={link.path} className="text-gray-400 hover:text-white transition text-sm flex items-center gap-2">{link.label}</Link>
