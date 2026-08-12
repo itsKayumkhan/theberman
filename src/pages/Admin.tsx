@@ -713,7 +713,10 @@ const Admin = () => {
                     await fetchCatalogueCategories();
                 } else if (view === 'add-to-catalogue') {
                     await fetchCatalogueCategories();
-                } else if (view === 'assessors') await fetchUsers();
+                } else if (view === 'assessors') {
+                    await fetchUsers();
+                    await fetchListings();
+                }
                 else if (view === 'payments') await fetchPayments();
                 else if (view === 'settings') {
                     await fetchAppSettings();

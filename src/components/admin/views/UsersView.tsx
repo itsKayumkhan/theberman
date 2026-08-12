@@ -41,6 +41,7 @@ export const UsersView = React.memo(({
 }: Props) => {
     const isAssessors = view === 'assessors';
     const [typeFilter, setTypeFilter] = useState('');
+    const [catalogueFilter, setCatalogueFilter] = useState('');
     const [regStatusFilter, setRegStatusFilter] = useState('');
     const [townFilter, setTownFilter] = useState('');
 
@@ -95,6 +96,13 @@ export const UsersView = React.memo(({
             return u.county === loc || u.home_county === loc;
         }).length;
 
+    const listingOwnerIds = useMemo(() =>
+        new Set(listings.flatMap(l => [l.owner_id, l.user_id]).filter(Boolean)),
+    [listings]);
+    const inCatalogueCount = useMemo(() =>
+        activeGroup.filter(u => listingOwnerIds.has(u.id)).length,
+    [activeGroup, listingOwnerIds]);
+
     // Final filtered list: role + search + location + type + reg status + town
     const filtered = activeGroup.filter(u => {
         const q = searchTerm.toLowerCase();
@@ -115,7 +123,10 @@ export const UsersView = React.memo(({
                 : (u.county === locationFilter || u.home_county === locationFilter));
         const matchRegStatus = !regStatusFilter || u.registration_status === regStatusFilter;
         const matchTown = !townFilter || u.town === townFilter || u.home_county === townFilter || u.county === townFilter;
-        return matchSearch && matchLoc && matchRegStatus && matchTown;
+        const matchCatalogue = !catalogueFilter
+            || (catalogueFilter === 'in' && listingOwnerIds.has(u.id))
+            || (catalogueFilter === 'out' && !listingOwnerIds.has(u.id));
+        return matchSearch && matchLoc && matchRegStatus && matchTown && matchCatalogue;
     });
 
     return (
@@ -191,6 +202,17 @@ export const UsersView = React.memo(({
                 <div className="flex items-center gap-3">
                     {isAssessors && (
                         <button
+                            onClick={() => setCatalogueFilter(prev => prev === '' ? 'in' : prev === 'in' ? 'out' : '')}
+                            title="Click to cycle: All → In catalogue → Not in catalogue"
+                            className={`text-[11px] font-bold px-2.5 py-1.5 rounded-lg border transition-all whitespace-nowrap ${catalogueFilter === 'in' ? 'bg-blue-600 text-white border-blue-600' : catalogueFilter === 'out' ? 'bg-amber-500 text-white border-amber-500' : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'}`}
+                        >
+                            {catalogueFilter === 'out'
+                                ? `${activeGroup.length - inCatalogueCount} not in catalogue`
+                                : `${inCatalogueCount}/${activeGroup.length} in catalogue`}
+                        </button>
+                    )}
+                    {isAssessors && (
+                        <button
                             onClick={() => { setNewUserRole('contractor'); setShowAddUserModal(true); }}
                             className="flex items-center gap-2 bg-[#007F00] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-all shadow-sm"
                         >
@@ -249,6 +271,11 @@ export const UsersView = React.memo(({
                                                     Co. {u.home_county}
                                                     {u.preferred_counties && u.preferred_counties.length > 0 && ` (+${u.preferred_counties.filter(c => c !== u.home_county).length})`}
                                                 </div>
+                                            )}
+                                            {isAssessors && listingOwnerIds.has(u.id) && (
+                                                <span className="inline-block mt-1 mr-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-blue-50 text-blue-600">
+                                                    In Catalogue
+                                                </span>
                                             )}
                                             {isAssessors && u.assessor_type && (
                                                 <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${u.assessor_type.toLowerCase() === 'commercial'
