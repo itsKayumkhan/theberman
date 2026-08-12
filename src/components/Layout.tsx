@@ -14,7 +14,7 @@ const NAV_LINKS = [
     { label: 'Pricing', path: '/pricing' },
     { label: 'About', path: '/about-us' },
     { label: 'Home Energy Upgrade Catalogue', path: '/catalogue' },
-    { label: 'Speak to an Energy Advisor', path: '/energy-advisor', hideForEngland: true },
+    { label: 'Speak to an Energy Advisor', path: '/energy-advisor' },
     { label: 'Book Ber Assessors', path: '/contact-us', hideForEngland: true },
     { label: 'Our News', path: '/news' },
     { label: 'Blog', path: '/blog' },
@@ -168,9 +168,9 @@ const Layout = () => {
         tenant === 'portugal' ? PROVINCES_PORTUGAL :
         PROVINCES_IRELAND;
     // Filter out tenant-hidden links, then apply tenant-specific ordering.
-    const visibleNavLinks = NAV_LINKS.filter(link => !(tenant === 'england' && link.hideForEngland));
+    const visibleNavLinks = NAV_LINKS.filter(link => !(tenant === 'england' && link.hideForEngland && link.label !== 'Speak to an Energy Advisor'));
     const orderedNavLinks = tenant === 'england'
-        ? (['Home', 'Services', 'Pricing', 'About', 'Location', 'Home Energy Upgrade Catalogue', 'Our News', 'Blog', 'FAQ', 'Contact']
+        ? (['Home', 'Services', 'Pricing', 'About', 'Speak to an Energy Advisor', 'Our News', 'Contact']
             .map(label => visibleNavLinks.find(l => l.label === label))
             .filter((l): l is typeof NAV_LINKS[number] => Boolean(l)))
         : (!isSpanish && tenant !== 'france' && tenant !== 'portugal')
@@ -585,7 +585,7 @@ const Layout = () => {
                                 {tenant === 'england' ? (
                                     <>
                                         <a href="https://www.facebook.com/epccert" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#007F00] hover:text-white transition cursor-pointer"><Facebook size={16} /></a>
-                                        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#007F00] hover:text-white transition cursor-pointer">
+                                        <a href="https://twitter.com/epccert" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#007F00] hover:text-white transition cursor-pointer">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                                                 <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932L18.901 1.153zM17.61 20.644h2.039L6.486 3.24H4.298L17.61 20.644z" />
                                             </svg>
@@ -631,7 +631,7 @@ const Layout = () => {
                                     { label: isSpanish ? 'Servicios' : tenant === 'portugal' ? 'Serviços' : 'Services', path: '/services' },
                                     { label: isSpanish ? 'Precios' : tenant === 'portugal' ? 'Preços' : 'Pricing', path: '/pricing' },
                                     { label: isSpanish ? 'Sobre Nosotros' : tenant === 'portugal' ? 'Sobre Nós' : 'About Us', path: '/about-us' },
-                                    ...(!isSpanish && tenant !== 'portugal' && tenant !== 'france' && tenant !== 'england'
+                                    ...(!isSpanish && tenant !== 'portugal' && tenant !== 'france'
                                         ? [{ label: 'Contact Us', path: '/contact-us' }]
                                         : []
                                     ),
@@ -655,10 +655,10 @@ const Layout = () => {
                                         <Link to={link.path} className="text-gray-400 hover:text-white transition text-sm flex items-center gap-2">{link.label}</Link>
                                     </li>
                                 ))}
-                                {/* Twitter link for Ireland */}
-                                {!isSpanish && tenant !== 'portugal' && tenant !== 'france' && tenant !== 'england' && (
+                                {/* Twitter link for Ireland and England */}
+                                {!isSpanish && tenant !== 'portugal' && tenant !== 'france' && (
                                     <li>
-                                        <a href="https://twitter.com/theberman_ie" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition text-sm flex items-center gap-2">
+                                        <a href={tenant === 'england' ? 'https://twitter.com/epccert' : 'https://twitter.com/theberman_ie'} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition text-sm flex items-center gap-2">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                                                 <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932L18.901 1.153zM17.61 20.644h2.039L6.486 3.24H4.298L17.61 20.644z" />
                                             </svg>
@@ -673,7 +673,7 @@ const Layout = () => {
                             <h4 className="text-sm font-bold uppercase tracking-wider text-[#9ACD32] mb-6">{isSpanish ? 'Cuenta' : tenant === 'portugal' ? 'Conta' : 'Account'}</h4>
                             <ul className="space-y-3">
                                 {[
-                                    ...(!isSpanish && tenant !== 'portugal' && tenant !== 'france' && tenant !== 'england'
+                                    ...(!isSpanish && tenant !== 'portugal' && tenant !== 'france'
                                         ? [
                                             { label: 'Location', path: '/locations' },
                                             { label: 'Blog', path: '/blog' },
@@ -683,7 +683,7 @@ const Layout = () => {
                                             { label: 'Catalogue', path: '/catalogue' },
                                         ]
                                         : [
-                                            { label: isSpanish ? 'Reservar Certificadores' : tenant === 'portugal' ? 'Agendar Perito Certificador' : (tenant === 'england' ? 'Book EPC Assessors' : 'Book BER Assessors'), path: '/' },
+                                            { label: isSpanish ? 'Reservar Certificadores' : tenant === 'portugal' ? 'Agendar Perito Certificador' : 'Book BER Assessors', path: '/' },
                                             { label: isSpanish ? 'Ubicaciones' : tenant === 'portugal' ? 'Localizações' : 'Locations', path: '/locations' },
                                             { label: isSpanish ? 'Nuestras Noticias' : tenant === 'portugal' ? 'Notícias' : 'Our News', path: '/news' },
                                             { label: 'Blog', path: '/blog' },
