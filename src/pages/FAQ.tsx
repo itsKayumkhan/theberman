@@ -40,6 +40,14 @@ const DEFAULT_IRELAND_FAQS: FaqItem[] = [
     { id: 'ber-10', slug: 'how-does-the-a-g-rating-scale-work', title: 'How does the A–G rating scale work?', content: '<p>The BER rating scale reflects your home\'s calculated energy use — better insulation and heating systems mean a higher score.</p>', category: 'BER Ratings', sort_order: 10 },
 ];
 
+const DEFAULT_ENGLAND_FAQS: FaqItem[] = [
+    { id: 'epc-1', slug: 'can-i-sell-or-rent-my-property-without-an-epc-certificate', title: 'Can I sell or rent my property without an EPC Certificate?', content: '<p>No. An EPC Certificate is legally required before you can market a property for sale or rent in England. You must have a valid EPC in place before advertising the property.</p>', category: 'EPC Legal Requirements', sort_order: 1 },
+    { id: 'epc-2', slug: 'which-areas-do-you-cover', title: 'Which areas do you cover?', content: '<p>EPCCert covers all of England. Our network of accredited EPC assessors serves homeowners, landlords, and businesses across every region, from London to Manchester, Birmingham, and beyond.</p>', category: 'EPC Coverage', sort_order: 2 },
+    { id: 'epc-3', slug: 'is-an-epc-certificate-a-legal-requirement', title: 'Is an EPC Certificate a legal requirement?', content: '<p>Yes. Under UK law, an Energy Performance Certificate (EPC) is mandatory for most residential and commercial properties being sold or rented in England. Properties without a valid EPC cannot be legally marketed.</p>', category: 'EPC Legal Requirements', sort_order: 3 },
+    { id: 'epc-4', slug: 'can-i-get-an-epc-certificate-urgently', title: 'Can I get an EPC Certificate urgently?', content: '<p>Yes. Many of our accredited assessors offer fast-track EPC assessments with same-day or next-day appointments. Contact EPCCert to check urgent availability in your area.</p>', category: 'EPC Process', sort_order: 4 },
+    { id: 'epc-5', slug: 'how-much-does-an-epc-certificate-cost', title: 'How much does an EPC Certificate cost?', content: '<p>The cost of an EPC Certificate depends on the size, type, and location of your property. EPCCert lets you compare quotes from accredited assessors across England to find the best price for your needs.</p>', category: 'EPC Pricing', sort_order: 5 },
+];
+
 const FAQ = () => {
     const [faqItems, setFaqItems] = useState<FaqItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -99,6 +107,10 @@ const FAQ = () => {
         comingSoonP: "We're currently preparing our frequently asked questions. Check back shortly.",
         seoTitle: 'EPC Certificate FAQ England | EPC Assessor',
         seoDesc: 'Find Answers to Common EPC Certificate Questions, Including Costs, Timelines, and Legal Requirements for Property Owners Across England',
+        ogTitle: 'EPC Certificate FAQs England | EPCCert',
+        ogDescription: 'Get answers to common EPC Certificate questions — legal requirements, costs, coverage areas, and urgent assessments across England.',
+        twitterTitle: 'EPC Certificate FAQ | Common Questions Answered',
+        twitterDescription: 'Find answers to common EPC Certificate questions including costs, legal requirements, and coverage across England.',
         needHelp: 'Need immediate help?',
         emailUs: `Email ${tenantEmail}`,
         getQuote: 'Get a Quote Now',
@@ -138,7 +150,7 @@ const FAQ = () => {
                     .eq('tenant', tenant)
                     .order('sort_order');
                 if (error) throw error;
-                const items = data && data.length > 0 ? data : (tenant === 'portugal' ? DEFAULT_PORTUGAL_FAQS : tenant === 'ireland' ? DEFAULT_IRELAND_FAQS : []);
+                const items = data && data.length > 0 ? data : (tenant === 'portugal' ? DEFAULT_PORTUGAL_FAQS : tenant === 'ireland' ? DEFAULT_IRELAND_FAQS : tenant === 'england' ? DEFAULT_ENGLAND_FAQS : []);
                 setFaqItems(items);
                 if (items.length > 0) {
                     const hash = location.hash.replace('#', '');
