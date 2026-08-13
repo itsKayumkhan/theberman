@@ -258,7 +258,7 @@ function getMeta(pathname, tenant) {
         desc: `Solicita tu certificado energético en ${displayCity}. Técnicos colegiados, visita presencial obligatoria incluida y entrega rápida en 24–48h. Compara presupuestos gratis.` 
       };
     }
-    return PAGE_META_ES['/'];
+    return { title: null, desc: PAGE_META_ES['/'].desc };
   }
 
   if (tenant === 'england') {
@@ -274,7 +274,7 @@ function getMeta(pathname, tenant) {
         desc: `Need an EPC certificate in ${displayCity}? Compare quotes from local accredited assessors. Book your EPC assessment online with EPC Cert.` 
       };
     }
-    return PAGE_META_EN['/'];
+    return { title: null, desc: PAGE_META_EN['/'].desc };
   }
 
   // Ireland
@@ -298,7 +298,7 @@ function getMeta(pathname, tenant) {
     };
   }
 
-  return PAGE_META_IE['/'];
+  return { title: null, desc: PAGE_META_IE['/'].desc };
 }
 
 // ─── Schema builders ─────────────────────────────────────────────────────────
@@ -865,7 +865,11 @@ export default async function middleware(req) {
     return new Response(html, { status: res.status, headers: Object.fromEntries(res.headers) });
   }
 
-  const { title, desc } = getMeta(path, tenant);
+  const { title: rawTitle, desc } = getMeta(path, tenant);
+
+  const existingTitleMatch = html.match(/<title>([^<]*)<\/title>/);
+  const existingTitle = existingTitleMatch ? existingTitleMatch[1] : '';
+  const title = rawTitle || existingTitle;
   
   let canonicalBase = 'https://www.theberman.eu';
   if (tenant === 'spain') canonicalBase = 'https://www.xn--certificadoenergtico-q2b.eu';
