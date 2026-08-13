@@ -856,6 +856,10 @@ export default async function middleware(req) {
 
   html = await res.text();
 
+  // Replace the hardcoded html lang attribute per tenant
+  const htmlLang = tenant === 'spain' ? 'es' : 'en';
+  html = html.replace(/<html([^>]*)lang="en"/, '<html$1lang="' + htmlLang + '"');
+
   // If the response is not a usable HTML document, pass it through unchanged
   if (!html || !html.includes('</head>')) {
     return new Response(html, { status: res.status, headers: Object.fromEntries(res.headers) });
