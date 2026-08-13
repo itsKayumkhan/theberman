@@ -170,11 +170,11 @@ const Layout = () => {
     // Filter out tenant-hidden links, then apply tenant-specific ordering.
     const visibleNavLinks = NAV_LINKS.filter(link => !(tenant === 'england' && link.hideForEngland && link.label !== 'Speak to an Energy Advisor'));
     const orderedNavLinks = tenant === 'england'
-        ? (['Home', 'Services', 'Pricing', 'About', 'Speak to an Energy Advisor', 'Our News', 'Contact']
+        ? (['Home', 'Services', 'Pricing', 'About', 'Home Energy Upgrade Catalogue', 'Speak to an Energy Advisor', 'Our News', 'Blog', 'Contact']
             .map(label => visibleNavLinks.find(l => l.label === label))
             .filter((l): l is typeof NAV_LINKS[number] => Boolean(l)))
         : (!isSpanish && tenant !== 'france' && tenant !== 'portugal')
-            ? (['Home', 'Services', 'Pricing', 'About', 'Speak to an Energy Advisor', 'Our News', 'Contact']
+            ? (['Home', 'Services', 'Pricing', 'About', 'Home Energy Upgrade Catalogue', 'Speak to an Energy Advisor', 'Our News', 'Blog', 'Contact']
                 .map(label => visibleNavLinks.find(l => l.label === label))
                 .filter((l): l is typeof NAV_LINKS[number] => Boolean(l)))
             : visibleNavLinks;
@@ -631,15 +631,11 @@ const Layout = () => {
                                     { label: isSpanish ? 'Servicios' : tenant === 'portugal' ? 'Serviços' : 'Services', path: '/services' },
                                     { label: isSpanish ? 'Precios' : tenant === 'portugal' ? 'Preços' : 'Pricing', path: '/pricing' },
                                     { label: isSpanish ? 'Sobre Nosotros' : tenant === 'portugal' ? 'Sobre Nós' : 'About Us', path: '/about-us' },
+                                    { label: isSpanish ? 'Catálogo de Eficiencia Energética' : tenant === 'portugal' ? 'Catálogo de Melhoria Energética' : tenant === 'france' ? 'Catalogue' : 'Home Energy Upgrade Catalogue', path: '/catalogue' },
+                                    { label: 'Blog', path: '/blog' },
                                     ...(!isSpanish && tenant !== 'portugal' && tenant !== 'france'
                                         ? [{ label: 'Contact Us', path: '/contact-us' }]
                                         : []
-                                    ),
-                                    ...(isSpanish
-                                        ? [{ label: 'Catálogo de Eficiencia Energética', path: '/catalogue' }]
-                                        : tenant === 'portugal'
-                                            ? [{ label: 'Catálogo de Melhoria Energética', path: '/catalogue' }]
-                                            : []
                                     ),
                                     ...(!isSpanish && tenant !== 'portugal' && tenant !== 'france'
                                         ? [{ label: tenant === 'england' ? 'Speak to an Energy Advisor' : 'Speak to an Energy Advisor', path: '/energy-advisor' }]
@@ -676,17 +672,14 @@ const Layout = () => {
                                     ...(!isSpanish && tenant !== 'portugal' && tenant !== 'france'
                                         ? [
                                             { label: 'Location', path: '/locations' },
-                                            { label: 'Blog', path: '/blog' },
                                             { label: 'Our News', path: '/news' },
                                             { label: 'Login to Portal', path: '/login' },
                                             { label: 'Sign Up', path: '/signup' },
-                                            { label: 'Catalogue', path: '/catalogue' },
                                         ]
                                         : [
                                             { label: isSpanish ? 'Reservar Certificadores' : tenant === 'portugal' ? 'Agendar Perito Certificador' : 'Book BER Assessors', path: '/' },
                                             { label: isSpanish ? 'Ubicaciones' : tenant === 'portugal' ? 'Localizações' : 'Locations', path: '/locations' },
                                             { label: isSpanish ? 'Nuestras Noticias' : tenant === 'portugal' ? 'Notícias' : 'Our News', path: '/news' },
-                                            { label: 'Blog', path: '/blog' },
                                             { label: isSpanish ? 'Contacto' : tenant === 'portugal' ? 'Contacto' : 'Contact Us', path: '/contact-us' },
                                             { label: isSpanish ? 'Iniciar Sesión' : tenant === 'portugal' ? 'Iniciar Sessão' : 'Login to Portal', path: '/login' },
                                             { label: isSpanish ? 'Registrarse' : tenant === 'portugal' ? 'Registar-se' : 'Sign Up', path: '/signup' }

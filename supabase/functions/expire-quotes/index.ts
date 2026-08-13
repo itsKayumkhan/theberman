@@ -193,8 +193,8 @@ Deno.serve(async (req: Request) => {
                                 <div style="background: #f8f9fa; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #e9ecef;">
                                     <p style="color: #666; font-size: 14px; margin: 0;">
                                         <strong>Que se passe-t-il maintenant ?</strong><br>
-                                        La mission a été republiée sur la plateforme pour que de nouveaux diagnostiqueurs puissent soumettre un devis.
-                                        Vous pouvez envoyer un nouveau devis si vous êtes toujours intéressé.
+                                        La mission a expiré et n'est plus active sur la plateforme.
+                                        De nouvelles missions sont publiées régulièrement — connectez-vous pour voir les missions disponibles.
                                     </p>
                                 </div>
 
@@ -229,8 +229,8 @@ Deno.serve(async (req: Request) => {
                                 <div style="background: #f8f9fa; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #e9ecef;">
                                     <p style="color: #666; font-size: 14px; margin: 0;">
                                         <strong>O que acontece agora?</strong><br>
-                                        O trabalho foi republicado na plataforma para que novos peritos possam orçamentar.
-                                        Pode enviar um novo orçamento se ainda estiver interessado.
+                                        O trabalho expirou e já não está ativo na plataforma.
+                                        Novos trabalhos são publicados regularmente — inicie sessão para ver os trabalhos disponíveis.
                                     </p>
                                 </div>
 
@@ -265,8 +265,8 @@ Deno.serve(async (req: Request) => {
                                 <div style="background: #f8f9fa; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #e9ecef;">
                                     <p style="color: #666; font-size: 14px; margin: 0;">
                                         <strong>¿Qué ocurre ahora?</strong><br>
-                                        El trabajo se ha vuelto a publicar en la plataforma para que otros certificadores puedan presupuestar.
-                                        Puedes enviar un nuevo presupuesto si aún te interesa.
+                                        El trabajo ha caducado y ya no está activo en la plataforma.
+                                        Se publican nuevos trabajos con regularidad — inicia sesión para ver los trabajos disponibles.
                                     </p>
                                 </div>
 
@@ -301,8 +301,8 @@ Deno.serve(async (req: Request) => {
                                 <div style="background: #f8f9fa; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #e9ecef;">
                                     <p style="color: #666; font-size: 14px; margin: 0;">
                                         <strong>What happens next?</strong><br>
-                                        The job has been relisted on the platform so new assessors can quote.
-                                        You're welcome to submit a new quote if you're still interested.
+                                        The job has expired and is no longer active on the platform.
+                                        New jobs are posted regularly — log in to see available jobs.
                                     </p>
                                 </div>
 
