@@ -34,7 +34,7 @@ interface Quote {
 interface Assessment {
     id: string;
     property_address: string;
-    status: 'draft' | 'submitted' | 'pending_quote' | 'quote_accepted' | 'scheduled' | 'completed';
+    status: 'draft' | 'submitted' | 'pending_quote' | 'quote_accepted' | 'scheduled' | 'completed' | 'live' | 'expired';
     scheduled_date: string | null;
     certificate_url: string | null;
     created_at: string;
@@ -70,7 +70,7 @@ const UserDashboard = () => {
     const brandName = isEngland ? 'EPC Cert' : isSpanish ? 'Certificado Energético' : isPortuguese ? 'Certificado Energia' : isFrench ? 'DPE Cert France' : 'The Berman';
     const logoUrl = isPortuguese ? '/certificado-energia-logo.png' : tenant === 'france' ? '/dpecert-logo.png' : '/logo.svg';
     const assessmentLabel = isEngland ? 'EPC' : isSpanish ? 'Certificación Energética' : isPortuguese ? 'Certificado Energético' : isFrench ? 'DPE' : 'BER';
-    const { user, signOut, profile } = useAuth();
+    const { user, signOut } = useAuth();
     const navigate = useNavigate();
     const [assessments, setAssessments] = useState<Assessment[]>([]);
 
@@ -222,13 +222,26 @@ const UserDashboard = () => {
 
             if (error) throw error;
 
-            // Smart expiration: jobs expire only if homeowner hasn't been active in 5+ days
-            const lastLogin = profile?.last_login ? new Date(profile.last_login as string).getTime() : 0;
-            const isUserRecentlyActive = (Date.now() - lastLogin) / (1000 * 3600 * 24) <= 5;
-
             const jobsWithExpired = (data || []).map((assessment: Assessment) => {
-                const jobAgeDays = (Date.now() - new Date(assessment.created_at).getTime()) / (1000 * 3600 * 24);
-                const isExpired = !isUserRecentlyActive && jobAgeDays > 5;
+                if (assessment.status === 'expired') {
+                    return { ...assessment, isExpired: true };
+                }
+                const lastActivity = (() => {
+                    let latest = new Date(assessment.created_at).getTime();
+                    if (assessment.scheduled_date) {
+                        const sd = new Date(assessment.scheduled_date).getTime();
+                        if (sd > latest) latest = sd;
+                    }
+                    if (assessment.quotes) {
+                        for (const q of assessment.quotes) {
+                            const qd = new Date(q.created_at).getTime();
+                            if (qd > latest) latest = qd;
+                        }
+                    }
+                    return latest;
+                })();
+                const daysSinceActivity = Math.floor((Date.now() - lastActivity) / (1000 * 60 * 60 * 24));
+                const isExpired = daysSinceActivity >= 7;
                 return { ...assessment, isExpired };
             });
 

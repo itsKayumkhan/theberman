@@ -336,7 +336,7 @@ Deno.serve(async (req: Request) => {
             }
         }
 
-        // 3. Relist assessments - ensure they're set back to 'live' status
+        // 3. Mark expired assessments as 'expired' — do NOT relist them
         for (const assessmentId of assessmentsToRelist) {
             try {
                 // Check if there are any remaining pending or accepted quotes
@@ -346,21 +346,22 @@ Deno.serve(async (req: Request) => {
                     .eq('assessment_id', assessmentId)
                     .in('status', ['pending', 'accepted']);
 
-                // If no active quotes remain, relist the job
+                // If no active quotes remain, mark the assessment as expired
                 if (!remainingQuotes || remainingQuotes.length === 0) {
-                    const { error: relistError } = await supabase
+                    const { error: expireError } = await supabase
                         .from('assessments')
-                        .update({ status: 'live' })
-                        .eq('id', assessmentId);
+                        .update({ status: 'expired' })
+                        .eq('id', assessmentId)
+                        .in('status', OPEN_JOB_STATUSES);
 
-                    if (relistError) {
-                        console.error(`[expire-quotes] Failed to relist assessment ${assessmentId}:`, relistError);
+                    if (expireError) {
+                        console.error(`[expire-quotes] Failed to mark assessment ${assessmentId} as expired:`, expireError);
                     } else {
-                        console.log(`[expire-quotes] Relisted assessment ${assessmentId} for new quotes`);
+                        console.log(`[expire-quotes] Marked assessment ${assessmentId} as expired`);
                     }
                 }
-            } catch (relistErr) {
-                console.error(`[expire-quotes] Error relisting assessment ${assessmentId}:`, relistErr);
+            } catch (expireErr) {
+                console.error(`[expire-quotes] Error expiring assessment ${assessmentId}:`, expireErr);
             }
         }
 
@@ -368,12 +369,12 @@ Deno.serve(async (req: Request) => {
             try { await smtpClient.close(); } catch (e) { }
         }
 
-        console.log(`[expire-quotes] Complete: ${expiredCount} quotes expired, ${assessmentsToRelist.size} assessments checked for relisting`);
+        console.log(`[expire-quotes] Complete: ${expiredCount} quotes expired, ${assessmentsToRelist.size} assessments marked as expired`);
 
         return new Response(
             JSON.stringify({
                 success: true,
-                message: `Expired ${expiredCount} quotes, checked ${assessmentsToRelist.size} assessments for relisting`
+                message: `Expired ${expiredCount} quotes, marked ${assessmentsToRelist.size} assessments as expired`
             }),
             { headers: responseHeaders }
         );

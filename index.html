@@ -10,11 +10,11 @@
     (function() {
       var host = location.hostname;
       var isEng = /epccert/.test(host);
-      var isEsp = /certificadoenergético|certificadosenergetico/.test(host);
-      var isFra = /dpefrance/.test(host);
+      var isEsp = /certificado|xn--certificado|certificadosenergetico/.test(host);
+      var isFra = /dpefrance|dpecert|diagnostic-france/.test(host);
       var isPor = /certificadoenergia/.test(host);
 
-      var title, desc, locale, siteName, baseUrl, ogImage;
+      var title, desc, locale, siteName, baseUrl, ogImage, keywords, lang;
       if (isEng) {
         siteName = "EPC Cert";
         baseUrl = "https://www.epccert.com";
@@ -22,6 +22,8 @@
         title = "EPC Certificate England | Domestic & Commercial EPC";
         desc = "Book Accredited EPC Assessments Across England. Fast Domestic and Commercial EPC Certificates with Competitive Pricing and Nationwide Coverage";
         locale = "en_GB";
+        lang = "en";
+        keywords = "EPC certificate, energy performance certificate, EPC assessor, EPC cost England, domestic EPC, commercial EPC, MEES, landlord EPC";
       } else if (isEsp) {
         siteName = "Certificado Energético";
         baseUrl = "https://certificadoenergético.eu";
@@ -29,6 +31,8 @@
         title = "Certificado Energético – La Mayor Plataforma de España | Certificados Energéticos";
         desc = "La mayor plataforma de certificados energéticos de España. Obtén presupuestos de certificadores acreditados y reserva online al instante.";
         locale = "es_ES";
+        lang = "es";
+        keywords = "certificado energético, certificado de eficiencia energética, CEE, certificación energética España, precio certificado energético, técnico certificador";
       } else if (isFra) {
         siteName = "DPE France";
         baseUrl = "https://dpefrance.eu";
@@ -36,6 +40,8 @@
         title = "DPE France – Diagnostic de Performance Énergétique | DPE & Certificats";
         desc = "Plateforme leader de DPE en France. Obtenez votre diagnostic de performance énergétique rapidement avec des experts certifiés.";
         locale = "fr_FR";
+        lang = "fr";
+        keywords = "DPE, diagnostic de performance énergétique, certificat énergétique France, DPE coût, diagnostiqueur immobilier, étiquette énergétique";
       } else if (isPor) {
         siteName = "Certificado Energia";
         baseUrl = "https://certificadoenergia.com";
@@ -43,6 +49,8 @@
         title = "Certificado Energia Portugal | Certificados de Eficiência Energética";
         desc = "A plataforma líder de certificação energética em Portugal. Obtenha o seu certificado de eficiência energética com peritos certificados.";
         locale = "pt_PT";
+        lang = "pt";
+        keywords = "certificado energético, certificado de eficiência energética, Portugal, certificação energética, preço certificado energético, perito certificado";
       } else {
         siteName = "The BER Man";
         baseUrl = "https://www.theberman.eu";
@@ -50,10 +58,12 @@
         title = "BER Cert Ireland | The BER Man";
         desc = "Need a BER Cert in Ireland? The BER Man Connects You with Local, SEAI-Registered Assessors Nationwide. Get a Free Quote Online Today!";
         locale = "en_IE";
+        lang = "en";
+        keywords = "BER certificate, BER cert, building energy rating, SEAI assessor, BER rating Ireland, energy performance certificate Ireland, BER cost";
       }
 
       document.title = title;
-      document.documentElement.lang = isEsp ? 'es' : isEng ? 'en' : isFra ? 'fr' : isPor ? 'pt' : 'en';
+      document.documentElement.lang = lang;
 
       // Update favicon for the current tenant
       var favicon = document.querySelector('link[rel="icon"]');
@@ -72,6 +82,7 @@
         document.head.appendChild(m);
       }
       rhMeta('name', 'description', desc);
+      rhMeta('name', 'keywords', keywords);
       rhMeta('name', 'author', siteName);
       rhMeta('property', 'og:type', 'website');
       rhMeta('property', 'og:title', title);
@@ -89,6 +100,23 @@
       canon.setAttribute('href', baseUrl + '/');
       canon.setAttribute('data-rh', 'true');
       document.head.appendChild(canon);
+
+      // Hreflang tags — tell Google which language/region variant to show
+      var hreflangs = [
+        { lang: 'en-IE', base: 'https://www.theberman.eu' },
+        { lang: 'en-GB', base: 'https://www.epccert.com' },
+        { lang: 'fr-FR', base: 'https://dpefrance.eu' },
+        { lang: 'es-ES', base: 'https://certificadoenergético.eu' },
+        { lang: 'pt-PT', base: 'https://certificadoenergia.com' },
+        { lang: 'x-default', base: 'https://www.theberman.eu' },
+      ];
+      hreflangs.forEach(function(d) {
+        var link = document.createElement('link');
+        link.setAttribute('rel', 'alternate');
+        link.setAttribute('hreflang', d.lang);
+        link.setAttribute('href', d.base + '/');
+        document.head.appendChild(link);
+      });
     })();
   </script>
 

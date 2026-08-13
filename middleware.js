@@ -2,7 +2,7 @@
 // Injects: canonical, title, meta description, OG tags, hreflang, JSON-LD schema
 // Zero changes to the React app needed.
 
-export const config = { matcher: '/((?!assets|favicon|logo|robots|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|eot|xml|txt)).*)' };
+export const config = { matcher: '/((?!assets|favicon|logo|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|eot)).*)' };
 
 // ─── Meta Conversions API (Server-Side) ───────────────────────────────────────
 const META_PIXEL_ID   = '1597842568530965';
@@ -1038,33 +1038,90 @@ export default async function middleware(req) {
     if (path === '/faq') return Response.redirect(`${url.protocol}//${hostname}/epc-faq`, 301);
   }
 
-  // Dynamic Sitemap Interception
+  // Dynamic robots.txt — per-tenant so each domain only references its own sitemap
+  if (path === '/robots.txt') {
+    let domain = 'https://www.theberman.eu';
+    if (tenant === 'spain') domain = 'https://www.xn--certificadoenergtico-q2b.eu';
+    else if (tenant === 'england') domain = 'https://www.epccert.com';
+
+    const robots = `User-agent: *
+Allow: /
+
+Sitemap: ${domain}/sitemap.xml
+
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /login/admin
+Disallow: /secure-admin-portal
+Disallow: /secure-admin-login
+Disallow: /api/
+Disallow: /membership-payment
+Disallow: /registration-pending
+Disallow: /assessor-terms
+Disallow: /assessor-onboarding
+Disallow: /business-onboarding
+Disallow: /update-password
+
+Allow: /about
+Allow: /services
+Allow: /pricing
+Allow: /contact-us
+Allow: /catalogue
+Allow: /locations
+Allow: /faq
+Allow: /news
+Allow: /hire-agent
+Allow: /get-quote
+Allow: /privacy
+Allow: /terms
+Allow: /cookie-policy
+Allow: /signup
+Allow: /login
+
+Crawl-delay: 1
+`;
+    return new Response(robots, {
+      status: 200,
+      headers: { 'Content-Type': 'text/plain', 'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400' }
+    });
+  }
+
+  // ── Sitemap generation — sitemap index + sub-sitemaps per tenant ─────────────
+  let sitemapDomain = 'https://www.theberman.eu';
+  if (tenant === 'spain') sitemapDomain = 'https://www.xn--certificadoenergtico-q2b.eu';
+  else if (tenant === 'england') sitemapDomain = 'https://www.epccert.com';
+
+  const sitemapHeaders = {
+    'Content-Type': 'application/xml',
+    'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
+  };
+
+  // Sitemap index
   if (path === '/sitemap.xml') {
-    let urls = [];
-    let domain = '';
-    if (tenant === 'spain') { urls = SITEMAP_ES; domain = 'https://www.xn--certificadoenergtico-q2b.eu'; }
-    else if (tenant === 'england') { urls = SITEMAP_EN; domain = 'https://www.epccert.com'; }
-    else { urls = SITEMAP_IE; domain = 'https://www.theberman.eu'; }
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <sitemap>\n    <loc>${sitemapDomain}/sitemap-pages.xml</loc>\n  </sitemap>\n  <sitemap>\n    <loc>${sitemapDomain}/sitemap-locations.xml</loc>\n  </sitemap>\n</sitemapindex>`;
+    return new Response(xml, { status: 200, headers: sitemapHeaders });
+  }
 
+  // Pages sitemap
+  if (path === '/sitemap-pages.xml') {
+    const pages = tenant === 'spain' ? SITEMAP_PAGES_ES : tenant === 'england' ? SITEMAP_PAGES_EN : SITEMAP_PAGES_IE;
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
-    const today = new Date().toISOString().split('T')[0];
-    
-    // Add homepage if not in array
-    if (!urls.includes('/')) {
-        xml += `  <url>\n    <loc>${domain}/</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n`;
-    }
-
-    for (const u of urls) {
-      const isHome = u === '/';
-      const loc = isHome ? domain + '/' : domain + u;
-      xml += `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${isHome ? 'daily' : 'weekly'}</changefreq>\n    <priority>${isHome ? '1.0' : '0.8'}</priority>\n  </url>\n`;
+    for (const p of pages) {
+      xml += `  <url>\n    <loc>${sitemapDomain}${p.path}</loc>\n    <changefreq>${p.changefreq}</changefreq>\n    <priority>${p.priority}</priority>\n  </url>\n`;
     }
     xml += `</urlset>`;
+    return new Response(xml, { status: 200, headers: sitemapHeaders });
+  }
 
-    return new Response(xml, {
-      status: 200,
-      headers: { 'Content-Type': 'application/xml', 'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400' }
-    });
+  // Locations sitemap
+  if (path === '/sitemap-locations.xml') {
+    const locs = tenant === 'spain' ? SITEMAP_LOCS_ES : tenant === 'england' ? SITEMAP_LOCS_EN : SITEMAP_LOCS_IE;
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+    for (const l of locs) {
+      xml += `  <url>\n    <loc>${sitemapDomain}${l.path}</loc>\n    <changefreq>${l.changefreq}</changefreq>\n    <priority>${l.priority}</priority>\n  </url>\n`;
+    }
+    xml += `</urlset>`;
+    return new Response(xml, { status: 200, headers: sitemapHeaders });
   }
 
   // Fetch original response (proxy pattern — works on Vercel; falls back gracefully on local dev)
@@ -1218,63 +1275,10 @@ export default async function middleware(req) {
     sendMetaCAPI(metaEventName, metaEventId, req, canonical, fbc, fbp, testEventCode);
   }
 
-  // ── Browser Meta Pixel — Ireland only, all events with deduplication ─────
-  const metaBrowserEvent = metaEventName === 'Lead'
-    ? `fbq('track', 'Lead', ${JSON.stringify(metaEventValue || {})}, {eventID: '${metaEventId}'${testEventCode ? `, test_event_code: '${testEventCode}'` : ''}});`
-    : metaEventName === 'ViewContent'
-    ? `fbq('track', 'ViewContent', {content_name: '${title.replace(/'/g, "\\\'")}', content_type: 'website'}, {eventID: '${metaEventId}'${testEventCode ? `, test_event_code: '${testEventCode}'` : ''}});`
-    : `fbq('track', 'PageView', {}, {eventID: '${metaEventId}'${testEventCode ? `, test_event_code: '${testEventCode}'` : ''}});`;
-
-  const metaPixelSnippet = tenant === 'ireland' ? `
-<!-- Meta Pixel Code -->
+  // ── Form submission cookie setter — needed by CAPI for Lead deduplication ───
+  const metaFormSnippet = tenant === 'ireland' ? `
+<!-- Meta CAPI Form Dedup Helper -->
 <script>
-!function(f,b,e,v,n,t,s)
-{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];
-s.parentNode.insertBefore(t,s)}(window, document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-// Automatic Advanced Matching — Meta auto-detects & hashes email/phone from forms
-fbq('init', '${META_PIXEL_ID}', {}, {autoConfig: true});
-${metaBrowserEvent}
-
-// SPA router listener for client-side routing tracking
-// NOTE: Lead/Contact events are handled by GTM on form submit.
-const isContactPage = ${JSON.stringify(isContactPage)};
-const isViewContent = ${JSON.stringify(isViewContent)};
-
-var originalReplace = history.replaceState;
-var originalPush = history.pushState;
-function handleSPA() {
-  let eventName = 'PageView';
-  let eventData = {};
-
-  if (isContactPage || isViewContent) {
-    eventName = 'ViewContent';
-    eventData = { content_type: 'website' };
-  }
-
-  const eventId = 'spa-' + Date.now() + '-' + Math.random().toString(36).slice(2, 9);
-  fbq('track', eventName, eventData, { eventID: eventId });
-}
-
-history.replaceState = function () {
-  originalReplace.apply(this, arguments);
-  handleSPA();
-};
-
-history.pushState = function () {
-  originalPush.apply(this, arguments);
-  handleSPA();
-};
-
-window.addEventListener('popstate', function () {
-  handleSPA();
-});
-
-// ---- Form submission handling (Lead / Contact) ----
 function setMetaEventId(id) {
   document.cookie = \`meta_event_id=\${id};path=/;max-age=86400\`;
 }
@@ -1284,10 +1288,7 @@ function handleFormSubmit(event) {
 }
 document.addEventListener('submit', handleFormSubmit, true);
 </script>
-<noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1"
-/></noscript>
-<!-- End Meta Pixel Code -->` : '';
+<!-- End Meta CAPI Form Dedup Helper -->` : '';
 
 
   // GTM — inject for all tenants using each site's own container
@@ -1373,7 +1374,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     `<meta name="author" content="${siteName}" />`
   ).replace(
     '</head>',
-    `  <meta name="description" content="${desc}" />\n  <link rel="canonical" href="${canonical}" />\n  <meta property="og:title" content="${ogTitleVal}" />\n  <meta property="og:description" content="${ogDescVal}" />\n  <meta property="og:url" content="${canonical}" />\n  <meta property="og:image" content="${ogImage}" />\n  <meta property="og:locale" content="${locale}" />\n  <meta property="og:site_name" content="${siteName}" />\n  <meta property="og:type" content="website" />\n  <meta name="twitter:card" content="summary_large_image" />\n  <meta name="twitter:title" content="${twTitleVal}" />\n  <meta name="twitter:description" content="${twDescVal}" />\n  <meta name="twitter:image" content="${ogImage}" />\n  ${gscMeta}\n  ${fbMeta}\n  ${hreflangTags(path, tenant)}\n  ${schemaBlock}\n  ${gtmHead}\n  ${metaPixelSnippet}\n</head>`
+    `  <meta name="description" content="${desc}" />\n  <link rel="canonical" href="${canonical}" />\n  <meta property="og:title" content="${ogTitleVal}" />\n  <meta property="og:description" content="${ogDescVal}" />\n  <meta property="og:url" content="${canonical}" />\n  <meta property="og:image" content="${ogImage}" />\n  <meta property="og:locale" content="${locale}" />\n  <meta property="og:site_name" content="${siteName}" />\n  <meta property="og:type" content="website" />\n  <meta name="twitter:card" content="summary_large_image" />\n  <meta name="twitter:title" content="${twTitleVal}" />\n  <meta name="twitter:description" content="${twDescVal}" />\n  <meta name="twitter:image" content="${ogImage}" />\n  ${gscMeta}\n  ${fbMeta}\n  ${hreflangTags(path, tenant)}\n  ${schemaBlock}\n  ${gtmHead}\n  ${metaFormSnippet}\n</head>`
   ).replace(
     /<body([^>]*)>/i,
     `<body$1>${gtmBody}`
@@ -1406,722 +1407,126 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     return undefined;
   }
 }
-const SITEMAP_IE = [
-  '/',
-  '/blog',
-  '/carlow',
-  '/carlow/ballon',
-  '/carlow/borris',
-  '/carlow/carlow-town',
-  '/carlow/clonegal',
-  '/carlow/clonmore',
-  '/carlow/hacketstown',
-  '/carlow/leighlinbridge',
-  '/carlow/muinebheag-(bagenalstown)',
-  '/carlow/myshall',
-  '/carlow/nurney',
-  '/carlow/rathvilly',
-  '/carlow/tullow',
-  '/catalogue',
-  '/cavan',
-  '/cavan/arva',
-  '/cavan/bailieborough',
-  '/cavan/ballinagh',
-  '/cavan/ballyconnell',
-  '/cavan/ballyhaise',
-  '/cavan/ballyjamesduff',
-  '/cavan/bawnboy',
-  '/cavan/belturbet',
-  '/cavan/blacklion',
-  '/cavan/butlersbridge',
-  '/cavan/cavan-town',
-  '/cavan/cootehill',
-  '/cavan/dowra',
-  '/cavan/killeshandra',
-  '/cavan/kilnaleck',
-  '/cavan/kingscourt',
-  '/cavan/lough-gowna',
-  '/cavan/mullagh',
-  '/cavan/shercock',
-  '/cavan/swanlinbar',
-  '/cavan/virginia',
-  '/clare',
-  '/clare/ardnacrusha',
-  '/clare/ballyvaughan',
-  '/clare/bunratty',
-  '/clare/corofin',
-  '/clare/crusheen',
-  '/clare/doolin',
-  '/clare/ennis',
-  '/clare/ennistymon',
-  '/clare/feakle',
-  '/clare/inagh',
-  '/clare/kilkee',
-  '/clare/killaloe',
-  '/clare/kilrush',
-  '/clare/lahinch',
-  '/clare/liscannor',
-  '/clare/lisdoonvarna',
-  '/clare/lissycasey',
-  '/clare/meelick',
-  '/clare/miltown-malbay',
-  '/clare/mountshannon',
-  '/clare/newmarket-on-fergus',
-  '/clare/o-briensbridge',
-  '/clare/quin',
-  '/clare/scariff',
-  '/clare/shannon',
-  '/clare/sixmilebridge',
-  '/clare/tulla',
-  '/contact-us',
-  '/cork',
-  '/cork/ballincollig',
-  '/cork/ballycotton',
-  '/cork/ballydehob',
-  '/cork/ballygarvan',
-  '/cork/ballyvourney',
-  '/cork/bandon',
-  '/cork/bantry',
-  '/cork/blarney',
-  '/cork/carrigaline',
-  '/cork/carrigtwohill',
-  '/cork/castletownbere',
-  '/cork/charleville',
-  '/cork/clonakilty',
-  '/cork/cloyne',
-  '/cork/cobh',
-  '/cork/cork-city',
-  '/cork/crosshaven',
-  '/cork/douglas',
-  '/cork/dunmanway',
-  '/cork/fermoy',
-  '/cork/glanmire',
-  '/cork/glengarriff',
-  '/cork/kanturk',
-  '/cork/kinsale',
-  '/cork/macroom',
-  '/cork/mallow',
-  '/cork/midleton',
-  '/cork/millstreet',
-  '/cork/mitchelstown',
-  '/cork/newmarket',
-  '/cork/passage-west',
-  '/cork/ringaskiddy',
-  '/cork/rosscarbery',
-  '/cork/schull',
-  '/cork/skibbereen',
-  '/cork/tower',
-  '/cork/youghal',
-  '/donegal',
-  '/donegal/ardara',
-  '/donegal/ballybofey',
-  '/donegal/ballyshannon',
-  '/donegal/buncrana',
-  '/donegal/bundoran',
-  '/donegal/burtonport',
-  '/donegal/carndonagh',
-  '/donegal/carrick',
-  '/donegal/castlefin',
-  '/donegal/convoy',
-  '/donegal/creeslough',
-  '/donegal/donegal-town',
-  '/donegal/dunfanaghy',
-  '/donegal/dungloe',
-  '/donegal/falcarragh',
-  '/donegal/glenties',
-  '/donegal/gweedore',
-  '/donegal/killybegs',
-  '/donegal/letterkenny',
-  '/donegal/lifford',
-  '/donegal/manorcunningham',
-  '/donegal/milford',
-  '/donegal/mountcharles',
-  '/donegal/moville',
-  '/donegal/muff',
-  '/donegal/newtowncunningham',
-  '/donegal/ramelton',
-  '/donegal/raphoe',
-  '/donegal/rathmullan',
-  '/donegal/stranorlar',
-  '/dublin',
-  '/dublin/artane',
-  '/dublin/balbriggan',
-  '/dublin/baldoyle',
-  '/dublin/balgriffin',
-  '/dublin/ballinteer',
-  '/dublin/ballsbridge',
-  '/dublin/ballybrack',
-  '/dublin/ballycullen',
-  '/dublin/ballyfermot',
-  '/dublin/ballymun',
-  '/dublin/beaumont',
-  '/dublin/blackrock',
-  '/dublin/blanchardstown',
-  '/dublin/booterstown',
-  '/dublin/cabinteely',
-  '/dublin/cabra',
-  '/dublin/carrickmines',
-  '/dublin/castleknock',
-  '/dublin/chapelizod',
-  '/dublin/churchtown',
-  '/dublin/citywest',
-  '/dublin/clondalkin',
-  '/dublin/clonshaugh',
-  '/dublin/clonsilla',
-  '/dublin/clontarf',
-  '/dublin/coolock',
-  '/dublin/crumlin',
-  '/dublin/dalkey',
-  '/dublin/donabate',
-  '/dublin/donaghmede',
-  '/dublin/donnybrook',
-  '/dublin/drimnagh',
-  '/dublin/drumcondra',
-  '/dublin/dublin-city',
-  '/dublin/dun-laoghaire',
-  '/dublin/dundrum',
-  '/dublin/finglas',
-  '/dublin/firhouse',
-  '/dublin/foxrock',
-  '/dublin/glasnevin',
-  '/dublin/glenageary',
-  '/dublin/glencullen',
-  '/dublin/goatstown',
-  '/dublin/grangegorman',
-  '/dublin/harold-s-cross',
-  '/dublin/howth',
-  '/dublin/inchicore',
-  '/dublin/irishtown',
-  '/dublin/islandbridge',
-  '/dublin/killester',
-  '/dublin/killiney',
-  '/dublin/kilmainham',
-  '/dublin/kimmage',
-  '/dublin/kinsealy',
-  '/dublin/knocklyon',
-  '/dublin/leopardstown',
-  '/dublin/loughlinstown',
-  '/dublin/lucan',
-  '/dublin/lusk',
-  '/dublin/malahide',
-  '/dublin/marino',
-  '/dublin/milltown',
-  '/dublin/monkstown',
-  '/dublin/mount-merrion',
-  '/dublin/mulhuddart',
-  '/dublin/newcastle',
-  '/dublin/oldbawn',
-  '/dublin/ongar',
-  '/dublin/palmerstown',
-  '/dublin/phibsborough',
-  '/dublin/portmarnock',
-  '/dublin/portobello',
-  '/dublin/raheny',
-  '/dublin/ranelagh',
-  '/dublin/rathcoole',
-  '/dublin/rathfarnham',
-  '/dublin/rathgar',
-  '/dublin/rathmines',
-  '/dublin/ringsend',
-  '/dublin/rush',
-  '/dublin/saggart',
-  '/dublin/sandycove',
-  '/dublin/sandyford',
-  '/dublin/sandymount',
-  '/dublin/santry',
-  '/dublin/shankill',
-  '/dublin/skerries',
-  '/dublin/smithfield',
-  '/dublin/stepaside',
-  '/dublin/stillorgan',
-  '/dublin/stoneybatter',
-  '/dublin/sutton',
-  '/dublin/swords',
-  '/dublin/tallaght',
-  '/dublin/templeogue',
-  '/dublin/terenure',
-  '/dublin/the-ward',
-  '/dublin/tyrrelstown',
-  '/dublin/walkinstown',
-  '/dublin/whitehall',
-  '/galway',
-  '/galway/athenry',
-  '/galway/ballinasloe',
-  '/galway/barna',
-  '/galway/carraroe',
-  '/galway/clarinbridge',
-  '/galway/clifden',
-  '/galway/clonbur',
-  '/galway/corofin',
-  '/galway/craughwell',
-  '/galway/dunmore',
-  '/galway/galway-city',
-  '/galway/glenamaddy',
-  '/galway/gort',
-  '/galway/headford',
-  '/galway/inverin',
-  '/galway/kinvara',
-  '/galway/loughrea',
-  '/galway/maam-cross',
-  '/galway/mountbellew',
-  '/galway/moycullen',
-  '/galway/oranmore',
-  '/galway/oughterard',
-  '/galway/portumna',
-  '/galway/rosmuc',
-  '/galway/spiddal',
-  '/galway/tuam',
-  '/kerry',
-  '/kerry/abbeydorney',
-  '/kerry/annascaul',
-  '/kerry/ardfert',
-  '/kerry/ballybunion',
-  '/kerry/ballyheigue',
-  '/kerry/cahersiveen',
-  '/kerry/castleisland',
-  '/kerry/dingle',
-  '/kerry/farranfore',
-  '/kerry/glenbeigh',
-  '/kerry/kenmare',
-  '/kerry/kilgarvan',
-  '/kerry/killarney',
-  '/kerry/killorglin',
-  '/kerry/listowel',
-  '/kerry/milltown',
-  '/kerry/rathmore',
-  '/kerry/sneem',
-  '/kerry/tarbert',
-  '/kerry/tralee',
-  '/kerry/waterville',
-  '/kildare',
-  '/kildare/allenwood',
-  '/kildare/athgarvan',
-  '/kildare/athy',
-  '/kildare/ballitore',
-  '/kildare/ballymore-eustace',
-  '/kildare/carbury',
-  '/kildare/castledermot',
-  '/kildare/celbridge',
-  '/kildare/clane',
-  '/kildare/coill-dubh',
-  '/kildare/derrinturn',
-  '/kildare/droichead-nua-(newbridge)',
-  '/kildare/johnstown',
-  '/kildare/kilcock',
-  '/kildare/kilcullen',
-  '/kildare/kildare-town',
-  '/kildare/kill',
-  '/kildare/leixlip',
-  '/kildare/maynooth',
-  '/kildare/monasterevin',
-  '/kildare/naas',
-  '/kildare/newbridge',
-  '/kildare/prosperous',
-  '/kildare/rathangan',
-  '/kildare/robertstown',
-  '/kildare/sallins',
-  '/kildare/straffan',
-  '/kildare/suncroft',
-  '/kilkenny',
-  '/kilkenny/ballyragget',
-  '/kilkenny/bennettsbridge',
-  '/kilkenny/callan',
-  '/kilkenny/castlecomer',
-  '/kilkenny/clogh-chatsworth',
-  '/kilkenny/fiddown',
-  '/kilkenny/freshford',
-  '/kilkenny/goresbridge',
-  '/kilkenny/gowran',
-  '/kilkenny/graiguenamanagh',
-  '/kilkenny/inistioge',
-  '/kilkenny/johnstown',
-  '/kilkenny/kells',
-  '/kilkenny/kilkenny-city',
-  '/kilkenny/kilmacow',
-  '/kilkenny/mullinavat',
-  '/kilkenny/paulstown',
-  '/kilkenny/piltown',
-  '/kilkenny/thomastown',
-  '/kilkenny/urlingford',
-  '/laois',
-  '/laois/abbeyleix',
-  '/laois/ballinakill',
-  '/laois/ballybrittas',
-  '/laois/ballylinan',
-  '/laois/ballyroan',
-  '/laois/borris-in-ossory',
-  '/laois/castletown',
-  '/laois/clonaslee',
-  '/laois/durrow',
-  '/laois/emo',
-  '/laois/mountmellick',
-  '/laois/mountrath',
-  '/laois/portarlington',
-  '/laois/portlaoise',
-  '/laois/rathdowney',
-  '/laois/stradbally',
-  '/leitrim',
-  '/leitrim/ballinamore',
-  '/leitrim/carrick-on-shannon',
-  '/leitrim/carrigallen',
-  '/leitrim/dromahair',
-  '/leitrim/drumkeeran',
-  '/leitrim/drumshanbo',
-  '/leitrim/drumsna',
-  '/leitrim/kinlough',
-  '/leitrim/leitrim-village',
-  '/leitrim/manorhamilton',
-  '/leitrim/mohill',
-  '/leitrim/roosky',
-  '/limerick',
-  '/limerick/abbeyfeale',
-  '/limerick/adare',
-  '/limerick/annacotty',
-  '/limerick/askeaton',
-  '/limerick/athea',
-  '/limerick/ballingarry',
-  '/limerick/bruff',
-  '/limerick/bruree',
-  '/limerick/caherconlish',
-  '/limerick/cappamore',
-  '/limerick/castleconnell',
-  '/limerick/croom',
-  '/limerick/drumcollogher',
-  '/limerick/foynes',
-  '/limerick/glin',
-  '/limerick/hospital',
-  '/limerick/kilmallock',
-  '/limerick/limerick-city',
-  '/limerick/mountcollins',
-  '/limerick/murroe',
-  '/limerick/newcastle-west',
-  '/limerick/pallaskenry',
-  '/limerick/patrickswell',
-  '/limerick/rathkeale',
-  '/longford',
-  '/longford/abbeylara',
-  '/longford/ardagh',
-  '/longford/aughnacliffe',
-  '/longford/ballinamuck',
-  '/longford/ballymahon',
-  '/longford/drumlish',
-  '/longford/edgeworthstown',
-  '/longford/granard',
-  '/longford/keenagh',
-  '/longford/lanesborough',
-  '/longford/longford-town',
-  '/longford/newtownforbes',
-  '/louth',
-  '/louth/ardee',
-  '/louth/blackrock',
-  '/louth/carlingford',
-  '/louth/castlebellingham',
-  '/louth/clogherhead',
-  '/louth/collon',
-  '/louth/drogheda',
-  '/louth/dromiskin',
-  '/louth/dundalk',
-  '/louth/dunleer',
-  '/louth/greenore',
-  '/louth/jenkinstown',
-  '/louth/louth-village',
-  '/louth/omeath',
-  '/louth/tallanstown',
-  '/louth/termonfeckin',
-  '/louth/tullyallen',
-  '/mayo',
-  '/mayo/achill-sound',
-  '/mayo/balla',
-  '/mayo/ballina',
-  '/mayo/ballindine',
-  '/mayo/ballinrobe',
-  '/mayo/ballyhaunis',
-  '/mayo/bangor-erris',
-  '/mayo/belmullet',
-  '/mayo/castlebar',
-  '/mayo/charlestown',
-  '/mayo/claremorris',
-  '/mayo/cong',
-  '/mayo/crossmolina',
-  '/mayo/foxford',
-  '/mayo/killala',
-  '/mayo/kiltimagh',
-  '/mayo/knock',
-  '/mayo/louisburgh',
-  '/mayo/newport',
-  '/mayo/swinford',
-  '/mayo/westport',
-  '/meath',
-  '/meath/ashbourne',
-  '/meath/athboy',
-  '/meath/ballivor',
-  '/meath/bettystown',
-  '/meath/clonard',
-  '/meath/donore',
-  '/meath/drumconrath',
-  '/meath/duleek',
-  '/meath/dunboyne',
-  '/meath/dunshaughlin',
-  '/meath/enfield',
-  '/meath/gormanston',
-  '/meath/julianstown',
-  '/meath/kells',
-  '/meath/kilcock',
-  '/meath/kilmessan',
-  '/meath/laytown',
-  '/meath/longwood',
-  '/meath/mornington',
-  '/meath/navan',
-  '/meath/nobber',
-  '/meath/oldcastle',
-  '/meath/ratoath',
-  '/meath/slane',
-  '/meath/stamullen',
-  '/meath/summerhill',
-  '/meath/trim',
-  '/monaghan',
-  '/monaghan/ballinode',
-  '/monaghan/ballybay',
-  '/monaghan/carrickmacross',
-  '/monaghan/castleblayney',
-  '/monaghan/clones',
-  '/monaghan/emyvale',
-  '/monaghan/glaslough',
-  '/monaghan/inniskeen',
-  '/monaghan/monaghan-town',
-  '/monaghan/newbliss',
-  '/monaghan/rockcorry',
-  '/monaghan/scotstown',
-  '/monaghan/smithborough',
-  '/news',
-  '/offaly',
-  '/offaly/banagher',
-  '/offaly/birr',
-  '/offaly/clara',
-  '/offaly/cloghan',
-  '/offaly/daingean',
-  '/offaly/edenderry',
-  '/offaly/ferbane',
-  '/offaly/geashill',
-  '/offaly/kilcormac',
-  '/offaly/kinnitty',
-  '/offaly/mucklagh',
-  '/offaly/rhode',
-  '/offaly/shinrone',
-  '/offaly/tullamore',
-  '/roscommon',
-  '/roscommon/athleague',
-  '/roscommon/ballaghaderreen',
-  '/roscommon/ballyforan',
-  '/roscommon/boyle',
-  '/roscommon/castlerea',
-  '/roscommon/elphin',
-  '/roscommon/frenchpark',
-  '/roscommon/keadue',
-  '/roscommon/knockcroghery',
-  '/roscommon/lecarrow',
-  '/roscommon/roosky',
-  '/roscommon/roscommon-town',
-  '/roscommon/strokestown',
-  '/roscommon/tulsk',
-  '/sligo',
-  '/sligo/aclare',
-  '/sligo/ballisodare',
-  '/sligo/ballymote',
-  '/sligo/carney',
-  '/sligo/cliffoney',
-  '/sligo/collooney',
-  '/sligo/coolaney',
-  '/sligo/dromore-west',
-  '/sligo/easky',
-  '/sligo/enniscrone',
-  '/sligo/grange',
-  '/sligo/gurteen',
-  '/sligo/inishcrone',
-  '/sligo/mullaghmore',
-  '/sligo/riverstown',
-  '/sligo/rosses-point',
-  '/sligo/skreen',
-  '/sligo/sligo-town',
-  '/sligo/strandhill',
-  '/sligo/tubbercurry',
-  '/tipperary',
-  '/tipperary/ardfinnan',
-  '/tipperary/ballina',
-  '/tipperary/ballingarry',
-  '/tipperary/bansha',
-  '/tipperary/borrisokane',
-  '/tipperary/borrisoleigh',
-  '/tipperary/cahir',
-  '/tipperary/cappawhite',
-  '/tipperary/carrick-on-suir',
-  '/tipperary/cashel',
-  '/tipperary/clogheen',
-  '/tipperary/clonmel',
-  '/tipperary/cloughjordan',
-  '/tipperary/dundrum',
-  '/tipperary/emly',
-  '/tipperary/fethard',
-  '/tipperary/golden',
-  '/tipperary/gortnahoe',
-  '/tipperary/holycross',
-  '/tipperary/killenaule',
-  '/tipperary/kilsheelan',
-  '/tipperary/littleton',
-  '/tipperary/mullinahone',
-  '/tipperary/nenagh',
-  '/tipperary/newport',
-  '/tipperary/portroe',
-  '/tipperary/roscrea',
-  '/tipperary/templemore',
-  '/tipperary/thurles',
-  '/tipperary/tipperary-town',
-  '/tipperary/two-mile-borris',
-  '/waterford',
-  '/waterford/aglish',
-  '/waterford/ardmore',
-  '/waterford/ballyduff',
-  '/waterford/bunmahon',
-  '/waterford/cappoquin',
-  '/waterford/cheekpoint',
-  '/waterford/clashmore',
-  '/waterford/dungarvan',
-  '/waterford/dunmore-east',
-  '/waterford/kilmacthomas',
-  '/waterford/lismore',
-  '/waterford/passage-east',
-  '/waterford/portlaw',
-  '/waterford/ring-(an-rinn)',
-  '/waterford/stradbally',
-  '/waterford/tallow',
-  '/waterford/tramore',
-  '/waterford/villierstown',
-  '/waterford/waterford-city',
-  '/westmeath',
-  '/westmeath/athlone',
-  '/westmeath/ballinahown',
-  '/westmeath/ballymore',
-  '/westmeath/ballynacargy',
-  '/westmeath/castlepollard',
-  '/westmeath/castletown-geoghegan',
-  '/westmeath/clonmellon',
-  '/westmeath/collinstown',
-  '/westmeath/delvin',
-  '/westmeath/glasson',
-  '/westmeath/kilbeggan',
-  '/westmeath/killucan',
-  '/westmeath/kinnegad',
-  '/westmeath/moate',
-  '/westmeath/mullingar',
-  '/westmeath/multifarnham',
-  '/westmeath/rathowen',
-  '/westmeath/rochfortbridge',
-  '/westmeath/tyrrellspass',
-  '/wexford',
-  '/wexford/adamstown',
-  '/wexford/ballycanew',
-  '/wexford/ballycullane',
-  '/wexford/ballygarrett',
-  '/wexford/ballyhack',
-  '/wexford/ballymurn',
-  '/wexford/blackwater',
-  '/wexford/bridgetown',
-  '/wexford/bunclody',
-  '/wexford/camolin',
-  '/wexford/campile',
-  '/wexford/castlebridge',
-  '/wexford/clonroche',
-  '/wexford/coolgreany',
-  '/wexford/courtown',
-  '/wexford/duncannon',
-  '/wexford/enniscorthy',
-  '/wexford/ferns',
-  '/wexford/fethard-on-sea',
-  '/wexford/gorey',
-  '/wexford/kilmore-quay',
-  '/wexford/kilmuckridge',
-  '/wexford/new-ross',
-  '/wexford/oulart',
-  '/wexford/oylgate',
-  '/wexford/rosslare-harbour',
-  '/wexford/rosslare-strand',
-  '/wexford/taghmon',
-  '/wexford/wexford-town',
-  '/wicklow',
-  '/wicklow/arklow',
-  '/wicklow/ashford',
-  '/wicklow/aughrim',
-  '/wicklow/avoca',
-  '/wicklow/baltinglass',
-  '/wicklow/blessington',
-  '/wicklow/bray',
-  '/wicklow/carnew',
-  '/wicklow/delgany',
-  '/wicklow/donard',
-  '/wicklow/dunlavin',
-  '/wicklow/enniskerry',
-  '/wicklow/glenealy',
-  '/wicklow/greystones',
-  '/wicklow/kilcoole',
-  '/wicklow/killincarrig',
-  '/wicklow/kilmacanogue',
-  '/wicklow/kilpedder',
-  '/wicklow/kiltegan',
-  '/wicklow/laragh',
-  '/wicklow/newtownmountkennedy',
-  '/wicklow/rathdrum',
-  '/wicklow/rathnew',
-  '/wicklow/roundwood',
-  '/wicklow/shillelagh',
-  '/wicklow/stratford-on-slaney',
-  '/wicklow/tinahely',
-  '/wicklow/wicklow-town',
+// ─── Sitemap data — structured per-tenant pages + locations ────────────────────
+
+// Ireland pages (from sitemap-pages.xml)
+const SITEMAP_PAGES_IE = [
+  { path: '/',                 changefreq: 'weekly',  priority: '1.0' },
+  { path: '/about-us',         changefreq: 'monthly', priority: '0.6' },
+  { path: '/services',         changefreq: 'monthly', priority: '0.8' },
+  { path: '/pricing',          changefreq: 'monthly', priority: '0.7' },
+  { path: '/catalogue',        changefreq: 'weekly',  priority: '0.9' },
+  { path: '/locations',        changefreq: 'weekly',  priority: '0.8' },
+  { path: '/get-quote',        changefreq: 'weekly',  priority: '0.9' },
+  { path: '/hire-agent',       changefreq: 'monthly', priority: '0.6' },
+  { path: '/ber-faqs',         changefreq: 'monthly', priority: '0.5' },
+  { path: '/news',             changefreq: 'weekly',  priority: '0.5' },
+  { path: '/blog',             changefreq: 'weekly',  priority: '0.5' },
+  { path: '/contact-us',       changefreq: 'yearly',  priority: '0.4' },
+  { path: '/privacy',          changefreq: 'yearly',  priority: '0.2' },
+  { path: '/terms',            changefreq: 'yearly',  priority: '0.2' },
+  { path: '/cookie-policy',    changefreq: 'yearly',  priority: '0.2' },
+  { path: '/blog/ber-certificate-cost-ireland',             changefreq: 'monthly', priority: '0.6' },
+  { path: '/blog/new-ber-rating-scale-2026-ireland',        changefreq: 'monthly', priority: '0.6' },
+  { path: '/blog/ber-cert-for-landlords-ireland',           changefreq: 'monthly', priority: '0.6' },
+  { path: '/blog/seai-grants-2026-ireland',                 changefreq: 'monthly', priority: '0.6' },
 ];
-const SITEMAP_EN = [
-  '/',
-  '/about-us',
-  '/epc-faq',
-  '/epc-assessors',
-  '/epc-certificate-cost',
-  '/blog',
-  '/blog/epc-certificate-cost-england',
-  '/blog/minimum-energy-efficiency-standards',
-  '/blog/how-to-improve-epc-rating-england',
-  '/blog/commercial-epc-england-guide',
-  '/blog/epc-band-c-2030-deadline-landlord-guide',
-  '/epc-assessment-london',
-  '/epc-assessment-birmingham',
-  '/epc-assessment-manchester',
-  '/epc-assessment-leeds',
-  '/epc-assessment-liverpool',
-  '/epc-assessment-bristol',
-  '/epc-assessment-sheffield',
-  '/epc-assessment-nottingham'
+
+// Ireland locations (from sitemap-locations.xml — county-level with /locations/ prefix)
+const SITEMAP_LOCS_IE = [
+  { path: '/locations/carlow',      changefreq: 'monthly', priority: '0.6' },
+  { path: '/locations/cavan',       changefreq: 'monthly', priority: '0.6' },
+  { path: '/locations/clare',       changefreq: 'monthly', priority: '0.6' },
+  { path: '/locations/cork',        changefreq: 'monthly', priority: '0.7' },
+  { path: '/locations/donegal',     changefreq: 'monthly', priority: '0.6' },
+  { path: '/locations/dublin',      changefreq: 'monthly', priority: '0.8' },
+  { path: '/locations/galway',      changefreq: 'monthly', priority: '0.7' },
+  { path: '/locations/kerry',       changefreq: 'monthly', priority: '0.6' },
+  { path: '/locations/kildare',     changefreq: 'monthly', priority: '0.6' },
+  { path: '/locations/kilkenny',    changefreq: 'monthly', priority: '0.6' },
+  { path: '/locations/laois',       changefreq: 'monthly', priority: '0.5' },
+  { path: '/locations/leitrim',     changefreq: 'monthly', priority: '0.5' },
+  { path: '/locations/limerick',    changefreq: 'monthly', priority: '0.6' },
+  { path: '/locations/longford',    changefreq: 'monthly', priority: '0.5' },
+  { path: '/locations/louth',       changefreq: 'monthly', priority: '0.6' },
+  { path: '/locations/mayo',        changefreq: 'monthly', priority: '0.6' },
+  { path: '/locations/meath',       changefreq: 'monthly', priority: '0.6' },
+  { path: '/locations/monaghan',    changefreq: 'monthly', priority: '0.5' },
+  { path: '/locations/offaly',      changefreq: 'monthly', priority: '0.5' },
+  { path: '/locations/roscommon',   changefreq: 'monthly', priority: '0.5' },
+  { path: '/locations/sligo',       changefreq: 'monthly', priority: '0.5' },
+  { path: '/locations/tipperary',   changefreq: 'monthly', priority: '0.6' },
+  { path: '/locations/waterford',   changefreq: 'monthly', priority: '0.6' },
+  { path: '/locations/westmeath',   changefreq: 'monthly', priority: '0.5' },
+  { path: '/locations/wexford',     changefreq: 'monthly', priority: '0.6' },
+  { path: '/locations/wicklow',     changefreq: 'monthly', priority: '0.6' },
 ];
-const SITEMAP_ES = [
-  '/',
-  '/sobre-nosotros',
-  '/contacto',
-  '/directorio',
-  '/directorio/tecnicos-certificadores',
-  '/directorio/empresas-energia',
-  '/asesor-energetico',
-  '/preguntas-frecuentes',
-  '/blog',
-  '/blog/precio-certificado-energetico-espana',
-  '/blog/certificado-energetico-obligatorio-espana',
-  '/blog/mejorar-calificacion-energetica-vivienda',
-  '/noticias',
-  '/ubicaciones',
-  '/certificado-energetico-madrid',
-  '/certificado-energetico-barcelona',
-  '/certificado-energetico-valencia',
-  '/certificado-energetico-sevilla',
-  '/certificado-energetico-zaragoza',
-  '/certificado-energetico-malaga',
-  '/certificado-energetico-murcia',
-  '/certificado-energetico-palma',
-  '/certificado-energetico-las-palmas',
-  '/certificado-energetico-bilbao',
-  '/certificado-energetico-alicante'
+
+// England pages
+const SITEMAP_PAGES_EN = [
+  { path: '/',                 changefreq: 'weekly',  priority: '1.0' },
+  { path: '/about-us',         changefreq: 'monthly', priority: '0.6' },
+  { path: '/services',         changefreq: 'monthly', priority: '0.8' },
+  { path: '/pricing',          changefreq: 'monthly', priority: '0.7' },
+  { path: '/catalogue',        changefreq: 'weekly',  priority: '0.9' },
+  { path: '/locations',        changefreq: 'weekly',  priority: '0.8' },
+  { path: '/get-quote',        changefreq: 'weekly',  priority: '0.9' },
+  { path: '/hire-agent',       changefreq: 'monthly', priority: '0.6' },
+  { path: '/epc-faq',          changefreq: 'monthly', priority: '0.5' },
+  { path: '/news',             changefreq: 'weekly',  priority: '0.5' },
+  { path: '/blog',             changefreq: 'weekly',  priority: '0.5' },
+  { path: '/contact-us',       changefreq: 'yearly',  priority: '0.4' },
+  { path: '/privacy',          changefreq: 'yearly',  priority: '0.2' },
+  { path: '/terms',            changefreq: 'yearly',  priority: '0.2' },
+  { path: '/cookie-policy',    changefreq: 'yearly',  priority: '0.2' },
+  { path: '/blog/epc-certificate-cost-guide',                 changefreq: 'monthly', priority: '0.6' },
+  { path: '/blog/landlord-epc-requirements-england-2026',     changefreq: 'monthly', priority: '0.6' },
+  { path: '/blog/how-to-improve-epc-rating-england',          changefreq: 'monthly', priority: '0.6' },
+  { path: '/blog/commercial-epc-england-guide',               changefreq: 'monthly', priority: '0.6' },
+  { path: '/blog/epc-band-c-2030-deadline-landlord-guide',    changefreq: 'monthly', priority: '0.6' },
+];
+
+// England locations
+const SITEMAP_LOCS_EN = [
+  { path: '/epc-assessment-london',       changefreq: 'monthly', priority: '0.8' },
+  { path: '/epc-assessment-birmingham',   changefreq: 'monthly', priority: '0.7' },
+  { path: '/epc-assessment-manchester',   changefreq: 'monthly', priority: '0.7' },
+  { path: '/epc-assessment-leeds',        changefreq: 'monthly', priority: '0.6' },
+  { path: '/epc-assessment-liverpool',    changefreq: 'monthly', priority: '0.6' },
+  { path: '/epc-assessment-bristol',      changefreq: 'monthly', priority: '0.6' },
+  { path: '/epc-assessment-sheffield',    changefreq: 'monthly', priority: '0.6' },
+  { path: '/epc-assessment-nottingham',   changefreq: 'monthly', priority: '0.6' },
+];
+
+// Spain pages
+const SITEMAP_PAGES_ES = [
+  { path: '/',                 changefreq: 'weekly',  priority: '1.0' },
+  { path: '/sobre-nosotros',   changefreq: 'monthly', priority: '0.6' },
+  { path: '/contacto',         changefreq: 'yearly',  priority: '0.4' },
+  { path: '/directorio',       changefreq: 'weekly',  priority: '0.9' },
+  { path: '/directorio/tecnicos-certificadores', changefreq: 'weekly', priority: '0.7' },
+  { path: '/directorio/empresas-energia',         changefreq: 'weekly', priority: '0.7' },
+  { path: '/asesor-energetico',                   changefreq: 'monthly', priority: '0.6' },
+  { path: '/preguntas-frecuentes',                changefreq: 'monthly', priority: '0.5' },
+  { path: '/blog',             changefreq: 'weekly',  priority: '0.5' },
+  { path: '/noticias',         changefreq: 'weekly',  priority: '0.5' },
+  { path: '/ubicaciones',      changefreq: 'weekly',  priority: '0.8' },
+  { path: '/blog/precio-certificado-energetico-espana',       changefreq: 'monthly', priority: '0.6' },
+  { path: '/blog/certificado-energetico-obligatorio-espana',  changefreq: 'monthly', priority: '0.6' },
+  { path: '/blog/mejorar-calificacion-energetica-vivienda',   changefreq: 'monthly', priority: '0.6' },
+];
+
+// Spain locations
+const SITEMAP_LOCS_ES = [
+  { path: '/certificado-energetico-madrid',      changefreq: 'monthly', priority: '0.8' },
+  { path: '/certificado-energetico-barcelona',   changefreq: 'monthly', priority: '0.8' },
+  { path: '/certificado-energetico-valencia',    changefreq: 'monthly', priority: '0.7' },
+  { path: '/certificado-energetico-sevilla',     changefreq: 'monthly', priority: '0.7' },
+  { path: '/certificado-energetico-zaragoza',    changefreq: 'monthly', priority: '0.6' },
+  { path: '/certificado-energetico-malaga',      changefreq: 'monthly', priority: '0.7' },
+  { path: '/certificado-energetico-murcia',      changefreq: 'monthly', priority: '0.6' },
+  { path: '/certificado-energetico-palma',       changefreq: 'monthly', priority: '0.5' },
+  { path: '/certificado-energetico-las-palmas',  changefreq: 'monthly', priority: '0.5' },
+  { path: '/certificado-energetico-bilbao',      changefreq: 'monthly', priority: '0.6' },
+  { path: '/certificado-energetico-alicante',    changefreq: 'monthly', priority: '0.6' },
 ];

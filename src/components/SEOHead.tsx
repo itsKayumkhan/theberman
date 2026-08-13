@@ -17,13 +17,14 @@ interface SEOHeadProps {
     twitterDescription?: string;
 }
 
-const TENANT_CONFIG: Record<string, { siteName: string; baseUrl: string; ogImage: string; locale: string; currency: string }> = {
+const TENANT_CONFIG: Record<string, { siteName: string; baseUrl: string; ogImage: string; locale: string; currency: string; gaId: string }> = {
     spain: {
         siteName: 'Certificado Energ\u00e9tico',
         baseUrl: 'https://certificadoenergético.eu',
         ogImage: 'https://certificadoenergético.eu/logo.png',
         locale: 'es_ES',
         currency: 'EUR',
+        gaId: 'G-XXXXXXXXXX',
     },
     england: {
         siteName: 'EPC Cert',
@@ -31,6 +32,7 @@ const TENANT_CONFIG: Record<string, { siteName: string; baseUrl: string; ogImage
         ogImage: 'https://www.epccert.com/logo.png',
         locale: 'en_GB',
         currency: 'GBP',
+        gaId: 'G-XXXXXXXXXX',
     },
     portugal: {
         siteName: 'Certificado Energia',
@@ -38,6 +40,7 @@ const TENANT_CONFIG: Record<string, { siteName: string; baseUrl: string; ogImage
         ogImage: 'https://certificadoenergia.com/certificado-energia-logo.png',
         locale: 'pt_PT',
         currency: 'EUR',
+        gaId: 'G-XXXXXXXXXX',
     },
     france: {
         siteName: 'DPE Cert France',
@@ -45,6 +48,7 @@ const TENANT_CONFIG: Record<string, { siteName: string; baseUrl: string; ogImage
         ogImage: 'https://dpecert.fr/dpecert-logo.png',
         locale: 'fr_FR',
         currency: 'EUR',
+        gaId: 'G-XXXXXXXXXX',
     },
     ireland: {
         siteName: 'The BER Man',
@@ -52,6 +56,7 @@ const TENANT_CONFIG: Record<string, { siteName: string; baseUrl: string; ogImage
         ogImage: 'https://www.theberman.eu/logo.svg',
         locale: 'en_IE',
         currency: 'EUR',
+        gaId: 'G-BLJ6KWN29Y',
     },
 };
 
@@ -114,6 +119,7 @@ const SEOHead = ({
     const baseUrl = tenantCfg.baseUrl;
     const defaultOgImage = tenantCfg.ogImage;
     const ogLocale = tenantCfg.locale;
+    const gaId = tenantCfg.gaId;
     const resolvedOgImage = ogImage || defaultOgImage;
 
     const fullTitle = skipSiteNameSuffix || title.includes(siteName) ? title : `${title} | ${siteName}`;
@@ -137,12 +143,12 @@ const SEOHead = ({
 
     return (
         <Helmet>
-            {/* Google Analytics */}
-            <script async src="https://www.googletagmanager.com/gtag/js?id=G-BLJ6KWN29Y"></script>
+            {/* Google Analytics — tenant-specific */}
+            <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
             <script>{`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
-gtag('config', 'G-BLJ6KWN29Y');`}</script>
+gtag('config', '${gaId}');`}</script>
             {/* End Google Analytics */}
 
             {/* Primary Meta Tags */}
