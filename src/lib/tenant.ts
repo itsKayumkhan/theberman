@@ -108,7 +108,7 @@ export function getTenantCurrency(tenant: string): string {
 export function formatCurrency(amount: number | null | undefined, tenant?: string): string {
   const resolvedTenant = tenant || getTenantFromDomain();
   const currency = getTenantCurrency(resolvedTenant);
-  const locale = resolvedTenant === 'portugal' ? 'pt-PT' : 'en-GB';
+  const locale = resolvedTenant === 'portugal' ? 'pt-PT' : resolvedTenant === 'france' ? 'fr-FR' : 'en-GB';
   const value = typeof amount === 'number' ? amount : 0;
   return new Intl.NumberFormat(locale, { style: 'currency', currency, maximumFractionDigits: 2 }).format(value);
 }
