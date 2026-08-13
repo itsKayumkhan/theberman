@@ -24,9 +24,70 @@ Deno.serve(async (req: Request) => {
         const body = await req.json().catch(() => ({}));
         const tenant = body.tenant || 'ireland';
 
-        // Find all pending quotes older than 5 days
-        const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
+        // Quotes should only expire when the job (assessment) itself has expired.
+        // Jobs expire after 7 days of inactivity (no quotes, acceptances, or scheduling).
+        // Find assessments that have expired, then expire their pending quotes.
 
+        const EXPIRY_DAYS = 7;
+        const OPEN_JOB_STATUSES = ['live', 'submitted', 'pending_quote'];
+
+        // Fetch all open assessments with their quotes to determine which have expired
+        const { data: openAssessments, error: assessError } = await supabase
+            .from('assessments')
+            .select(`
+                id,
+                status,
+                created_at,
+                scheduled_date,
+                completed_at,
+                quotes(id, status, created_at)
+            `)
+            .in('status', OPEN_JOB_STATUSES);
+
+        if (assessError) {
+            console.error('[expire-quotes] Error fetching assessments:', assessError);
+            throw assessError;
+        }
+
+        // Determine which assessments have expired (7-day inactivity rule)
+        const expiredAssessmentIds: string[] = [];
+        for (const assess of (openAssessments || [])) {
+            let lastActivity = new Date(assess.created_at).getTime();
+            if (assess.scheduled_date) {
+                const sd = new Date(assess.scheduled_date).getTime();
+                if (sd > lastActivity) lastActivity = sd;
+            }
+            if (assess.quotes) {
+                for (const q of assess.quotes) {
+                    const qd = new Date(q.created_at).getTime();
+                    if (qd > lastActivity) lastActivity = qd;
+                }
+            }
+            const daysSinceActivity = Math.floor((Date.now() - lastActivity) / (1000 * 60 * 60 * 24));
+            if (daysSinceActivity >= EXPIRY_DAYS) {
+                expiredAssessmentIds.push(assess.id);
+            }
+        }
+
+        // Also include assessments already marked as 'expired' in the DB
+        const { data: dbExpiredAssessments } = await supabase
+            .from('assessments')
+            .select('id')
+            .eq('status', 'expired');
+
+        for (const a of (dbExpiredAssessments || [])) {
+            expiredAssessmentIds.push(a.id);
+        }
+
+        if (expiredAssessmentIds.length === 0) {
+            console.log('[expire-quotes] No expired assessments found');
+            return new Response(
+                JSON.stringify({ success: true, message: 'No expired quotes', count: 0 }),
+                { headers: responseHeaders }
+            );
+        }
+
+        // Fetch pending quotes belonging to expired assessments
         const { data: expiredQuotes, error: fetchError } = await supabase
             .from('quotes')
             .select(`
@@ -39,7 +100,7 @@ Deno.serve(async (req: Request) => {
                 assessment:assessments(town, county, property_address, contact_name, job_type)
             `)
             .eq('status', 'pending')
-            .lt('created_at', fiveDaysAgo);
+            .in('assessment_id', expiredAssessmentIds);
 
         if (fetchError) {
             console.error('[expire-quotes] Error fetching expired quotes:', fetchError);
@@ -125,8 +186,8 @@ Deno.serve(async (req: Request) => {
 
                                 <p style="color: #555; font-size: 15px; line-height: 1.6;">
                                     Votre devis de <strong>€${quote.price + 10}</strong> pour le DPE à
-                                    <strong>${town}${county ? ', ' + county : ''}</strong> a expiré car le propriétaire
-                                    n'a pas répondu dans un délai de 5 jours.
+                                    <strong>${town}${county ? ', ' + county : ''}</strong> a expiré car la mission
+                                    n'est plus active.
                                 </p>
 
                                 <div style="background: #f8f9fa; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #e9ecef;">
@@ -161,8 +222,8 @@ Deno.serve(async (req: Request) => {
 
                                 <p style="color: #555; font-size: 15px; line-height: 1.6;">
                                     O seu orçamento de <strong>€${quote.price + 10}</strong> para o certificado energético em
-                                    <strong>${town}${county ? ', ' + county : ''}</strong> expirou porque o proprietário
-                                    não respondeu no prazo de 5 dias.
+                                    <strong>${town}${county ? ', ' + county : ''}</strong> expirou porque o trabalho
+                                    já não está ativo.
                                 </p>
 
                                 <div style="background: #f8f9fa; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #e9ecef;">
@@ -197,8 +258,8 @@ Deno.serve(async (req: Request) => {
 
                                 <p style="color: #555; font-size: 15px; line-height: 1.6;">
                                     Tu presupuesto de <strong>€${quote.price + 10}</strong> para el certificado energético en
-                                    <strong>${town}${county ? ', ' + county : ''}</strong> ha caducado porque el propietario
-                                    no respondió dentro del plazo de 5 días.
+                                    <strong>${town}${county ? ', ' + county : ''}</strong> ha caducado porque el trabajo
+                                    ya no está activo.
                                 </p>
 
                                 <div style="background: #f8f9fa; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #e9ecef;">
@@ -233,8 +294,8 @@ Deno.serve(async (req: Request) => {
 
                                 <p style="color: #555; font-size: 15px; line-height: 1.6;">
                                     Your quote of <strong>€${quote.price + 10}</strong> for the BER assessment in
-                                    <strong>${town}${county ? ', ' + county : ''}</strong> has expired as the homeowner
-                                    did not respond within the 5-day acceptance window.
+                                    <strong>${town}${county ? ', ' + county : ''}</strong> has expired as the job
+                                    is no longer active.
                                 </p>
 
                                 <div style="background: #f8f9fa; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #e9ecef;">

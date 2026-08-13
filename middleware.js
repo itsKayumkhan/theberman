@@ -521,15 +521,14 @@ function orgSchema(tenant) {
           name: 'Certificado Energético España',
           url: 'https://www.xn--certificadoenergtico-q2b.eu/',
           logo: 'https://www.xn--certificadoenergtico-q2b.eu/logo.png',
-          description: "La plataforma líder de España para conectar con técnicos acreditados en certificación energética. Desde 60€, visita incluida.",
           areaServed: { '@type': 'Country', name: 'España' },
           knowsAbout: ['Certificado de Eficiencia Energética','Calificación Energética','Etiqueta Energética','Eficiencia Energética'],
           hasOfferCatalog: {
             '@type': 'OfferCatalog',
             name: 'Servicios de Certificación Energética',
             itemListElement: [
-              { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Certificado Energético Vivienda', description: 'Certificación energética obligatoria para vender o alquilar pisos y casas.' } },
-              { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Certificado Energético Local', description: 'Certificación energética obligatoria para vender o alquilar locales comerciales.' } },
+              { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Certificado Energético Vivienda' } },
+              { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Certificado Energético Local' } },
             ]
           },
           aggregateRating: {
@@ -542,7 +541,6 @@ function orgSchema(tenant) {
           '@id': 'https://www.xn--certificadoenergtico-q2b.eu/#website',
           url: 'https://www.xn--certificadoenergtico-q2b.eu/',
           name: 'Certificado Energético',
-          description: "Plataforma líder en certificados de eficiencia energética en España.",
           publisher: { '@id': 'https://www.xn--certificadoenergtico-q2b.eu/#organization' },
           inLanguage: 'es-ES',
           potentialAction: {
@@ -565,16 +563,15 @@ function orgSchema(tenant) {
           name: 'EPC Cert',
           url: 'https://www.epccert.com/',
           logo: 'https://www.epccert.com/logo.png',
-          description: "England's leading EPC certificate platform. Compare quotes from accredited Energy Performance Certificate assessors nationwide.",
           areaServed: { '@type': 'Country', name: 'England' },
           knowsAbout: ['EPC Certificate','Energy Performance Certificate','MEES','Domestic Energy Assessor','Commercial EPC'],
           hasOfferCatalog: {
             '@type': 'OfferCatalog',
             name: 'EPC Assessment Services',
             itemListElement: [
-              { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Domestic EPC Certificate', description: 'Accredited EPC assessment for residential properties in England' } },
-              { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Commercial EPC Certificate', description: 'Non-domestic EPC assessment for commercial properties in England' } },
-              { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Landlord EPC Certificate', description: 'EPC for rental properties to meet MEES Band E / Band C requirements' } },
+              { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Domestic EPC Certificate' } },
+              { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Commercial EPC Certificate' } },
+              { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Landlord EPC Certificate' } },
             ]
           },
           aggregateRating: {
@@ -588,7 +585,6 @@ function orgSchema(tenant) {
           '@id': 'https://www.epccert.com/#website',
           url: 'https://www.epccert.com/',
           name: 'EPC Cert',
-          description: "England's leading EPC website.",
           publisher: { '@id': 'https://www.epccert.com/#organization' },
           inLanguage: 'en-GB',
           potentialAction: {
@@ -616,7 +612,6 @@ function orgSchema(tenant) {
           contentUrl: 'https://www.theberman.eu/logo.png',
           caption: 'The Berman',
         },
-        description: "Ireland's largest BER certificate platform. Compare quotes from 100+ SEAI-registered assessors nationwide.",
         areaServed: { '@type': 'Country', name: 'Ireland', sameAs: 'https://www.wikidata.org/wiki/Q27' },
         knowsAbout: ['Building Energy Rating','BER Certificate Ireland','SEAI','Energy Efficiency','Home Energy Assessment'],
         contactPoint: { '@type': 'ContactPoint', contactType: 'customer service', availableLanguage: 'English', areaServed: 'IE' },
@@ -624,8 +619,8 @@ function orgSchema(tenant) {
           '@type': 'OfferCatalog',
           name: 'Building Energy Rating Services',
           itemListElement: [
-            { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Domestic BER Certificate', description: 'Mandatory Building Energy Rating for selling or renting a residential property in Ireland.' } },
-            { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Commercial BER Certificate', description: 'Mandatory Building Energy Rating for selling or renting a commercial property in Ireland.' } },
+            { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Domestic BER Certificate' } },
+            { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Commercial BER Certificate' } },
           ]
         },
         aggregateRating: {
@@ -645,7 +640,6 @@ function orgSchema(tenant) {
         '@id': 'https://www.theberman.eu/#website',
         url: 'https://www.theberman.eu/',
         name: 'The Berman',
-        description: "Ireland's largest BER website.",
         publisher: { '@id': 'https://www.theberman.eu/#organization' },
         inLanguage: 'en-IE',
         potentialAction: {
@@ -887,7 +881,6 @@ function locationSchema(pathname, tenant) {
       '@type': 'Service',
       name: `Certificado Energético en ${displayCity}`,
       url: `https://www.xn--certificadoenergtico-q2b.eu${pathname}`,
-      description: `Solicita tu certificado energético en ${displayCity}. Técnicos colegiados, visita presencial obligatoria incluida y entrega rápida en 24–48h.`,
       provider: { '@type': 'Organization', 'name': 'Certificado Energético España' },
       areaServed: {
         '@type': 'City',
@@ -910,7 +903,6 @@ function locationSchema(pathname, tenant) {
       '@type': 'Service',
       name: `EPC Certificate in ${displayCity}`,
       url: `https://www.epccert.com${pathname}`,
-      description: `Need an EPC certificate in ${displayCity}? Compare quotes from local accredited assessors. Book online today with EPC Cert.`,
       provider: { '@type': 'Organization', 'name': 'EPC Cert' },
       areaServed: {
         '@type': 'City',
@@ -932,7 +924,6 @@ function locationSchema(pathname, tenant) {
     '@type': 'Service',
     name: `BER Certificate in ${location}`,
     url,
-    description: `Get BER certificates in ${location}, Ireland. Compare quotes from SEAI-registered assessors. Book online today with The Berman.`,
     provider: { '@id': 'https://theberman.eu/#organization' },
     areaServed: {
       '@type': town ? 'City' : 'AdministrativeArea',
@@ -981,7 +972,9 @@ function hreflangTags(pathname, tenant) {
   const domains = [
     { lang:'en-IE', base:'https://www.theberman.eu' },
     { lang:'en-GB', base:'https://www.epccert.com' },
+    { lang:'fr-FR', base:'https://dpefrance.eu' },
     { lang:'es-ES', base:'https://www.xn--certificadoenergtico-q2b.eu' },
+    { lang:'pt-PT', base:'https://certificadopt.eu' },
     { lang:'x-default', base:'https://www.theberman.eu' },
   ];
   return domains.map(d =>

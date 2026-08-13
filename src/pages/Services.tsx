@@ -41,7 +41,6 @@ const Services = () => {
         '@context': 'https://schema.org',
         '@type': 'Service',
         name: `${brand} - ${serviceName} Services`,
-        description,
         provider: {
             '@type': 'LocalBusiness',
             name: brand,

@@ -179,7 +179,6 @@ const About = () => {
         name: brand,
         url: baseUrl,
         logo: tenant === 'portugal' ? `${baseUrl}/certificado-energia-logo.png` : tenant === 'france' ? `${baseUrl}/dpecert-logo.png` : `${baseUrl}/logo.svg`,
-        description: tr.seoDesc,
         sameAs: tenant === 'england'
             ? ['https://www.facebook.com/epccert', 'https://www.instagram.com/epccert']
             : isSpanish

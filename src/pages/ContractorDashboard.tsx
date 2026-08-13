@@ -363,13 +363,13 @@ const ContractorDashboard = () => {
                 }
             });
 
-            // Filter out quotes for expired assessments (unless accepted) - remove 5-day limit
+            // Filter out quotes for expired assessments (unless accepted) - quotes stay active while job is active
             const uniqueQuotes = Array.from(uniqueQuotesMap.values()).filter((q: any) => {
                 if (q.status === 'accepted') return true;
                 const createdAt = new Date(q.assessment?.created_at || q.created_at);
                 const now = new Date();
                 const diffInDays = (now.getTime() - createdAt.getTime()) / (1000 * 3600 * 24);
-                return diffInDays <= 30; // Increased to 30 days from 5 days
+                return diffInDays <= 30;
             });
 
             // 3. Fetch lowest quotes for these assessments

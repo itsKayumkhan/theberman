@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useTranslation } from '../hooks/useTranslation';
 import { supabase } from '../lib/supabase';
 import { formatCurrency, getTenantFromDomain, getTenantCurrency } from '../lib/tenant';
-import { LogOut, FileText, User, Home, AlertCircle, X, Menu, Trash2, Search, Clock, Filter } from 'lucide-react';
+import { LogOut, FileText, User, Home, AlertCircle, X, Menu, Trash2, Search, Filter } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import QuoteModal from '../components/QuoteModal';
@@ -246,15 +246,6 @@ const UserDashboard = () => {
         } finally {
             setLoading(false);
         }
-    };
-
-    const getQuoteExpiry = (quoteCreatedAt: string) => {
-        const created = new Date(quoteCreatedAt);
-        const expiry = new Date(created.getTime() + 5 * 24 * 60 * 60 * 1000);
-        const now = new Date();
-        const diffMs = expiry.getTime() - now.getTime();
-        const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-        return { isExpired: daysLeft <= 0, daysLeft: Math.max(0, daysLeft) };
     };
 
     const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
@@ -911,13 +902,11 @@ const UserDashboard = () => {
                                                                 <th className="text-left py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-widest">{isSpanish ? 'Presupuesto' : 'Quote'}</th>
                                                                 <th className="text-left py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-widest">{isSpanish ? 'Disponibilidad' : 'Earliest Availability'}</th>
                                                                 <th className="text-left py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-widest">{isSpanish ? 'ID Certificador' : 'Assessor ID'}</th>
-                                                                <th className="text-left py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-widest">{isSpanish ? 'Expira' : 'Expires'}</th>
                                                                 <th className="text-right py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-widest">{isSpanish ? 'Acciones' : 'Actions'}</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             {filteredQuotes.map((quote, index) => {
-                                                                const { isExpired, daysLeft } = getQuoteExpiry(quote.created_at);
                                                                 return (
                                                                 <tr
                                                                     key={quote.id}
@@ -957,32 +946,9 @@ const UserDashboard = () => {
                                                                             </div>
                                                                         ) : <span className="text-gray-400">-</span>}
                                                                     </td>
-                                                                    <td className="py-4 px-6 whitespace-nowrap">
-                                                                        {quote.status === 'pending' && !isExpired ? (
-                                                                            <div className="flex items-center gap-1.5">
-                                                                                <Clock size={14} className={daysLeft <= 1 ? 'text-red-500' : daysLeft <= 2 ? 'text-amber-500' : 'text-green-500'} />
-                                                                                <span className={`text-xs font-bold ${daysLeft <= 1 ? 'text-red-600' : daysLeft <= 2 ? 'text-amber-600' : 'text-gray-600'}`}>
-                                                                                    {daysLeft} {isSpanish ? (daysLeft !== 1 ? 'días' : 'día') : (daysLeft !== 1 ? 'days' : 'day')} {isSpanish ? 'restantes' : 'left'}
-                                                                                </span>
-                                                                            </div>
-                                                                        ) : quote.status === 'pending' && isExpired ? (
-                                                                            <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-red-50 text-red-600 border border-red-100">{isSpanish ? 'Caducado' : 'Expired'}</span>
-                                                                        ) : (
-                                                                            <span className="text-xs text-gray-400">—</span>
-                                                                        )}
-                                                                    </td>
                                                                     <td className="py-4 px-6 text-right">
                                                                         {quote.status === 'pending' ? (
-                                                                            isExpired ? (
-                                                                                <div className="flex flex-col items-end">
-                                                                                    <span className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-red-50 text-red-500 border border-red-100">
-                                                                                        {isSpanish ? 'Caducado' : 'Expired'}
-                                                                                    </span>
-                                                                                    <span className="mt-1 text-[9px] font-bold text-gray-400 italic">
-                                                                                        {isSpanish ? 'Ventana de 5 días expirada' : '5-day window elapsed'}
-                                                                                    </span>
-                                                                                </div>
-                                                                            ) : (quote.assessment.quotes && quote.assessment.quotes.some(q => q.status === 'accepted')) ? (
+                                                                            (quote.assessment.quotes && quote.assessment.quotes.some(q => q.status === 'accepted')) ? (
                                                                                 <div className="flex flex-col items-end">
                                                                                     <span className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-gray-100 text-gray-500 border border-gray-200">
                                                                                         {isSpanish ? 'Presupuesto Cerrado' : 'Quote Closed'}
@@ -1072,16 +1038,7 @@ const UserDashboard = () => {
                                                         )}
 
                                                         {(() => {
-                                                            const { isExpired, daysLeft } = getQuoteExpiry(quote.created_at);
                                                             if (quote.status === 'pending') {
-                                                                if (isExpired) {
-                                                                    return (
-                                                                        <div className="text-center py-3 bg-red-50 rounded-xl border border-red-100">
-                                                                            <span className="text-[10px] font-black text-red-500 uppercase tracking-widest">{isSpanish ? 'Presupuesto Caducado' : 'Quote Expired'}</span>
-                                                                            <p className="text-[9px] text-red-400 mt-0.5">{isSpanish ? 'La ventana de aceptación de 5 días ha expirado' : '5-day acceptance window has elapsed'}</p>
-                                                                        </div>
-                                                                    );
-                                                                }
                                                                 if (quote.assessment.status === 'quote_accepted') {
                                                                     return (
                                                                         <div className="text-center py-2 bg-gray-50 rounded-xl text-[10px] font-bold text-gray-500 border border-gray-100">
@@ -1091,12 +1048,6 @@ const UserDashboard = () => {
                                                                 }
                                                                 return (
                                                                     <>
-                                                                        <div className="flex items-center justify-center gap-1.5 mb-3">
-                                                                            <Clock size={12} className={daysLeft <= 1 ? 'text-red-500' : daysLeft <= 2 ? 'text-amber-500' : 'text-green-500'} />
-                                                                            <span className={`text-[10px] font-bold ${daysLeft <= 1 ? 'text-red-600' : daysLeft <= 2 ? 'text-amber-600' : 'text-gray-500'}`}>
-                                                                                {daysLeft} {isSpanish ? (daysLeft !== 1 ? 'días' : 'día') : (daysLeft !== 1 ? 'days' : 'day')} {isSpanish ? 'restantes para responder' : 'left to respond'}
-                                                                            </span>
-                                                                        </div>
                                                                         <div className="grid grid-cols-2 gap-3">
                                                                             <button
                                                                                 onClick={() => setConfirmReject({ assessmentId: quote.assessment_id || quote.assessment.id, quoteId: quote.id })}

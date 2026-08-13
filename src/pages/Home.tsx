@@ -107,7 +107,6 @@ const HomePage = () => {
                         '@context': 'https://schema.org',
                         '@type': 'LocalBusiness',
                         name: brandName,
-                        description: tenant === 'england' ? `${country}'s largest ${ratingName} website. Fast, reliable, and hassle-free ${ratingName} assessments.` : tenant === 'portugal' ? `A plataforma líder de ${ratingName} em Portugal. Avaliações energéticas rápidas, fiáveis e sem complicações.` : "Need a BER Cert in Ireland? The BER Man Connects You with Local, SEAI-Registered Assessors Nationwide. Get a Free Quote Online Today!",
                         url: tenant === 'england' ? 'https://www.epccert.com' : isSpanish ? 'https://certificadoenergético.eu' : tenant === 'france' ? 'https://dpefrance.eu' : tenant === 'portugal' ? 'https://certificadoenergia.com' : 'https://www.theberman.eu',
                         address: { '@type': 'PostalAddress', addressCountry: tenant === 'england' ? 'GB' : isSpanish ? 'ES' : tenant === 'france' ? 'FR' : tenant === 'portugal' ? 'PT' : 'IE', addressLocality: tenant === 'england' ? 'London' : isSpanish ? 'Madrid' : tenant === 'france' ? 'Paris' : tenant === 'portugal' ? 'Portugal' : 'Dublin' },
                         priceRange: tenant === 'england' ? '££' : '€€'

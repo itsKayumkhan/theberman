@@ -116,7 +116,7 @@ const JobConfirmation = ({ customerName, county, email, emailError, hideNavigati
                     </li>
                     <li className="flex gap-3">
                         <span className="flex-shrink-0 w-6 h-6 rounded-full bg-green-200 text-green-800 flex items-center justify-center text-sm font-bold">3</span>
-                        <span>{isSpanish ? `Compara los presupuestos y elige el mejor ${professionalSingular.toLowerCase()} para ti en 5 días. Pasados 5 días, el trabajo caducará.` : isFrench ? `Comparez les devis et choisissez le meilleur ${professionalSingular.toLowerCase()} pour vous sous 5 jours. Passé ce délai, la mission expirera.` : isPortuguese ? `Compare os orçamentos e escolha o melhor ${professionalSingular.toLowerCase()} para si em 5 dias. Após 5 dias, o trabalho expirará.` : `Compare quotes and choose the best ${professionalSingular.toLowerCase()} for you within 5 days. After 5 days, the job will expire.`}</span>
+                        <span>{isSpanish ? `Compara los presupuestos y elige el mejor ${professionalSingular.toLowerCase()} para ti. Los presupuestos permanecen activos mientras el trabajo esté activo.` : isFrench ? `Comparez les devis et choisissez le meilleur ${professionalSingular.toLowerCase()} pour vous. Les devis restent actifs tant que la mission est active.` : isPortuguese ? `Compare os orçamentos e escolha o melhor ${professionalSingular.toLowerCase()} para si. Os orçamentos permanecem ativos enquanto o trabalho estiver ativo.` : `Compare quotes and choose the best ${professionalSingular.toLowerCase()} for you. Quotes stay active as long as the job is active.`}</span>
                     </li>
                 </ol>
             </div>
