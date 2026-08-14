@@ -564,6 +564,94 @@ function orgSchema(tenant) {
     });
   }
 
+  if (tenant === 'france') {
+    return JSON.stringify({
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': ['Organization', 'LocalBusiness'],
+          '@id': 'https://www.dpecert.fr/#organization',
+          name: 'DPE Cert France',
+          url: 'https://www.dpecert.fr/',
+          logo: 'https://www.dpecert.fr/logo.png',
+          description: "La plateforme de confiance pour le diagnostic de performance énergétique en France. Comparez les devis de diagnostiqueurs certifiés.",
+          areaServed: { '@type': 'Country', name: 'France' },
+          knowsAbout: ['DPE','Diagnostic de Performance Énergétique','Diagnostic Immobilier','Efficacité Énergétique'],
+          hasOfferCatalog: {
+            '@type': 'OfferCatalog',
+            name: 'Services de Diagnostic de Performance Énergétique',
+            itemListElement: [
+              { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'DPE Logement', description: 'Diagnostic de performance énergétique obligatoire pour vendre ou louer un bien résidentiel en France.' } },
+              { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'DPE Bâtiment Commercial', description: 'Diagnostic de performance énergétique pour les locaux commerciaux en France.' } },
+            ]
+          },
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: '4.8', reviewCount: '800', bestRating: '5', worstRating: '1',
+          },
+        },
+        {
+          '@type': 'WebSite',
+          '@id': 'https://www.dpecert.fr/#website',
+          url: 'https://www.dpecert.fr/',
+          name: 'DPE Cert France',
+          description: "La plateforme de confiance pour le diagnostic de performance énergétique en France.",
+          publisher: { '@id': 'https://www.dpecert.fr/#organization' },
+          inLanguage: 'fr-FR',
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: { '@type': 'EntryPoint', urlTemplate: 'https://www.dpecert.fr/catalogue?q={search_term_string}' },
+            'query-input': 'required name=search_term_string',
+          },
+        },
+      ],
+    });
+  }
+
+  if (tenant === 'portugal') {
+    return JSON.stringify({
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': ['Organization', 'LocalBusiness'],
+          '@id': 'https://www.certificadoenergia.com/#organization',
+          name: 'Certificado Energia',
+          url: 'https://www.certificadoenergia.com/',
+          logo: 'https://www.certificadoenergia.com/logo.png',
+          description: "A plataforma líder de certificação energética em Portugal. Obtenha o seu certificado energético com peritos qualificados.",
+          areaServed: { '@type': 'Country', name: 'Portugal' },
+          knowsAbout: ['Certificado Energético','Eficiência Energética','Sistema de Certificação Energética','Edifícios'],
+          hasOfferCatalog: {
+            '@type': 'OfferCatalog',
+            name: 'Serviços de Certificação Energética',
+            itemListElement: [
+              { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Certificado Energético Residencial', description: 'Certificado energético obrigatório para vender ou arrendar propriedades residenciais em Portugal.' } },
+              { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Certificado Energético Comercial', description: 'Certificado energético para espaços comerciais em Portugal.' } },
+            ]
+          },
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: '4.8', reviewCount: '600', bestRating: '5', worstRating: '1',
+          },
+        },
+        {
+          '@type': 'WebSite',
+          '@id': 'https://www.certificadoenergia.com/#website',
+          url: 'https://www.certificadoenergia.com/',
+          name: 'Certificado Energia',
+          description: "A plataforma líder de certificação energética em Portugal.",
+          publisher: { '@id': 'https://www.certificadoenergia.com/#organization' },
+          inLanguage: 'pt-PT',
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: { '@type': 'EntryPoint', urlTemplate: 'https://www.certificadoenergia.com/catalogue?q={search_term_string}' },
+            'query-input': 'required name=search_string',
+          },
+        },
+      ],
+    });
+  }
+
   return JSON.stringify({
     '@context': 'https://schema.org',
     '@graph': [
@@ -816,6 +904,36 @@ function faqSchema(tenant) {
     });
   }
 
+  if (tenant === 'france') {
+    return JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      'mainEntity': [
+        { '@type':'Question', name:"Qu'est-ce qu'un DPE ?", acceptedAnswer:{ '@type':'Answer', text:"Le Diagnostic de Performance Énergétique (DPE) évalue la consommation énergétique d'un bâtiment et lui attribue une étiquette de A (très économe) à G (très énergivore). Il est obligatoire en France pour la vente ou la location d'un bien immobilier." } },
+        { '@type':'Question', name:'Quand le DPE est-il obligatoire en France ?', acceptedAnswer:{ '@type':'Answer', text:"Le DPE est obligatoire lors de la vente ou de la location d'un bien immobilier. Il doit être inclus dans le dossier de diagnostic technique (DDT) et remis à l'acquéreur ou au locataire." } },
+        { '@type':'Question', name:'Combien coûte un DPE en France ?', acceptedAnswer:{ '@type':'Answer', text:"Le prix d'un DPE en France varie généralement entre 60€ et 250€ selon le type et la taille du bien. Comparez les devis de diagnostiqueurs certifiés sur DPE Cert France pour obtenir le meilleur prix." } },
+        { '@type':'Question', name:'Quelle est la validité du DPE ?', acceptedAnswer:{ '@type':'Answer', text:"Le DPE est valable 10 ans. Toutefois, en cas de travaux modifiant significativement les performances énergétiques du bien, il est recommandé de le faire renouveler." } },
+        { '@type':'Question', name:'Qui peut réaliser un DPE ?', acceptedAnswer:{ '@type':'Answer', text:"Le DPE doit être réalisé par un diagnostiqueur certifié par un organisme accrédité par le COFRAC. Tous les diagnostiqueurs de DPE Cert France sont certifiés et qualifiés." } },
+        { '@type':'Question', name:'Quelle est la nouvelle méthode du DPE 2023 ?', acceptedAnswer:{ '@type':'Answer', text:"Depuis juillet 2021, la méthode de calcul du DPE a été réformée. Le nouveau DPE est calculé à partir des caractéristiques du bâtiment (isolation, chauffage, ventilation) et non plus à partir des factures énergétiques pour les logements." } },
+      ]
+    });
+  }
+
+  if (tenant === 'portugal') {
+    return JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      'mainEntity': [
+        { '@type':'Question', name:'O que é o Certificado Energético?', acceptedAnswer:{ '@type':'Answer', text:"O Certificado Energético avalia a eficiência energética de um edifício e atribui uma classificação de A+ (mais eficiente) a G (menos eficiente). É obrigatório em Portugal para vender ou arrendar imóveis." } },
+        { '@type':'Question', name:'Quando é obrigatório o Certificado Energético em Portugal?', acceptedAnswer:{ '@type':'Answer', text:"O certificado energético é obrigatório para vender ou arrendar qualquer imóvel em Portugal. Deve estar disponível antes da publicação do anúncio e ser entregue ao comprador ou inquilino." } },
+        { '@type':'Question', name:'Quanto custa o Certificado Energético em Portugal?', acceptedAnswer:{ '@type':'Answer', text:"O preço do certificado energético em Portugal varia entre 60€ e 200€ conforme o tipo e dimensão do imóvel. Compare orçamentos de peritos qualificados no Certificado Energia para obter o melhor preço." } },
+        { '@type':'Question', name:'Qual a validade do Certificado Energético?', acceptedAnswer:{ '@type':'Answer', text:"O certificado energético é válido por 10 anos a partir da data de emissão. Caso sejam realizadas obras que alterem significativamente o desempenho energético do edifício, recomenda-se a renovação." } },
+        { '@type':'Question', name:'Quem pode emitir o Certificado Energético?', acceptedAnswer:{ '@type':'Answer', text:"O certificado energético deve ser emitido por um técnico qualificado certificado pela ADENE (Agência para a Energia). Todos os peritos do Certificado Energia são qualificados e certificados." } },
+        { '@type':'Question', name:'Como posso melhorar a classificação energética do meu imóvel?', acceptedAnswer:{ '@type':'Answer', text:"Melhorias como isolamento térmico, janelas eficientes, substituição do sistema de aquecimento por bombas de calor ou instalação de painéis solares podem melhorar significativamente a classificação energética." } },
+      ]
+    });
+  }
+
   return JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -885,18 +1003,62 @@ function locationSchema(pathname, tenant) {
     });
   }
 
+  if (tenant === 'france') {
+    const parts = pathname.replace(/^\//, '').split('/');
+    const county = toTitle(parts[0]);
+    const town   = parts[1] ? toTitle(parts[1]) : null;
+    const location = town ? `${town}, ${county}` : county;
+    return JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      name: `DPE à ${location}`,
+      url: `https://www.dpecert.fr${pathname}`,
+      description: `Obtenez votre DPE à ${location}. Comparez les devis de diagnostiqueurs certifiés locaux.`,
+      provider: { '@type': 'Organization', 'name': 'DPE Cert France' },
+      areaServed: {
+        '@type': town ? 'City' : 'AdministrativeArea',
+        name: location,
+        containedInPlace: { '@type': 'Country', name: 'France' },
+      },
+      serviceType: 'Diagnostic de Performance Énergétique',
+      offers: { '@type': 'AggregateOffer', priceCurrency: 'EUR', lowPrice: '60', highPrice: '250' },
+    });
+  }
+
+  if (tenant === 'portugal') {
+    const parts = pathname.replace(/^\//, '').split('/');
+    const county = toTitle(parts[0]);
+    const town   = parts[1] ? toTitle(parts[1]) : null;
+    const location = town ? `${town}, ${county}` : county;
+    return JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      name: `Certificado Energético em ${location}`,
+      url: `https://www.certificadoenergia.com${pathname}`,
+      description: `Obtenha o seu certificado energético em ${location}. Compare orçamentos de peritos qualificados locais.`,
+      provider: { '@type': 'Organization', 'name': 'Certificado Energia' },
+      areaServed: {
+        '@type': town ? 'City' : 'AdministrativeArea',
+        name: location,
+        containedInPlace: { '@type': 'Country', name: 'Portugal' },
+      },
+      serviceType: 'Certificado Energético',
+      offers: { '@type': 'AggregateOffer', priceCurrency: 'EUR', lowPrice: '60', highPrice: '200' },
+    });
+  }
+
   const parts = pathname.replace(/^\//, '').split('/');
   const county = COUNTY_NAMES[parts[0]] || toTitle(parts[0]);
   const town   = parts[1] ? toTitle(parts[1]) : null;
   const location = town ? `${town}, County ${county}` : `County ${county}`;
-  const url = `https://theberman.eu${pathname}`;
+  const url = `https://www.theberman.eu${pathname}`;
   return JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'Service',
     name: `BER Certificate in ${location}`,
     url,
     description: `Get BER certificates in ${location}, Ireland. Compare quotes from SEAI-registered assessors. Book online today with The Berman.`,
-    provider: { '@id': 'https://theberman.eu/#organization' },
+    provider: { '@id': 'https://www.theberman.eu/#organization' },
     areaServed: {
       '@type': town ? 'City' : 'AdministrativeArea',
       name: location,
@@ -911,11 +1073,13 @@ function breadcrumbSchema(pathname, tenant) {
   const parts = pathname.replace(/^\//, '').split('/').filter(Boolean);
   if (!parts.length) return null;
 
-  let siteUrl = 'https://theberman.eu';
+  let siteUrl = 'https://www.theberman.eu';
   if (tenant === 'spain') siteUrl = 'https://www.xn--certificadoenergtico-q2b.eu';
   else if (tenant === 'england') siteUrl = 'https://www.epccert.com';
+  else if (tenant === 'france') siteUrl = 'https://www.dpecert.fr';
+  else if (tenant === 'portugal') siteUrl = 'https://www.certificadoenergia.com';
 
-  const homeName = tenant === 'spain' ? 'Inicio' : 'Home';
+  const homeName = tenant === 'spain' ? 'Inicio' : tenant === 'france' ? 'Accueil' : tenant === 'portugal' ? 'Início' : 'Home';
 
   const items = [{ '@type':'ListItem', position:1, name: homeName, item: siteUrl + '/' }];
   let current = siteUrl;
@@ -932,6 +1096,20 @@ function breadcrumbSchema(pathname, tenant) {
     } else if (tenant === 'england') {
       if (p === 'about-us') name = 'About Us';
       else if (p === 'epc-faq') name = 'FAQ';
+    } else if (tenant === 'france') {
+      if (p === 'about-us') name = 'À Propos';
+      else if (p === 'ber-faqs') name = 'Questions Fréquentes';
+      else if (p === 'contact-us') name = 'Contact';
+      else if (p === 'catalogue') name = 'Catalogue';
+      else if (p === 'hire-agent') name = 'Conseiller Énergétique';
+      else if (p === 'locations') name = 'Localisations';
+    } else if (tenant === 'portugal') {
+      if (p === 'about-us') name = 'Sobre Nós';
+      else if (p === 'faq') name = 'Perguntas Frequentes';
+      else if (p === 'contact-us') name = 'Contacto';
+      else if (p === 'catalogue') name = 'Catálogo';
+      else if (p === 'hire-agent') name = 'Conselheiro Energético';
+      else if (p === 'locations') name = 'Localizações';
     }
     items.push({ '@type':'ListItem', position: i + 2, name, item: current });
   });
@@ -942,12 +1120,12 @@ function breadcrumbSchema(pathname, tenant) {
 function hreflangTags(pathname, tenant) {
   const cleanPath = pathname === '/' ? '/' : pathname;
   const domains = [
-    { lang:'en-IE', base:'https://theberman.eu' },
-    { lang:'en-GB', base:'https://epccert.com' },
-    { lang:'fr-FR', base:'https://dpefrance.eu' },
+    { lang:'en-IE', base:'https://www.theberman.eu' },
+    { lang:'en-GB', base:'https://www.epccert.com' },
+    { lang:'fr-FR', base:'https://www.dpecert.fr' },
     { lang:'es-ES', base:'https://www.xn--certificadoenergtico-q2b.eu' },
-    { lang:'pt-PT', base:'https://certificadopt.eu' },
-    { lang:'x-default', base:'https://theberman.eu' },
+    { lang:'pt-PT', base:'https://www.certificadoenergia.com' },
+    { lang:'x-default', base:'https://www.theberman.eu' },
   ];
   return domains.map(d =>
     `<link rel="alternate" hreflang="${d.lang}" href="${d.base}${cleanPath}" />` 
@@ -1060,16 +1238,16 @@ export default async function middleware(req) {
   let canonicalBase = 'https://www.theberman.eu';
   if (tenant === 'spain') canonicalBase = 'https://www.xn--certificadoenergtico-q2b.eu';
   else if (tenant === 'england') canonicalBase = 'https://www.epccert.com';
-  else if (tenant === 'france') canonicalBase = 'https://dpecert.fr';
-  else if (tenant === 'portugal') canonicalBase = 'https://certificadoenergia.com';
+  else if (tenant === 'france') canonicalBase = 'https://www.dpecert.fr';
+  else if (tenant === 'portugal') canonicalBase = 'https://www.certificadoenergia.com';
   
   const canonical = `${canonicalBase}${path === '/' ? '/' : path}`;
   
-  let ogImage = 'https://theberman.eu/logo.png';
+  let ogImage = 'https://www.theberman.eu/logo.png';
   if (tenant === 'spain') ogImage = 'https://www.xn--certificadoenergtico-q2b.eu/logo.png';
   else if (tenant === 'england') ogImage = 'https://www.epccert.com/logo.png';
-  else if (tenant === 'france') ogImage = 'https://dpecert.fr/logo.png';
-  else if (tenant === 'portugal') ogImage = 'https://certificadoenergia.com/logo.png';
+  else if (tenant === 'france') ogImage = 'https://www.dpecert.fr/logo.png';
+  else if (tenant === 'portugal') ogImage = 'https://www.certificadoenergia.com/logo.png';
 
   // Build all schemas
   const schemas = [];
@@ -1102,14 +1280,14 @@ export default async function middleware(req) {
       url: `${canonicalBase}${path}`,
       datePublished: '2026-07-01',
       dateModified: new Date().toISOString().split('T')[0],
-      author: { '@type': 'Organization', name: tenant === 'england' ? 'EPC Cert' : 'The Berman', url: canonicalBase },
+      author: { '@type': 'Organization', name: tenant === 'england' ? 'EPC Cert' : tenant === 'france' ? 'DPE Cert France' : tenant === 'portugal' ? 'Certificado Energia' : tenant === 'spain' ? 'Certificado Energético' : 'The Berman', url: canonicalBase },
       publisher: {
         '@type': 'Organization',
-        name: tenant === 'england' ? 'EPC Cert' : 'The Berman',
+        name: tenant === 'england' ? 'EPC Cert' : tenant === 'france' ? 'DPE Cert France' : tenant === 'portugal' ? 'Certificado Energia' : tenant === 'spain' ? 'Certificado Energético' : 'The Berman',
         logo: { '@type': 'ImageObject', url: `${canonicalBase}/logo.png` }
       },
       mainEntityOfPage: { '@type': 'WebPage', '@id': `${canonicalBase}${path}` },
-      inLanguage: tenant === 'spain' ? 'es-ES' : tenant === 'england' ? 'en-GB' : 'en-IE',
+      inLanguage: tenant === 'spain' ? 'es-ES' : tenant === 'england' ? 'en-GB' : tenant === 'france' ? 'fr-FR' : tenant === 'portugal' ? 'pt-PT' : 'en-IE',
     };
     schemas.push(`<script type="application/ld+json">${JSON.stringify(blogPosting)}</script>`);
   }
@@ -1126,14 +1304,14 @@ export default async function middleware(req) {
       url: `${canonicalBase}${path}`,
       datePublished: '2026-07-01',
       dateModified: new Date().toISOString().split('T')[0],
-      author: { '@type': 'Organization', name: tenant === 'england' ? 'EPC Cert' : 'The Berman', url: canonicalBase },
+      author: { '@type': 'Organization', name: tenant === 'england' ? 'EPC Cert' : tenant === 'france' ? 'DPE Cert France' : tenant === 'portugal' ? 'Certificado Energia' : tenant === 'spain' ? 'Certificado Energético' : 'The Berman', url: canonicalBase },
       publisher: {
         '@type': 'Organization',
-        name: tenant === 'england' ? 'EPC Cert' : 'The Berman',
+        name: tenant === 'england' ? 'EPC Cert' : tenant === 'france' ? 'DPE Cert France' : tenant === 'portugal' ? 'Certificado Energia' : tenant === 'spain' ? 'Certificado Energético' : 'The Berman',
         logo: { '@type': 'ImageObject', url: `${canonicalBase}/logo.png` }
       },
       mainEntityOfPage: { '@type': 'WebPage', '@id': `${canonicalBase}${path}` },
-      inLanguage: tenant === 'spain' ? 'es-ES' : tenant === 'england' ? 'en-GB' : 'en-IE',
+      inLanguage: tenant === 'spain' ? 'es-ES' : tenant === 'england' ? 'en-GB' : tenant === 'france' ? 'fr-FR' : tenant === 'portugal' ? 'pt-PT' : 'en-IE',
     };
     schemas.push(`<script type="application/ld+json">${JSON.stringify(article)}</script>`);
   }
