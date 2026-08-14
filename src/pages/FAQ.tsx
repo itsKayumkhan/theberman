@@ -187,6 +187,16 @@ const FAQ = () => {
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center pt-32 bg-white">
+                <SEOHead
+                    title={tr.seoTitle}
+                    description={tr.seoDesc}
+                    canonical={isEngland ? '/epc-faq' : isSpanish ? '/preguntas-frecuentes' : isPortugal ? '/faq' : '/ber-faqs/'}
+                    skipSiteNameSuffix={isEngland || (!isSpanish && !isFrance && !isPortugal)}
+                    ogTitle={tr.ogTitle}
+                    ogDescription={tr.ogDescription}
+                    twitterTitle={tr.twitterTitle}
+                    twitterDescription={tr.twitterDescription}
+                />
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-12 h-12 border-4 border-[#007F00]/20 border-t-[#007F00] rounded-full animate-spin"></div>
                     <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">{tr.loading}</p>

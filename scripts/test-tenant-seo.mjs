@@ -21,8 +21,8 @@ const cases = [
   {
     host: 'www.theberman.eu',
     tenant: 'ireland',
-    title: "The Berman – Ireland's Largest BER Website | BER Certificates & Energy Ratings",
-    description: "Ireland's largest BER website.",
+    title: 'BER Certificates Ireland | Largest BER Certificate Platform',
+    description: "Ireland's largest BER marketplace.",
     canonical: 'https://www.theberman.eu/',
   },
   {
@@ -35,8 +35,8 @@ const cases = [
   {
     host: 'www.epccert.com',
     tenant: 'england',
-    title: 'EPC Certificate England | Domestic & Commercial EPC',
-    description: 'Book Accredited EPC Assessments Across England.',
+    title: 'EPC Certificate England | Energy Performance Certificate & Assessors',
+    description: 'EPCCert.com provides fast, reliable, and affordable EPC Certificates across England',
     canonical: 'https://www.epccert.com/',
   },
   {

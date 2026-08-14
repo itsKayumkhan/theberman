@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { getTenantFromDomain } from '../lib/tenant';
+import { PAGE_SEO } from '../../seo-metadata.js';
 
 interface SEOHeadProps {
     title: string;
@@ -116,7 +117,17 @@ const SEOHead = ({
     twitterTitle,
     twitterDescription,
 }: SEOHeadProps) => {
+    let tenantId = 'ireland';
+    try {
+        tenantId = getTenantFromDomain();
+    } catch {
+        // Keep Ireland as the SSR/test fallback.
+    }
     const tenantCfg = getTenantConfig();
+    const pathname = typeof window === 'undefined'
+        ? '/'
+        : (window.location.pathname.replace(/\/$/, '') || '/');
+    const approvedSeo = PAGE_SEO[tenantId]?.[pathname];
     const siteName = tenantCfg.siteName;
     const baseUrl = tenantCfg.baseUrl;
     const defaultOgImage = tenantCfg.ogImage;
@@ -124,8 +135,17 @@ const SEOHead = ({
     const gaId = tenantCfg.gaId;
     const resolvedOgImage = ogImage || defaultOgImage;
 
-    const fullTitle = skipSiteNameSuffix || title.includes(siteName) ? title : `${title} | ${siteName}`;
-    const canonicalUrl = canonical ? `${baseUrl}${canonical}` : undefined;
+    const resolvedTitle = approvedSeo?.title || title;
+    const resolvedDescription = approvedSeo?.description || description;
+    const resolvedCanonical = approvedSeo?.canonical || canonical;
+    const resolvedOgTitle = approvedSeo?.ogTitle || ogTitle || resolvedTitle;
+    const resolvedOgDescription = approvedSeo?.ogDescription || ogDescription || resolvedDescription;
+    const resolvedTwitterTitle = approvedSeo?.twitterTitle || twitterTitle || resolvedOgTitle;
+    const resolvedTwitterDescription = approvedSeo?.twitterDescription || twitterDescription || resolvedOgDescription;
+    const fullTitle = approvedSeo || skipSiteNameSuffix || resolvedTitle.includes(siteName)
+        ? resolvedTitle
+        : `${resolvedTitle} | ${siteName}`;
+    const canonicalUrl = resolvedCanonical ? `${baseUrl}${resolvedCanonical}` : undefined;
 
     // Remove middleware-injected duplicate meta tags (they lack data-rh attribute)
     useEffect(() => {
@@ -148,13 +168,13 @@ const SEOHead = ({
                 if (!el.hasAttribute('data-rh')) el.remove();
             });
         });
-    }, [fullTitle, description, canonicalUrl]);
+    }, [fullTitle, resolvedDescription, canonicalUrl]);
 
     // Merge BreadcrumbList with any existing jsonLd (skip if already present)
     const hasBreadcrumb = Array.isArray(jsonLd)
         ? jsonLd.some(s => s && s['@type'] === 'BreadcrumbList')
         : jsonLd && jsonLd['@type'] === 'BreadcrumbList';
-    const breadcrumbSchema = hasBreadcrumb ? null : generateBreadcrumbList(canonical || '', tenantCfg, breadcrumb);
+    const breadcrumbSchema = hasBreadcrumb ? null : generateBreadcrumbList(resolvedCanonical || '', tenantCfg, breadcrumb);
     let mergedJsonLd: Record<string, unknown> | Record<string, unknown>[] | undefined = jsonLd;
     if (breadcrumbSchema) {
         if (Array.isArray(jsonLd)) {
@@ -178,14 +198,14 @@ gtag('config', '${gaId}');`}</script>
 
             {/* Primary Meta Tags */}
             <title>{fullTitle}</title>
-            <meta name="description" content={description} />
+            <meta name="description" content={resolvedDescription} />
             {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
             {noindex && <meta name="robots" content="noindex, nofollow" />}
 
             {/* Open Graph / Facebook */}
             <meta property="og:type" content={ogType} />
-            <meta property="og:title" content={ogTitle || fullTitle} />
-            <meta property="og:description" content={ogDescription || description} />
+            <meta property="og:title" content={resolvedOgTitle} />
+            <meta property="og:description" content={resolvedOgDescription} />
             <meta property="og:site_name" content={siteName} />
             {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
             <meta property="og:image" content={resolvedOgImage} />
@@ -193,8 +213,8 @@ gtag('config', '${gaId}');`}</script>
 
             {/* Twitter Card */}
             <meta name="twitter:card" content="summary_large_image" />
-            <meta name="twitter:title" content={twitterTitle || ogTitle || fullTitle} />
-            <meta name="twitter:description" content={twitterDescription || ogDescription || description} />
+            <meta name="twitter:title" content={resolvedTwitterTitle} />
+            <meta name="twitter:description" content={resolvedTwitterDescription} />
             <meta name="twitter:image" content={resolvedOgImage} />
 
             {/* JSON-LD Structured Data */}

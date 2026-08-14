@@ -2,7 +2,7 @@
 // Injects: canonical, title, meta description, OG tags, hreflang, JSON-LD schema
 // Zero changes to the React app needed.
 
-import { HOME_SEO } from './seo-metadata.js';
+import { HOME_SEO, PAGE_SEO } from './seo-metadata.js';
 
 export const config = { matcher: '/((?!_next|assets|favicon|logo).*)' };
 
@@ -389,6 +389,11 @@ function escapeHtml(value) {
 function getMeta(pathname, tenant) {
   const cleanPath = pathname.replace(/\/$/, ''); // strip trailing slash
   const activePath = cleanPath === '' ? '/' : cleanPath;
+
+  const approved = PAGE_SEO[tenant]?.[activePath];
+  if (approved) {
+    return { ...approved, desc: approved.description };
+  }
 
   if (tenant === 'spain') {
     if (PAGE_META_ES[activePath]) return PAGE_META_ES[activePath];
@@ -1166,13 +1171,11 @@ export default async function middleware(req) {
   // Handle redirects
   if (tenant === 'spain') {
     if (path === '/about') return Response.redirect(`${url.protocol}//${hostname}/sobre-nosotros`, 301);
-    if (path === '/faq') return Response.redirect(`${url.protocol}//${hostname}/preguntas-frecuentes`, 301);
     if (path === '/catalogue') return Response.redirect(`${url.protocol}//${hostname}/directorio`, 301);
     if (path === '/hire-agent') return Response.redirect(`${url.protocol}//${hostname}/asesor-energetico`, 301);
     if (path === '/contact-us') return Response.redirect(`${url.protocol}//${hostname}/contacto`, 301);
   } else if (tenant === 'ireland') {
     if (path === '/about') return Response.redirect(`${url.protocol}//${hostname}/about-us`, 301);
-    if (path === '/faq') return Response.redirect(`${url.protocol}//${hostname}/ber-faqs/`, 301);
   } else if (tenant === 'england') {
     if (path === '/about') return Response.redirect(`${url.protocol}//${hostname}/about-us`, 301);
     if (path === '/faq') return Response.redirect(`${url.protocol}//${hostname}/epc-faq`, 301);
@@ -1249,7 +1252,8 @@ export default async function middleware(req) {
     return new Response(html, { status: res.status, headers: Object.fromEntries(res.headers) });
   }
 
-  const { title: rawTitle, desc } = getMeta(path, tenant);
+  const pageMeta = getMeta(path, tenant);
+  const { title: rawTitle, desc } = pageMeta;
 
   const existingTitleMatch = html.match(/<title>([^<]*)<\/title>/);
   const existingTitle = existingTitleMatch ? existingTitleMatch[1] : '';
@@ -1261,7 +1265,8 @@ export default async function middleware(req) {
   else if (tenant === 'france') canonicalBase = 'https://www.dpecert.fr';
   else if (tenant === 'portugal') canonicalBase = 'https://www.certificadoenergia.com';
   
-  const canonical = `${canonicalBase}${path === '/' ? '/' : path}`;
+  const canonicalPath = pageMeta.canonical || (path === '/' ? '/' : path);
+  const canonical = `${canonicalBase}${canonicalPath}`;
   
   let ogImage = 'https://www.theberman.eu/logo.png';
   if (tenant === 'spain') ogImage = 'https://www.xn--certificadoenergtico-q2b.eu/logo.png';
@@ -1429,21 +1434,25 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   const safeTitle = escapeHtml(title);
   const safeDesc = escapeHtml(desc);
+  const safeOgTitle = escapeHtml(pageMeta.ogTitle || title);
+  const safeOgDesc = escapeHtml(pageMeta.ogDescription || desc);
+  const safeTwitterTitle = escapeHtml(pageMeta.twitterTitle || pageMeta.ogTitle || title);
+  const safeTwitterDesc = escapeHtml(pageMeta.twitterDescription || pageMeta.ogDescription || desc);
   const tenantSeoBlock = `  <!-- tenant-seo:start (${tenant}) -->
   <title>${safeTitle}</title>
   <meta name="description" content="${safeDesc}" />
   <link rel="canonical" href="${canonical}" />
   <meta name="author" content="${siteName}" />
-  <meta property="og:title" content="${safeTitle}" />
-  <meta property="og:description" content="${safeDesc}" />
+  <meta property="og:title" content="${safeOgTitle}" />
+  <meta property="og:description" content="${safeOgDesc}" />
   <meta property="og:url" content="${canonical}" />
   <meta property="og:image" content="${ogImage}" />
   <meta property="og:locale" content="${locale}" />
   <meta property="og:site_name" content="${siteName}" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="${safeTitle}" />
-  <meta name="twitter:description" content="${safeDesc}" />
+  <meta name="twitter:title" content="${safeTwitterTitle}" />
+  <meta name="twitter:description" content="${safeTwitterDesc}" />
   <meta name="twitter:image" content="${ogImage}" />
   ${gscMeta}
   ${fbMeta}

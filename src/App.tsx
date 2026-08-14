@@ -52,8 +52,10 @@ import { getTenantFromDomain } from './lib/tenant';
 
 const FaqRedirect = () => {
     const tenant = getTenantFromDomain();
-    const dest = tenant === 'england' ? '/epc-faq' : '/ber-faqs/';
-    return <Navigate to={{ pathname: dest, search: window.location.search }} replace />;
+    if (tenant === 'england') {
+        return <Navigate to={{ pathname: '/epc-faq', search: window.location.search }} replace />;
+    }
+    return <FAQ />;
 };
 
 function App() {
@@ -102,6 +104,11 @@ function App() {
                         <Route path="contacto" element={<Contact />} />
                         <Route path="asesor-energetico" element={<HireAgent />} />
                         <Route path="ubicaciones" element={<Locations />} />
+                        <Route path="servicios" element={<Services />} />
+                        <Route path="precios" element={<Pricing />} />
+                        <Route path="tecnicos" element={<Catalogue />} />
+                        <Route path="pedir-presupuesto" element={<QuoteForm />} />
+                        <Route path="registrate-tecnico" element={<HireAgent />} />
                         <Route path="certificado-energetico-:county" element={<LocationPage />} />
                         <Route path="certificado-energetico-:county/:town" element={<LocationPage />} />
                         {/* England location routes */}
