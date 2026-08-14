@@ -11,7 +11,7 @@ const About = () => {
     const isFrance = tenant === 'france';
     const isPortugal = tenant === 'portugal';
     const isEngland = tenant === 'england';
-    const brand = isSpanish ? 'Certificado Energético' : isEngland ? 'EPC Cert' : isFrance ? 'DPE France' : isPortugal ? 'Certificado Energia' : 'The BER Man';
+    const brand = isSpanish ? 'Certificado Energético' : isEngland ? 'EPC Cert' : isFrance ? 'DPE Cert France' : isPortugal ? 'Certificado Energia' : 'The Berman';
     const regAuthority = isSpanish ? 'CEE CAT' : isEngland ? 'accredited' : isFrance ? 'DPE' : isPortugal ? 'ADENE' : 'SEAI';
 
     const { content: cms, loading: cmsLoading } = usePageContent('about');
@@ -218,14 +218,14 @@ const About = () => {
         cta: isEngland ? 'Get a Free Quote' : 'Get My BER Quote',
     };
 
-    const baseUrl = tenant === 'england' ? 'https://www.epccert.com' : isSpanish ? 'https://certificadoenerg\u00e9tico.eu' : tenant === 'france' ? 'https://dpefrance.eu' : tenant === 'portugal' ? 'https://certificadoenergia.com' : 'https://www.theberman.eu';
+    const baseUrl = tenant === 'england' ? 'https://www.epccert.com' : isSpanish ? 'https://www.xn--certificadoenergtico-q2b.eu' : tenant === 'france' ? 'https://www.dpecert.fr' : tenant === 'portugal' ? 'https://www.certificadoenergia.com' : 'https://www.theberman.eu';
 
     const orgSchema = {
         '@context': 'https://schema.org',
         '@type': 'Organization',
         name: brand,
         url: baseUrl,
-        logo: tenant === 'portugal' ? `${baseUrl}/certificado-energia-logo.png` : tenant === 'france' ? `${baseUrl}/dpecert-logo.png` : `${baseUrl}/logo.svg`,
+        logo: `${baseUrl}/logo.png`,
         sameAs: tenant === 'england'
             ? ['https://www.facebook.com/epccert', 'https://www.instagram.com/epccert']
             : isSpanish

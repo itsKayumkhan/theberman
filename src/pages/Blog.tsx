@@ -59,8 +59,8 @@ const BlogPage = () => {
     const isEngland = tenant === 'england';
     const isFrance = tenant === 'france';
     const isPortugal = tenant === 'portugal';
-    const baseUrl = tenant === 'england' ? 'https://www.epccert.com' : isSpanish ? 'https://certificadoenerg\u00e9tico.eu' : tenant === 'france' ? 'https://dpefrance.eu' : tenant === 'portugal' ? 'https://certificadoenergia.com' : 'https://www.theberman.eu';
-    const brand = isSpanish ? 'Certificado Energético' : isEngland ? 'EPC Cert' : isFrance ? 'DPE France' : isPortugal ? 'Certificado Energia' : 'The BER Man';
+    const baseUrl = tenant === 'england' ? 'https://www.epccert.com' : isSpanish ? 'https://www.xn--certificadoenergtico-q2b.eu' : tenant === 'france' ? 'https://www.dpecert.fr' : tenant === 'portugal' ? 'https://www.certificadoenergia.com' : 'https://www.theberman.eu';
+    const brand = isSpanish ? 'Certificado Energético' : isEngland ? 'EPC Cert' : isFrance ? 'DPE Cert France' : isPortugal ? 'Certificado Energia' : 'The Berman';
     const { content: cms, loading: cmsLoading } = usePageContent('blog');
     const c = (section: string, key: string, fallback: string) => cmsValue(cms, section, key, fallback);
     const tr = isSpanish ? {
@@ -225,7 +225,7 @@ const BlogPage = () => {
                         '@type': 'Organization',
                         name: brand,
                         url: baseUrl,
-                        logo: tenant === 'portugal' ? `${baseUrl}/certificado-energia-logo.png` : tenant === 'france' ? `${baseUrl}/dpecert-logo.png` : `${baseUrl}/logo.svg`,
+                        logo: `${baseUrl}/logo.png`,
                         sameAs: tenant === 'england'
                             ? ['https://www.facebook.com/epccert', 'https://www.instagram.com/epccert']
                             : isSpanish

@@ -122,7 +122,7 @@ export function getTenantWebsiteUrl(tenant: string): string {
   if (tenant === 'spain') {
     const host = getCurrentHostname();
     if (host && host.includes('certificado')) return `https://${host}`;
-    return 'https://certificadoenergético.eu';
+    return 'https://www.xn--certificadoenergtico-q2b.eu';
   }
   if (tenant === 'england') {
     const host = getCurrentHostname();
@@ -132,12 +132,12 @@ export function getTenantWebsiteUrl(tenant: string): string {
   if (tenant === 'france') {
     const host = getCurrentHostname();
     if (host && (host.includes('france') || host.includes('dpecert'))) return `https://${host}`;
-    return 'https://dpecert.fr';
+    return 'https://www.dpecert.fr';
   }
   if (tenant === 'portugal') {
     const host = getCurrentHostname();
     if (host && host.includes('energia')) return `https://${host}`;
-    return 'https://certificadoenergia.com';
+    return 'https://www.certificadoenergia.com';
   }
   return 'https://www.theberman.eu';
 }

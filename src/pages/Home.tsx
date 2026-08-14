@@ -28,7 +28,7 @@ const HomePage = () => {
     const [isDismissed, setIsDismissed] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const brandName = isSpanish ? 'Certificado Energético' : tenant === 'england' ? 'EPC Cert' : tenant === 'france' ? 'DPE France' : tenant === 'portugal' ? 'Certificado Energia' : 'The BER Man';
+    const brandName = isSpanish ? 'Certificado Energético' : tenant === 'england' ? 'EPC Cert' : tenant === 'france' ? 'DPE Cert France' : tenant === 'portugal' ? 'Certificado Energia' : 'The Berman';
     const regAuthority = isSpanish ? 'CEE CAT' : tenant === 'england' ? 'accredited' : tenant === 'france' ? 'DPE' : tenant === 'portugal' ? 'ADENE' : 'SEAI';
     const ratingName = isSpanish ? 'Certificado Energético' : tenant === 'england' ? 'EPC' : tenant === 'france' ? 'DPE' : tenant === 'portugal' ? 'Certificado Energético' : 'BER';
     const country = isSpanish ? 'Spain' : tenant === 'england' ? 'England' : tenant === 'france' ? 'France' : tenant === 'portugal' ? 'Portugal' : 'Ireland';
@@ -54,7 +54,7 @@ const HomePage = () => {
                     : tenant === 'england'
                         ? 'EPC Certificate England | Energy Performance Certificate & Assessors'
                         : tenant === 'france'
-                            ? 'DPE France | Diagnostic de Performance Énergétique'
+                            ? 'DPE Cert France | Diagnostic de Performance Énergétique'
                         : tenant === 'portugal'
                             ? 'Certificado Energia Portugal | Certificados de Eficiência Energética'
                             : 'BER Certificates Ireland | Largest BER Certificate Platform'
@@ -80,17 +80,17 @@ const HomePage = () => {
                         '@context': 'https://schema.org',
                         '@type': 'BreadcrumbList',
                         itemListElement: [
-                            { '@type': 'ListItem', position: 1, name: tenant === 'portugal' ? 'Início' : 'Home', item: tenant === 'england' ? 'https://www.epccert.com/' : isSpanish ? 'https://certificadoenergético.eu/' : tenant === 'france' ? 'https://dpefrance.eu/' : tenant === 'portugal' ? 'https://certificadoenergia.com/' : 'https://www.theberman.eu/' },
+                            { '@type': 'ListItem', position: 1, name: tenant === 'portugal' ? 'Início' : isSpanish ? 'Inicio' : tenant === 'france' ? 'Accueil' : 'Home', item: tenant === 'england' ? 'https://www.epccert.com/' : isSpanish ? 'https://www.xn--certificadoenergtico-q2b.eu/' : tenant === 'france' ? 'https://www.dpecert.fr/' : tenant === 'portugal' ? 'https://www.certificadoenergia.com/' : 'https://www.theberman.eu/' },
                         ],
                     },
                     {
                         '@context': 'https://schema.org',
                         '@type': 'WebSite',
                         name: brandName,
-                        url: tenant === 'england' ? 'https://www.epccert.com' : isSpanish ? 'https://certificadoenergético.eu' : tenant === 'france' ? 'https://dpefrance.eu' : tenant === 'portugal' ? 'https://certificadoenergia.com' : 'https://www.theberman.eu',
+                        url: tenant === 'england' ? 'https://www.epccert.com' : isSpanish ? 'https://www.xn--certificadoenergtico-q2b.eu' : tenant === 'france' ? 'https://www.dpecert.fr' : tenant === 'portugal' ? 'https://www.certificadoenergia.com' : 'https://www.theberman.eu',
                         potentialAction: {
                             '@type': 'SearchAction',
-                            target: tenant === 'england' ? 'https://www.epccert.com/catalogue?q={search_term_string}' : isSpanish ? 'https://certificadoenergético.eu/catalogue?q={search_term_string}' : tenant === 'france' ? 'https://dpefrance.eu/catalogue?q={search_term_string}' : tenant === 'portugal' ? 'https://certificadoenergia.com/catalogue?q={search_term_string}' : 'https://www.theberman.eu/catalogue?q={search_term_string}',
+                            target: tenant === 'england' ? 'https://www.epccert.com/catalogue?q={search_term_string}' : isSpanish ? 'https://www.xn--certificadoenergtico-q2b.eu/catalogue?q={search_term_string}' : tenant === 'france' ? 'https://www.dpecert.fr/catalogue?q={search_term_string}' : tenant === 'portugal' ? 'https://www.certificadoenergia.com/catalogue?q={search_term_string}' : 'https://www.theberman.eu/catalogue?q={search_term_string}',
                             'query-input': 'required name=search_term_string',
                         },
                     },
@@ -98,8 +98,8 @@ const HomePage = () => {
                         '@context': 'https://schema.org',
                         '@type': 'Organization',
                         name: brandName,
-                        url: tenant === 'england' ? 'https://www.epccert.com' : isSpanish ? 'https://certificadoenergético.eu' : tenant === 'france' ? 'https://dpefrance.eu' : tenant === 'portugal' ? 'https://certificadoenergia.com' : 'https://www.theberman.eu',
-                        logo: tenant === 'england' ? 'https://www.epccert.com/logo.png' : isSpanish ? 'https://certificadoenergético.eu/logo.png' : tenant === 'france' ? 'https://dpecert.fr/dpecert-logo.png' : tenant === 'portugal' ? 'https://certificadoenergia.com/certificado-energia-logo.png' : 'https://www.theberman.eu/logo.svg',
+                        url: tenant === 'england' ? 'https://www.epccert.com' : isSpanish ? 'https://www.xn--certificadoenergtico-q2b.eu' : tenant === 'france' ? 'https://www.dpecert.fr' : tenant === 'portugal' ? 'https://www.certificadoenergia.com' : 'https://www.theberman.eu',
+                        logo: tenant === 'england' ? 'https://www.epccert.com/logo.png' : isSpanish ? 'https://www.xn--certificadoenergtico-q2b.eu/logo.png' : tenant === 'france' ? 'https://www.dpecert.fr/logo.png' : tenant === 'portugal' ? 'https://www.certificadoenergia.com/logo.png' : 'https://www.theberman.eu/logo.png',
                         sameAs: tenant === 'england' ? ['https://www.facebook.com/epccert', 'https://www.instagram.com/epccert'] : isSpanish ? ['https://www.facebook.com/certificadoenergetico', 'https://www.instagram.com/certificadoenergetico'] : tenant === 'france' ? ['https://www.facebook.com/dpefrance', 'https://www.instagram.com/dpefrance'] : tenant === 'portugal' ? [] : ['https://www.facebook.com/people/The-Berman/61578159843471/', 'https://www.instagram.com/thebermanireland'],
                         contactPoint: { '@type': 'ContactPoint', email: tenant === 'england' ? 'hello@epccert.com' : isSpanish ? 'info@certificadoenergético.eu' : tenant === 'france' ? 'contact@dpefrance.eu' : tenant === 'portugal' ? 'hello@certificadoenergia.com' : 'hello@theberman.eu', contactType: 'customer service', areaServed: tenant === 'england' ? 'GB' : isSpanish ? 'ES' : tenant === 'france' ? 'FR' : tenant === 'portugal' ? 'PT' : 'IE' }
                     },
@@ -107,7 +107,7 @@ const HomePage = () => {
                         '@context': 'https://schema.org',
                         '@type': 'LocalBusiness',
                         name: brandName,
-                        url: tenant === 'england' ? 'https://www.epccert.com' : isSpanish ? 'https://certificadoenergético.eu' : tenant === 'france' ? 'https://dpefrance.eu' : tenant === 'portugal' ? 'https://certificadoenergia.com' : 'https://www.theberman.eu',
+                        url: tenant === 'england' ? 'https://www.epccert.com' : isSpanish ? 'https://www.xn--certificadoenergtico-q2b.eu' : tenant === 'france' ? 'https://www.dpecert.fr' : tenant === 'portugal' ? 'https://www.certificadoenergia.com' : 'https://www.theberman.eu',
                         address: { '@type': 'PostalAddress', addressCountry: tenant === 'england' ? 'GB' : isSpanish ? 'ES' : tenant === 'france' ? 'FR' : tenant === 'portugal' ? 'PT' : 'IE', addressLocality: tenant === 'england' ? 'London' : isSpanish ? 'Madrid' : tenant === 'france' ? 'Paris' : tenant === 'portugal' ? 'Portugal' : 'Dublin' },
                         priceRange: tenant === 'england' ? '££' : '€€'
                     }

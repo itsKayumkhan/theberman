@@ -142,8 +142,8 @@ const NewCatalogue = () => {
     const isEngland = tenant === 'england';
     const isFrance = tenant === 'france';
     const isPortugal = tenant === 'portugal';
-    const baseUrl = tenant === 'england' ? 'https://www.epccert.com' : isSpanish ? 'https://certificadoenerg\u00e9tico.eu' : tenant === 'france' ? 'https://dpefrance.eu' : tenant === 'portugal' ? 'https://certificadoenergia.com' : 'https://www.theberman.eu';
-    const brand = isSpanish ? 'Certificado Energético' : isEngland ? 'EPC Cert' : isFrance ? 'DPE France' : isPortugal ? 'Certificado Energia' : 'The BER Man';
+    const baseUrl = tenant === 'england' ? 'https://www.epccert.com' : isSpanish ? 'https://www.xn--certificadoenergtico-q2b.eu' : tenant === 'france' ? 'https://www.dpecert.fr' : tenant === 'portugal' ? 'https://www.certificadoenergia.com' : 'https://www.theberman.eu';
+    const brand = isSpanish ? 'Certificado Energético' : isEngland ? 'EPC Cert' : isFrance ? 'DPE Cert France' : isPortugal ? 'Certificado Energia' : 'The Berman';
     const t = {
         catalogueBadge: isSpanish ? 'El Catálogo' : isEngland ? 'The Catalogue' : isFrance ? 'Le Catalogue' : isPortugal ? 'O Catálogo' : 'Home Energy Professionals Directory',
         heroLine1: isSpanish ? 'Catálogo de Negocios de' : isFrance ? 'Catalogue des Entreprises' : isPortugal ? 'Catálogo de Empresas' : "Ireland's Home Energy",

@@ -20,9 +20,9 @@ interface SEOHeadProps {
 
 const TENANT_CONFIG: Record<string, { siteName: string; baseUrl: string; ogImage: string; locale: string; currency: string; gaId: string }> = {
     spain: {
-        siteName: 'Certificado Energ\u00e9tico',
-        baseUrl: 'https://certificadoenergético.eu',
-        ogImage: 'https://certificadoenergético.eu/logo.png',
+        siteName: 'Certificado Energético',
+        baseUrl: 'https://www.xn--certificadoenergtico-q2b.eu',
+        ogImage: 'https://www.xn--certificadoenergtico-q2b.eu/logo.png',
         locale: 'es_ES',
         currency: 'EUR',
         gaId: 'G-XXXXXXXXXX',
@@ -37,24 +37,24 @@ const TENANT_CONFIG: Record<string, { siteName: string; baseUrl: string; ogImage
     },
     portugal: {
         siteName: 'Certificado Energia',
-        baseUrl: 'https://certificadoenergia.com',
-        ogImage: 'https://certificadoenergia.com/certificado-energia-logo.png',
+        baseUrl: 'https://www.certificadoenergia.com',
+        ogImage: 'https://www.certificadoenergia.com/logo.png',
         locale: 'pt_PT',
         currency: 'EUR',
         gaId: 'G-XXXXXXXXXX',
     },
     france: {
         siteName: 'DPE Cert France',
-        baseUrl: 'https://dpecert.fr',
-        ogImage: 'https://dpecert.fr/dpecert-logo.png',
+        baseUrl: 'https://www.dpecert.fr',
+        ogImage: 'https://www.dpecert.fr/logo.png',
         locale: 'fr_FR',
         currency: 'EUR',
         gaId: 'G-XXXXXXXXXX',
     },
     ireland: {
-        siteName: 'The BER Man',
+        siteName: 'The Berman',
         baseUrl: 'https://www.theberman.eu',
-        ogImage: 'https://www.theberman.eu/logo.svg',
+        ogImage: 'https://www.theberman.eu/logo.png',
         locale: 'en_IE',
         currency: 'EUR',
         gaId: 'G-BLJ6KWN29Y',
@@ -75,7 +75,8 @@ function generateBreadcrumbList(canonical: string, tenantCfg: typeof TENANT_CONF
     if (breadcrumbs.length === 0 && canonical && canonical !== '/') {
         const parts = canonical.replace(/^\//, '').split('/');
         let builtUrl = '';
-        breadcrumbs.push({ name: 'Home', url: `${tenantCfg.baseUrl}/` });
+        const homeName = tenantCfg === TENANT_CONFIG.spain ? 'Inicio' : tenantCfg === TENANT_CONFIG.france ? 'Accueil' : tenantCfg === TENANT_CONFIG.portugal ? 'Início' : 'Home';
+        breadcrumbs.push({ name: homeName, url: `${tenantCfg.baseUrl}/` });
         parts.forEach((part) => {
             builtUrl += `/${part}`;
             const name = part.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
