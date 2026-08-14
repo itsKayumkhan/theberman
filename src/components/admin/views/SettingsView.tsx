@@ -203,11 +203,12 @@ const HomeownerDepositFeesForm = ({ appSettings, selectedTenant, fetchAppSetting
                 onSubmit={async (e) => {
                     e.preventDefault();
                     try {
-                        const { error } = await supabase.from('app_settings').update({
+                        const { error } = await supabase.from('app_settings').upsert({
+                            tenant: selectedTenant,
                             platform_fee_amount: platformNum,
                             hidden_fee_amount: hiddenNum,
                             booking_deposit_amount: platformNum + hiddenNum
-                        }).eq('id', appSettings?.id);
+                        }, { onConflict: 'tenant' });
                         if (error) throw error;
                         toast.success('Platform fees updated!');
                         fetchAppSettings();
@@ -283,12 +284,13 @@ export const SettingsView = ({
                     const formData = new FormData(e.target as HTMLFormElement);
                     try {
                         setIsSavingSettings(true);
-                        const { error } = await supabase.from('app_settings').update({
+                        const { error } = await supabase.from('app_settings').upsert({
+                            tenant: selectedTenant,
                             default_quote_price: parseFloat(formData.get('default_quote_price') as string),
                             vat_rate: parseFloat(formData.get('vat_rate') as string),
                             company_name: formData.get('company_name') as string,
                             support_email: formData.get('support_email') as string,
-                        }).eq('id', appSettings?.id);
+                        }, { onConflict: 'tenant' });
                         if (error) throw error;
                         toast.success('Platform settings updated!');
                         fetchAppSettings();
@@ -342,9 +344,10 @@ export const SettingsView = ({
                     try {
                         setIsSavingSubscription(true);
                         const subscriptionAmount = parseFloat(formData.get('business_subscription_amount') as string);
-                        const { error } = await supabase.from('app_settings').update({
+                        const { error } = await supabase.from('app_settings').upsert({
+                            tenant: selectedTenant,
                             business_subscription_amount: subscriptionAmount,
-                        }).eq('id', appSettings?.id);
+                        }, { onConflict: 'tenant' });
                         if (error) throw error;
                         toast.success('Business subscription amount updated!');
                         fetchAppSettings();
@@ -411,12 +414,13 @@ export const SettingsView = ({
                     const formData = new FormData(e.target as HTMLFormElement);
                     try {
                         setIsSavingRegistrationFees(true);
-                        const { error } = await supabase.from('app_settings').update({
+                        const { error } = await supabase.from('app_settings').upsert({
+                            tenant: selectedTenant,
                             domestic_assessor_price: parseFloat(formData.get('domestic_assessor_price') as string),
                             commercial_assessor_price: parseFloat(formData.get('commercial_assessor_price') as string),
                             bundle_assessor_price: parseFloat(formData.get('bundle_assessor_price') as string),
                             business_registration_price: parseFloat(formData.get('business_registration_price') as string)
-                        }).eq('id', appSettings?.id);
+                        }, { onConflict: 'tenant' });
                         if (error) throw error;
                         toast.success('Registration fees updated!');
                         fetchAppSettings();
