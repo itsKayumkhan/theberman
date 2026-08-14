@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { getTenantFromDomain } from '../lib/tenant';
 
@@ -124,6 +125,29 @@ const SEOHead = ({
 
     const fullTitle = skipSiteNameSuffix || title.includes(siteName) ? title : `${title} | ${siteName}`;
     const canonicalUrl = canonical ? `${baseUrl}${canonical}` : undefined;
+
+    // Remove middleware-injected duplicate meta tags (they lack data-rh attribute)
+    useEffect(() => {
+        const selectors = [
+            'meta[name="description"]',
+            'meta[property="og:title"]',
+            'meta[property="og:description"]',
+            'meta[property="og:url"]',
+            'meta[property="og:site_name"]',
+            'meta[property="og:image"]',
+            'meta[property="og:locale"]',
+            'meta[name="twitter:card"]',
+            'meta[name="twitter:title"]',
+            'meta[name="twitter:description"]',
+            'meta[name="twitter:image"]',
+            'link[rel="canonical"]',
+        ];
+        selectors.forEach(sel => {
+            document.querySelectorAll(sel).forEach(el => {
+                if (!el.hasAttribute('data-rh')) el.remove();
+            });
+        });
+    }, [fullTitle, description, canonicalUrl]);
 
     // Merge BreadcrumbList with any existing jsonLd (skip if already present)
     const hasBreadcrumb = Array.isArray(jsonLd)

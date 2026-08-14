@@ -117,16 +117,23 @@ const LocationPage = () => {
         : `${labels.assessor} ${labels.in} ${displayName} | ${isSpanish ? 'Certificado Energético' : isEngland ? 'EPC Certificates' : isFrance ? 'DPE' : isPortugal ? 'Certificado Energético' : 'BER Certificates'}`;
 
     const defaultPageDescription = townName
-        ? `Find ${labels.assessor.toLowerCase()} ${labels.in} ${townName}, ${countyName}. ${isSpanish ? 'Obtenga su certificado de eficiencia energética con técnicos certificados locales.' : isFrance ? 'Obtenez votre DPE avec des diagnostiqueurs certifiés locaux.' : isPortugal ? 'Obtenha o seu certificado energético com peritos qualificados locais.' : 'Get your energy certificate with local certified assessors.'}`
-        : `Find ${labels.assessor.toLowerCase()} ${labels.in} ${displayName}. ${isSpanish ? 'Obtenga su certificado de eficiencia energética con técnicos certificados locales.' : isFrance ? 'Obtenez votre DPE avec des diagnostiqueurs certifiés locaux.' : isPortugal ? 'Obtenha o seu certificado energético com peritos qualificados locais.' : 'Get your energy certificate with local certified assessors.'}`;
+        ? `${labels.find} ${labels.assessor.toLowerCase()} ${labels.in} ${townName}, ${countyName}. ${isSpanish ? 'Obtenga su certificado de eficiencia energética con técnicos certificados locales.' : isFrance ? 'Obtenez votre DPE avec des diagnostiqueurs certifiés locaux.' : isPortugal ? 'Obtenha o seu certificado energético com peritos qualificados locais.' : 'Get your energy certificate with local certified assessors.'}`
+        : `${labels.find} ${labels.assessor.toLowerCase()} ${labels.in} ${displayName}. ${isSpanish ? 'Obtenga su certificado de eficiencia energética con técnicos certificados locales.' : isFrance ? 'Obtenez votre DPE avec des diagnostiqueurs certifiés locaux.' : isPortugal ? 'Obtenha o seu certificado energético com peritos qualificados locais.' : 'Get your energy certificate with local certified assessors.'}`;
 
     const pageTitle = customData?.seo_title || defaultPageTitle;
     const pageDescription = customData?.seo_description || defaultPageDescription;
 
-    // Update document title
+    // Update document title and meta description, removing any middleware-injected duplicates
     useEffect(() => {
         document.title = pageTitle;
-        document.querySelector('meta[name="description"]')?.setAttribute('content', pageDescription);
+        const descMetas = document.querySelectorAll('meta[name="description"]');
+        if (descMetas.length > 0) {
+            descMetas.forEach(el => el.remove());
+        }
+        const meta = document.createElement('meta');
+        meta.name = 'description';
+        meta.content = pageDescription;
+        document.head.appendChild(meta);
     }, [pageTitle, pageDescription]);
 
     const heroTitle = customData?.hero_title || `${labels.assessor} ${labels.in} ${townName || displayName}`;

@@ -258,6 +258,50 @@ const PAGE_META_FR = {
     title: "Certificat DPE France | Prix à partir de 60€ | Experts Certifiés",
     desc: "Obtenez votre certificat DPE en France. Comparez les devis d'experts certifiés en France. Prix à partir de 60€, visite incluse, enregistrement officiel. Devis gratuit.",
   },
+  '/about-us': {
+    title: "À Propos - Experts en Diagnostic de Performance Énergétique | DPE Cert France",
+    desc: "Découvrez DPE Cert France, la plateforme de confiance pour le diagnostic de performance énergétique en France. Diagnostiqueurs certifiés, évaluations rapides et professionnelles.",
+  },
+  '/services': {
+    title: "Nos Services - DPE Experts | DPE Cert France",
+    desc: "Services complets de diagnostic de performance énergétique incluant DPE, audits énergétiques et certifications pour logements et bâtiments commerciaux.",
+  },
+  '/pricing': {
+    title: "Tarifs - Coûts Transparent du DPE | DPE Cert France",
+    desc: "Tarifs clairs et transparents pour les diagnostics de performance énergétique. Formules pour appartements, maisons et locaux commerciaux.",
+  },
+  '/ber-faqs': {
+    title: "Questions Fréquentes DPE France | DPE Cert France",
+    desc: "Trouvez les réponses aux questions courantes sur le DPE, les diagnostics énergétiques, les coûts et les rénovations en France.",
+  },
+  '/ber-faqs/': {
+    title: "Questions Fréquentes DPE France | DPE Cert France",
+    desc: "Trouvez les réponses aux questions courantes sur le DPE, les diagnostics énergétiques, les coûts et les rénovations en France.",
+  },
+  '/contact-us': {
+    title: "Contact | DPE Cert France",
+    desc: "Contactez DPE Cert France pour vos diagnostics de performance énergétique. Diagnostiqueurs qualifiés et devis compétitifs.",
+  },
+  '/catalogue': {
+    title: "Catalogue d'Entreprises | DPE Cert France",
+    desc: "Parcourez le catalogue des entreprises d'efficacité énergétique vérifiées. Trouvez isolation, pompes à chaleur, solaire et plus.",
+  },
+  '/blog': {
+    title: "Blog | DPE Cert France",
+    desc: "Guides experts sur le DPE, les subventions énergétiques, les rénovations et plus encore.",
+  },
+  '/news': {
+    title: "Actualités | DPE Cert France",
+    desc: "Restez informé des nouvelles énergétiques, subventions et mises à jour du secteur du DPE.",
+  },
+  '/locations': {
+    title: "Diagnostiqueurs par Localisation | DPE Cert France",
+    desc: "Trouvez des diagnostiqueurs certifiés près de chez vous en France. Parcourez par région.",
+  },
+  '/hire-agent': {
+    title: "Conseiller Énergétique France | Conseil Énergétique Indépendant | DPE Cert France",
+    desc: "Recevez des conseils énergétiques indépendants, un accompagnement pour vos rénovations et un soutien technique pour améliorer les performances énergétiques de votre propriété.",
+  },
 };
 
 // ─── Page metadata map (Portugal) ─────────────────────────────────────────────
@@ -265,6 +309,54 @@ const PAGE_META_PT = {
   '/': {
     title: "Certificado Energético Portugal | Preço desde 60€ | Técnicos Acreditados",
     desc: "Obtenha o seu certificado energético em Portugal. Compare orçamentos de técnicos acreditados. Preço desde 60€, visita incluída, registo oficial. Orçamento gratuito.",
+  },
+  '/about-us': {
+    title: "Sobre Nós - Especialistas em Certificação Energética | Certificado Energia",
+    desc: "Conheça a Certificado Energia, a plataforma de confiança para certificação energética em Portugal. Peritos qualificados, avaliações rápidas e profissionais.",
+  },
+  '/services': {
+    title: "Os nossos Serviços - Certificados Energéticos | Certificado Energia",
+    desc: "Serviços completos de certificação energética incluindo certificados, avaliações e auditorias para propriedades residenciais e comerciais.",
+  },
+  '/pricing': {
+    title: "Preços - Custos Transparentes de Certificação Energética | Certificado Energia",
+    desc: "Preços claros e transparentes para certificação energética. Planos para apartamentos, casas e espaços comerciais.",
+  },
+  '/faq': {
+    title: "Perguntas Frequentes | Certificado Energia",
+    desc: "Encontre respostas às perguntas mais comuns sobre certificação energética, custos e melhorias em Portugal.",
+  },
+  '/ber-faqs': {
+    title: "Perguntas Frequentes | Certificado Energia",
+    desc: "Encontre respostas às perguntas mais comuns sobre certificação energética, custos e melhorias em Portugal.",
+  },
+  '/ber-faqs/': {
+    title: "Perguntas Frequentes | Certificado Energia",
+    desc: "Encontre respostas às perguntas mais comuns sobre certificação energética, custos e melhorias em Portugal.",
+  },
+  '/contact-us': {
+    title: "Contacto | Certificado Energia Portugal",
+    desc: "Contacte a Certificado Energia para certificação energética em Portugal. Peritos qualificados e orçamentos competitivos.",
+  },
+  '/catalogue': {
+    title: "Catálogo de Empresas | Certificado Energia",
+    desc: "Explore o catálogo de empresas de eficiência energética verificadas. Encontre isolamento, bombas de calor, solar e mais.",
+  },
+  '/blog': {
+    title: "Blog | Certificado Energia",
+    desc: "Guias especializados sobre certificação energética, subvenções, renovações e mais em Portugal.",
+  },
+  '/news': {
+    title: "Notícias | Certificado Energia",
+    desc: "Fique a par das novidades energéticas, subvenções e atualizações do setor da certificação energética em Portugal.",
+  },
+  '/locations': {
+    title: "Peritos por Localização | Certificado Energia",
+    desc: "Encontre peritos qualificados na sua zona em Portugal. Navegue por região.",
+  },
+  '/hire-agent': {
+    title: "Contratar um Consultor Energético | Certificado Energia",
+    desc: "Obtenha orientação gratuita e imparcial de um Consultor Energético certificado. Análise técnica verificada e preços competitivos para melhorar a eficiência da sua habitação.",
   },
 };
 
@@ -327,12 +419,32 @@ function getMeta(pathname, tenant) {
   // France
   if (tenant === 'france') {
     if (PAGE_META_FR[activePath]) return PAGE_META_FR[activePath];
+
+    // Location page: /city or /city/town
+    const parts = activePath.replace(/^\//, '').split('/');
+    if (parts.length >= 1 && parts[0]) {
+      const city = toTitle(parts[0]);
+      return {
+        title: `Diagnostiqueurs Certifiés à ${city} | DPE | DPE Cert France`,
+        desc: `Trouvez des diagnostiqueurs certifiés à ${city}. Obtenez votre DPE avec des diagnostiqueurs certifiés locaux.`,
+      };
+    }
     return { title: PAGE_META_FR['/'].title, desc: PAGE_META_FR['/'].desc };
   }
 
   // Portugal
   if (tenant === 'portugal') {
     if (PAGE_META_PT[activePath]) return PAGE_META_PT[activePath];
+
+    // Location page: /city or /city/town
+    const parts = activePath.replace(/^\//, '').split('/');
+    if (parts.length >= 1 && parts[0]) {
+      const city = toTitle(parts[0]);
+      return {
+        title: `Peritos Qualificados em ${city} | Certificado Energético`,
+        desc: `Encontre peritos qualificados em ${city}. Obtenha o seu certificado energético com peritos qualificados locais.`,
+      };
+    }
     return { title: PAGE_META_PT['/'].title, desc: PAGE_META_PT['/'].desc };
   }
 

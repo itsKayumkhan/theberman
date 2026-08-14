@@ -27,6 +27,17 @@ const DEFAULT_PORTUGAL_FAQS: FaqItem[] = [
     { id: 'sce-8', slug: 'como-reservar', title: 'Como reservo um perito qualificado?', content: '<p>Peça um orçamento grátis na Certificado Energia, compare propostas de peritos qualificados registados na ADENE e reserve online a data e hora que mais lhe convier.</p>', category: 'SCE / ADENE', sort_order: 8 },
 ];
 
+const DEFAULT_FRANCE_FAQS: FaqItem[] = [
+    { id: 'dpe-1', slug: 'qu-est-ce-qu-un-dpe', title: "Qu'est-ce qu'un DPE ?", content: '<p>Le Diagnostic de Performance Énergétique (DPE) évalue la performance énergétique d\'un logement. Il classe les biens de A (plus efficace) à G (moins efficace), comme l\'étiquetage des appareils électroménagers.</p>', category: 'DPE Général', sort_order: 1 },
+    { id: 'dpe-2', slug: 'dpe-obligatoire', title: 'Le DPE est-il obligatoire en France ?', content: '<p>Oui. Le DPE est obligatoire par la loi pour vendre, louer ou mettre en annonce un bien immobilier, avec des exceptions très limitées.</p>', category: 'DPE Légal', sort_order: 2 },
+    { id: 'dpe-3', slug: 'qui-peut-emettre-dpe', title: 'Qui peut émettre un DPE ?', content: "<p>Seuls les diagnostiqueurs certifiés et assurés peuvent émettre un DPE valide en France. Tous nos diagnostiqueurs sont certifiés et suivent une formation continue.</p>", category: 'DPE Général', sort_order: 3 },
+    { id: 'dpe-4', slug: 'combien-coute-dpe', title: 'Combien coûte un DPE ?', content: "<p>Le prix dépend de la taille et du type de bien. Comparer les devis de plusieurs diagnostiqueurs vous aide à obtenir le meilleur prix pour votre diagnostic de performance énergétique.</p>", category: 'DPE Prix', sort_order: 4 },
+    { id: 'dpe-5', slug: 'duree-diagnostic', title: 'Combien de temps dure le diagnostic ?', content: "<p>La visite sur place dure généralement entre 1 et 3 heures, selon la taille et la complexité du bien.</p>", category: 'DPE Processus', sort_order: 5 },
+    { id: 'dpe-6', slug: 'validite-dpe', title: 'Quelle est la validité du DPE ?', content: "<p>Le DPE est valide 10 ans, sauf si des travaux importants modifient la performance énergétique du bien.</p>", category: 'DPE Validité', sort_order: 6 },
+    { id: 'dpe-7', slug: 'note-faible', title: 'Que se passe-t-il si j\'obtiens une mauvaise note ?', content: "<p>Une mauvaise note ne vous empêche pas de vendre. Elle informe simplement l'acheteur. Le rapport de recommandations vous indiquera comment améliorer la performance énergétique de votre bien.</p>", category: 'DPE Notes', sort_order: 7 },
+    { id: 'dpe-8', slug: 'comment-reserver', title: 'Comment réserver un diagnostiqueur ?', content: "<p>Demandez un devis gratuit sur DPE Cert France, comparez les propositions de diagnostiqueurs certifiés et réservez en ligne à la date et l'heure qui vous conviennent.</p>", category: 'DPE Réservation', sort_order: 8 },
+];
+
 const DEFAULT_IRELAND_FAQS: FaqItem[] = [
     { id: 'ber-1', slug: 'what-is-a-ber-certificate', title: 'What is a BER certificate?', content: '<p>A BER certificate (Building Energy Rating) rates a home\'s energy efficiency from A1 to G, based on an energy assessment by a SEAI registered assessor.</p>', category: 'BER Certificates', sort_order: 1 },
     { id: 'ber-2', slug: 'do-i-need-one-to-sell-or-rent', title: 'Do I need one to sell or rent?', content: '<p>Yes — a valid energy certificate is legally required before advertising a property for sale or rent anywhere in Ireland, including BER cert Dublin and every other county.</p>', category: 'BER Certificates', sort_order: 2 },
@@ -150,7 +161,7 @@ const FAQ = () => {
                     .eq('tenant', tenant)
                     .order('sort_order');
                 if (error) throw error;
-                const items = data && data.length > 0 ? data : (tenant === 'portugal' ? DEFAULT_PORTUGAL_FAQS : tenant === 'ireland' ? DEFAULT_IRELAND_FAQS : tenant === 'england' ? DEFAULT_ENGLAND_FAQS : []);
+                const items = data && data.length > 0 ? data : (tenant === 'portugal' ? DEFAULT_PORTUGAL_FAQS : tenant === 'ireland' ? DEFAULT_IRELAND_FAQS : tenant === 'england' ? DEFAULT_ENGLAND_FAQS : tenant === 'france' ? DEFAULT_FRANCE_FAQS : []);
                 setFaqItems(items);
                 if (items.length > 0) {
                     const hash = location.hash.replace('#', '');
@@ -187,6 +198,12 @@ const FAQ = () => {
     if (faqItems.length === 0) {
         return (
             <div className="min-h-screen pt-40 bg-white flex flex-col items-center justify-center p-6 text-center">
+            <SEOHead
+                title={tr.seoTitle}
+                description={tr.seoDesc}
+                canonical={isEngland ? '/epc-faq' : isSpanish ? '/preguntas-frecuentes' : isPortugal ? '/faq' : '/ber-faqs/'}
+                skipSiteNameSuffix={isEngland || (!isSpanish && !isFrance && !isPortugal)}
+            />
                 <h1 className="text-4xl font-black text-gray-900 mb-4 uppercase tracking-tight">{tr.comingSoonH}</h1>
                 <p className="text-gray-500 max-w-md mx-auto leading-relaxed">
                     {tr.comingSoonP}
