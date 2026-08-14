@@ -4,6 +4,37 @@
 
 export const config = { matcher: '/((?!_next|assets|favicon|logo|robots).*)' };
 
+// Exact domain -> tenant map (matches src/lib/tenant.ts)
+const DOMAIN_TO_TENANT = {
+  'theberman.eu': 'ireland',
+  'certificadoenergético.eu': 'spain',
+  'www.certificadoenergético.eu': 'spain',
+  'xn--certificadoenergtico-q2b.eu': 'spain',
+  'www.xn--certificadoenergtico-q2b.eu': 'spain',
+  'certificadosenergetico.com': 'spain',
+  'www.certificadosenergetico.com': 'spain',
+  'certificadosenergetico.eu': 'spain',
+  'www.certificadosenergetico.eu': 'spain',
+  'certificadosenergetico.es': 'spain',
+  'www.certificadosenergetico.es': 'spain',
+  'certificadosenergeticos.eu': 'spain',
+  'www.certificadosenergeticos.eu': 'spain',
+  'epccert.com': 'england',
+  'www.epccert.com': 'england',
+  'epccert.be': 'england',
+  'www.epccert.be': 'england',
+  'dpecert.fr': 'france',
+  'www.dpecert.fr': 'france',
+  'dpecert.com': 'france',
+  'www.dpecert.com': 'france',
+  'dpefrance.eu': 'france',
+  'www.dpefrance.eu': 'france',
+  'diagnostic-france.eu': 'france',
+  'www.diagnostic-france.eu': 'france',
+  'certificadoenergia.com': 'portugal',
+  'www.certificadoenergia.com': 'portugal',
+};
+
 // ─── Page metadata map (Ireland) ─────────────────────────────────────────────
 const PAGE_META_IE = {
   '/': {
@@ -221,6 +252,22 @@ const PAGE_META_ES = {
   }
 };
 
+// ─── Page metadata map (France) ───────────────────────────────────────────────
+const PAGE_META_FR = {
+  '/': {
+    title: "Certificat DPE France | Prix à partir de 60€ | Experts Certifiés",
+    desc: "Obtenez votre certificat DPE en France. Comparez les devis d'experts certifiés en France. Prix à partir de 60€, visite incluse, enregistrement officiel. Devis gratuit.",
+  },
+};
+
+// ─── Page metadata map (Portugal) ─────────────────────────────────────────────
+const PAGE_META_PT = {
+  '/': {
+    title: "Certificado Energético Portugal | Preço desde 60€ | Técnicos Acreditados",
+    desc: "Obtenha o seu certificado energético em Portugal. Compare orçamentos de técnicos acreditados. Preço desde 60€, visita incluída, registo oficial. Orçamento gratuito.",
+  },
+};
+
 // ─── County display names (Ireland) ───────────────────────────────────────────
 const COUNTY_NAMES = {
   carlow:'Carlow', cavan:'Cavan', clare:'Clare', cork:'Cork', donegal:'Donegal',
@@ -275,6 +322,18 @@ function getMeta(pathname, tenant) {
       };
     }
     return { title: null, desc: PAGE_META_EN['/'].desc };
+  }
+
+  // France
+  if (tenant === 'france') {
+    if (PAGE_META_FR[activePath]) return PAGE_META_FR[activePath];
+    return { title: PAGE_META_FR['/'].title, desc: PAGE_META_FR['/'].desc };
+  }
+
+  // Portugal
+  if (tenant === 'portugal') {
+    if (PAGE_META_PT[activePath]) return PAGE_META_PT[activePath];
+    return { title: PAGE_META_PT['/'].title, desc: PAGE_META_PT['/'].desc };
   }
 
   // Ireland
@@ -789,9 +848,8 @@ export default async function middleware(req) {
   const path = url.pathname;
 
   const hostname = req.headers.get('host') || url.hostname;
-  const isEsp = /certificado|xn--/.test(hostname);
-  const isEng = /epccert/.test(hostname);
-  const tenant = isEsp ? 'spain' : (isEng ? 'england' : 'ireland');
+  const cleanHost = hostname.replace(/^www\./, '').toLowerCase();
+  const tenant = DOMAIN_TO_TENANT[cleanHost] || 'ireland';
 
 
 
@@ -857,7 +915,7 @@ export default async function middleware(req) {
   html = await res.text();
 
   // Replace the hardcoded html lang attribute per tenant
-  const htmlLang = tenant === 'spain' ? 'es' : 'en';
+  const htmlLang = tenant === 'spain' ? 'es' : tenant === 'france' ? 'fr' : tenant === 'portugal' ? 'pt' : 'en';
   html = html.replace(/<html([^>]*)lang="en"/, '<html$1lang="' + htmlLang + '"');
 
   // If the response is not a usable HTML document, pass it through unchanged
@@ -874,12 +932,16 @@ export default async function middleware(req) {
   let canonicalBase = 'https://www.theberman.eu';
   if (tenant === 'spain') canonicalBase = 'https://www.xn--certificadoenergtico-q2b.eu';
   else if (tenant === 'england') canonicalBase = 'https://www.epccert.com';
+  else if (tenant === 'france') canonicalBase = 'https://dpecert.fr';
+  else if (tenant === 'portugal') canonicalBase = 'https://certificadoenergia.com';
   
   const canonical = `${canonicalBase}${path === '/' ? '/' : path}`;
   
   let ogImage = 'https://theberman.eu/logo.png';
   if (tenant === 'spain') ogImage = 'https://www.xn--certificadoenergtico-q2b.eu/logo.png';
   else if (tenant === 'england') ogImage = 'https://www.epccert.com/logo.png';
+  else if (tenant === 'france') ogImage = 'https://dpecert.fr/logo.png';
+  else if (tenant === 'portugal') ogImage = 'https://certificadoenergia.com/logo.png';
 
   // Build all schemas
   const schemas = [];
@@ -957,6 +1019,8 @@ export default async function middleware(req) {
   let siteName = 'The Berman';
   if (tenant === 'spain') { locale = 'es_ES'; siteName = 'Certificado Energético'; }
   else if (tenant === 'england') { locale = 'en_GB'; siteName = 'EPC Cert'; }
+  else if (tenant === 'france') { locale = 'fr_FR'; siteName = 'DPE Cert France'; }
+  else if (tenant === 'portugal') { locale = 'pt_PT'; siteName = 'Certificado Energia'; }
 
   let gscCode = '';
   if (tenant === 'england') gscCode = 'uU6Ruam97ElN2rtvSBjwfgOUx93cCD93YRVyiBUePiw';
@@ -1008,7 +1072,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     .replace(/<script\s[^>]*type="text\/plain"[^>]*data-cookieconsent[^>]*>[\s\S]*?<\/script>/gi, '')
     .replace(/<script\s[^>]*data-cookieconsent[^>]*type="text\/plain"[^>]*>[\s\S]*?<\/script>/gi, '')
     // Remove the cookie consent comment wrapper if present
-    .replace(/<!--\s*Google Tag Manager \+ Meta Pixel[^-]*-->/gi, '');
+    .replace(/<!--\s*Google Tag Manager \+ Meta Pixel[^-]*-->/gi, '')
+    // Strip any pre-injected SEO meta tags so the middleware's injected values are authoritative
+    .replace(/<meta\s+[^>]*name=["']description["'][^>]*\/?>/gi, '')
+    .replace(/<meta\s+[^>]*property=["']og:title["'][^>]*\/?>/gi, '')
+    .replace(/<meta\s+[^>]*property=["']og:description["'][^>]*\/?>/gi, '')
+    .replace(/<meta\s+[^>]*property=["']og:url["'][^>]*\/?>/gi, '')
+    .replace(/<meta\s+[^>]*property=["']og:image["'][^>]*\/?>/gi, '')
+    .replace(/<meta\s+[^>]*property=["']og:locale["'][^>]*\/?>/gi, '')
+    .replace(/<meta\s+[^>]*property=["']og:site_name["'][^>]*\/?>/gi, '')
+    .replace(/<meta\s+[^>]*name=["']twitter:card["'][^>]*\/?>/gi, '')
+    .replace(/<meta\s+[^>]*name=["']twitter:title["'][^>]*\/?>/gi, '')
+    .replace(/<meta\s+[^>]*name=["']twitter:description["'][^>]*\/?>/gi, '')
+    .replace(/<meta\s+[^>]*name=["']twitter:image["'][^>]*\/?>/gi, '')
+    .replace(/<meta\s+[^>]*name=["']author["'][^>]*\/?>/gi, '')
+    .replace(/<link\s+rel=["']canonical["'][^>]*\/?>/gi, '');
 
   const injected = cleanHtml.replace(
     /<title>[^<]*<\/title>/,
