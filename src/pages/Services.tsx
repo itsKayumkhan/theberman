@@ -10,9 +10,9 @@ const Services = () => {
     const isEngland = tenant === 'england';
     const isFrance = tenant === 'france';
     const isPortugal = tenant === 'portugal';
-    const brand = isSpanish ? 'Certificado Energ\u00e9tico' : isEngland ? 'EPC Cert' : isFrance ? 'DPE France' : isPortugal ? 'Certificado Energia' : 'The Berman';
+    const brand = isSpanish ? 'Certificado Energ\u00e9tico' : isEngland ? 'EPC Cert' : isFrance ? 'DPE Cert France' : isPortugal ? 'Certificado Energia' : 'The Berman';
     const serviceName = isSpanish ? 'Certificado Energ\u00e9tico' : isEngland ? 'EPC Certificate' : isFrance ? 'DPE' : isPortugal ? 'Certificado Energético' : 'BER Certificate';
-    const baseUrl = isEngland ? 'https://www.epccert.com' : isSpanish ? 'https://certificadoenerg\u00e9tico.eu' : isFrance ? 'https://dpefrance.eu' : isPortugal ? 'https://certificadoenergia.com' : 'https://theberman.eu';
+    const baseUrl = isEngland ? 'https://www.epccert.com' : isSpanish ? 'https://www.xn--certificadoenergtico-q2b.eu' : isFrance ? 'https://www.dpecert.fr' : isPortugal ? 'https://www.certificadoenergia.com' : 'https://www.theberman.eu';
     const locale = isEngland ? 'London' : isSpanish ? 'Madrid' : isFrance ? 'Paris' : isPortugal ? 'Portugal' : 'Dublin';
     const country = isEngland ? 'GB' : isSpanish ? 'ES' : isFrance ? 'FR' : isPortugal ? 'PT' : 'IE';
 
@@ -36,6 +36,118 @@ const Services = () => {
     const englandOgDesc = isEngland ? 'EPC Certificate services for residential and commercial properties across England. Qualified assessors, competitive prices, fast appointments, and reliable.' : undefined;
     const englandTwitterTitle = isEngland ? 'EPC Certificate Services England | Fast & Trusted EPC Assessment' : undefined;
     const englandTwitterDesc = isEngland ? 'Get Domestic and Commercial EPC Certificates across England with certified energy assessors. Fast booking, best pricing, and reliable nationwide service.' : undefined;
+
+    const tr = isEngland ? {
+        badge: 'What We Do', heroTitle1: 'Precision Energy', heroTitle2: 'Solutions.',
+        heroDesc: 'Comprehensive assessments and expert advice to help you meet regulations and improve efficiency.',
+        complianceTitle: 'Do I need a BER Certificate?',
+        complianceDesc: 'Required by law for selling, renting, or grant applications. We provide the certification you need with fast turnaround and expert accuracy.',
+        complianceCta: 'Book Now',
+        servicesTitle: 'Our Core Offerings', servicesSubtitle: 'Expertise Across All Sectors',
+        services: [
+            { title: 'Domestic BER', description: 'Full registered assessments for homeowners and landlords. Required for all sales, rentals, and grant applications.' },
+            { title: 'Commercial BER', description: 'Non-Domestic energy ratings for businesses and retail units. Ensure compliance and optimize operational costs.' },
+            { title: 'Energy Audits', description: 'Detailed analysis of energy usage with actionable insights on where to save and how to modernize your property.' },
+            { title: 'Grant Advisory', description: 'Navigate the grant system with expert guidance. We help you qualify for the maximum funding available.' },
+            { title: 'Technical Analysis', description: 'Specialized surveys for heat pump suitability, insulation upgrades, and solar PV potential calculations.' },
+            { title: 'Support Services', description: 'Continuous advisory for property portfolios, new build provisional ratings, and final compliance checks.' },
+        ],
+        howTitle: 'How It Works', howSubtitle: 'A simple 3-step process',
+        steps: [
+            { title: 'Schedule', description: 'Contact us to book your on-site assessment at a time that suits you.' },
+            { title: 'Survey', description: 'Our registered assessor visits your property for a comprehensive technical survey.' },
+            { title: 'Finalize', description: 'Receive your BER certificate and detailed advisory report within 48 hours.' },
+        ],
+        ctaTitle: 'Need expert energy advice?', ctaDesc: 'Our team is ready to help you optimize your property and ensure full regulatory compliance.', ctaButton: 'Get Started'
+    } : isSpanish ? {
+        badge: 'Qué hacemos', heroTitle1: 'Soluciones de', heroTitle2: 'Energía Precisas.',
+        heroDesc: 'Valoraciones integrales y asesoramiento experto para ayudarle a cumplir con la normativa y mejorar la eficiencia.',
+        complianceTitle: '¿Necesito un certificado energético?',
+        complianceDesc: 'Obligatorio por ley para la venta, alquiler o solicitud de subvenciones. Le proporcionamos el certificado que necesita con entrega rápida y precisión técnica.',
+        complianceCta: 'Reservar',
+        servicesTitle: 'Nuestros servicios principales', servicesSubtitle: 'Experiencia en todos los sectores',
+        services: [
+            { title: 'Certificado Energético Vivienda', description: 'Valoraciones registradas completas para propietarios e inquilinos. Requerido para ventas, alquileres y solicitudes de subvenciones.' },
+            { title: 'Certificado Comercial', description: 'Calificaciones energéticas no domésticas para empresas y locales comerciales. Garantice el cumplimiento y optimice los costes operativos.' },
+            { title: 'Auditorías Energéticas', description: 'Análisis detallado del consumo energético con recomendaciones prácticas para ahorrar y modernizar su propiedad.' },
+            { title: 'Asesoría de Subvenciones', description: 'Navegue por el sistema de subvenciones con orientación experta. Le ayudamos a calificar para la máxima financiación disponible.' },
+            { title: 'Análisis Técnico', description: 'Estudios especializados de idoneidad de aerotermia, mejoras de aislamiento y cálculo de potencial fotovoltaico.' },
+            { title: 'Servicios de Soporte', description: 'Asesoramiento continuo para carteras inmobiliarias, calificaciones provisionales de obra nueva y comprobaciones finales de cumplimiento.' },
+        ],
+        howTitle: 'Cómo funciona', howSubtitle: 'Un proceso sencillo en 3 pasos',
+        steps: [
+            { title: 'Programar', description: 'Contacte con nosotros para reservar su valoración presencial en el momento que le convenga.' },
+            { title: 'Inspección', description: 'Nuestro evaluador registrado visita su propiedad para realizar un estudio técnico exhaustivo.' },
+            { title: 'Finalizar', description: 'Reciba su certificado energético y el informe asesor detallado en un plazo de 48 horas.' },
+        ],
+        ctaTitle: '¿Necesita asesoramiento energético experto?', ctaDesc: 'Nuestro equipo está listo para ayudarle a optimizar su propiedad y garantizar el cumplimiento normativo.', ctaButton: 'Empezar'
+    } : isFrance ? {
+        badge: 'Nos services', heroTitle1: 'Solutions', heroTitle2: 'Énergie Précises.',
+        heroDesc: 'Diagnostics complets et conseils d’experts pour vous aider à respecter les réglementations et améliorer l’efficacité énergétique.',
+        complianceTitle: 'Ai-je besoin d’un DPE ?',
+        complianceDesc: 'Obligatoire par la loi pour la vente, la location ou les demandes d’aides. Nous fournissons le diagnostic dont vous avez besoin avec une livraison rapide et une précision technique.',
+        complianceCta: 'Réserver',
+        servicesTitle: 'Nos prestations clés', servicesSubtitle: 'Expertise dans tous les secteurs',
+        services: [
+            { title: 'DPE Logement', description: 'Diagnostics complets certifiés pour les propriétaires et locataires. Obligatoire pour les ventes, locations et demandes d’aides.' },
+            { title: 'DPE Tertiaire', description: 'Diagnostics de performance énergétique non résidentiels pour entreprises et commerces. Assurez la conformité et optimisez les coûts.' },
+            { title: 'Audits Énergétiques', description: 'Analyse détaillée de la consommation énergétique avec recommandations actionnables pour économiser et moderniser votre bien.' },
+            { title: 'Conseil Aides', description: 'Naviguez dans le système d’aides avec un accompagnement expert. Nous vous aidons à obtenir le maximum de financements disponibles.' },
+            { title: 'Études Techniques', description: 'Études spécialisées pour pompe à chaleur, isolation et calcul du potentiel photovoltaïque.' },
+            { title: 'Services d’Accompagnement', description: 'Conseil continu pour les parcs immobiliers, DPE provisoires pour neuf et contrôles de conformité.' },
+        ],
+        howTitle: 'Comment ça marche', howSubtitle: 'Un processus simple en 3 étapes',
+        steps: [
+            { title: 'Planifier', description: 'Contactez-nous pour planifier le rendez-vous de diagnostic à l’heure qui vous convient.' },
+            { title: 'Visite', description: 'Notre diagnostiqueur certifié visite votre bien pour effectuer un diagnostic technique complet.' },
+            { title: 'Finaliser', description: 'Recevez votre DPE et le rapport complet sous 48 heures.' },
+        ],
+        ctaTitle: 'Besoin de conseils énergétiques ?', ctaDesc: 'Notre équipe est prête à vous aider à optimiser votre bien et assurer la conformité réglementaire.', ctaButton: 'Commencer'
+    } : isPortugal ? {
+        badge: 'O que fazemos', heroTitle1: 'Soluções de', heroTitle2: 'Energia Precisas.',
+        heroDesc: 'Avaliações abrangentes e aconselhamento especializado para o ajudar a cumprir a legislação e melhorar a eficiência energética.',
+        complianceTitle: 'Preciso de um certificado energético?',
+        complianceDesc: 'Obrigatório por lei para venda, arrendamento ou candidaturas a subsídios. Fornecemos o certificado de que precisa com entrega rápida e precisão técnica.',
+        complianceCta: 'Reservar',
+        servicesTitle: 'Os nossos serviços principais', servicesSubtitle: 'Experiência em todos os setores',
+        services: [
+            { title: 'Certificado Residencial', description: 'Avaliações completas acreditadas para proprietários e senhorios. Obrigatório para vendas, arrendamentos e candidaturas a subsídios.' },
+            { title: 'Certificado Comercial', description: 'Avaliações energéticas não residenciais para empresas e lojas. Garanta a conformidade e otimize os custos operacionais.' },
+            { title: 'Auditorias Energéticas', description: 'Análise detalhada do consumo energético com recomendações práticas para poupar e modernizar a sua propriedade.' },
+            { title: 'Aconselhamento de Subsídios', description: 'Orientação especializada no sistema de subsídios. Ajudamos a qualificar para o máximo de financiamento disponível.' },
+            { title: 'Análise Técnica', description: 'Estudos especializados sobre idoneidade de bomba de calor, melhorias de isolamento e cálculo do potencial fotovoltaico.' },
+            { title: 'Serviços de Suporte', description: 'Aconselhamento contínuo para carteiras imobiliárias, certificados provisórios para imóveis novos e verificações finais de conformidade.' },
+        ],
+        howTitle: 'Como funciona', howSubtitle: 'Um processo simples em 3 passos',
+        steps: [
+            { title: 'Agendar', description: 'Contacte-nos para agendar a sua avaliação presencial numa altura que lhe seja conveniente.' },
+            { title: 'Vistoria', description: 'O nosso perito acreditado visita a sua propriedade para realizar um estudo técnico completo.' },
+            { title: 'Finalizar', description: 'Receba o seu certificado energético e o relatório de aconselhamento detalhado num prazo de 48 horas.' },
+        ],
+        ctaTitle: 'Precisa de aconselhamento energético especializado?', ctaDesc: 'A nossa equipa está pronta para o ajudar a otimizar a sua propriedade e garantir o cumprimento da legislação.', ctaButton: 'Começar'
+    } : {
+        badge: 'What We Do', heroTitle1: 'Precision Energy', heroTitle2: 'Solutions.',
+        heroDesc: 'Comprehensive assessments and expert advice to help you meet regulations and improve efficiency.',
+        complianceTitle: 'Do I need a BER Certificate?',
+        complianceDesc: 'Required by law for selling, renting, or grant applications. We provide the certification you need with fast turnaround and expert accuracy.',
+        complianceCta: 'Book Now',
+        servicesTitle: 'Our Core Offerings', servicesSubtitle: 'Expertise Across All Sectors',
+        services: [
+            { title: 'Domestic BER', description: 'Full registered assessments for homeowners and landlords. Required for all sales, rentals, and grant applications.' },
+            { title: 'Commercial BER', description: 'Non-Domestic energy ratings for businesses and retail units. Ensure compliance and optimize operational costs.' },
+            { title: 'Energy Audits', description: 'Detailed analysis of energy usage with actionable insights on where to save and how to modernize your property.' },
+            { title: 'Grant Advisory', description: 'Navigate the grant system with expert guidance. We help you qualify for the maximum funding available.' },
+            { title: 'Technical Analysis', description: 'Specialized surveys for heat pump suitability, insulation upgrades, and solar PV potential calculations.' },
+            { title: 'Support Services', description: 'Continuous advisory for property portfolios, new build provisional ratings, and final compliance checks.' },
+        ],
+        howTitle: 'How It Works', howSubtitle: 'A simple 3-step process',
+        steps: [
+            { title: 'Schedule', description: 'Contact us to book your on-site assessment at a time that suits you.' },
+            { title: 'Survey', description: 'Our registered assessor visits your property for a comprehensive technical survey.' },
+            { title: 'Finalize', description: 'Receive your BER certificate and detailed advisory report within 48 hours.' },
+        ],
+        ctaTitle: 'Need expert energy advice?', ctaDesc: 'Our team is ready to help you optimize your property and ensure full regulatory compliance.', ctaButton: 'Get Started'
+    };
 
     const serviceSchema = {
         '@context': 'https://schema.org',
@@ -88,14 +200,14 @@ const Services = () => {
             <section className="pt-32 pb-16 bg-white">
                 <div className="container mx-auto px-6 text-center max-w-4xl">
                     <span className="inline-block mb-4 px-4 py-1.5 rounded-full bg-green-50 text-[#007F00] text-xs font-black tracking-widest uppercase border border-green-100">
-                        What We Do
+                        {tr.badge}
                     </span>
                     <h1 className="text-4xl md:text-6xl font-black text-gray-900 mb-6 leading-tight">
-                        Precision Energy <br className="hidden md:block" />
-                        <span className="text-[#007F00]">Solutions.</span>
+                        {tr.heroTitle1} <br className="hidden md:block" />
+                        <span className="text-[#007F00]">{tr.heroTitle2}</span>
                     </h1>
                     <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
-                        Comprehensive assessments and expert advice to help you meet regulations and improve efficiency.
+                        {tr.heroDesc}
                     </p>
                 </div>
             </section>
@@ -108,15 +220,15 @@ const Services = () => {
                             <AlertTriangle size={32} className="text-[#007F00]" />
                         </div>
                         <div className="flex-1">
-                            <h3 className="text-lg md:text-xl font-black text-gray-900 mb-2 uppercase tracking-tight">Do I need a BER Certificate?</h3>
+                            <h3 className="text-lg md:text-xl font-black text-gray-900 mb-2 uppercase tracking-tight">{tr.complianceTitle}</h3>
                             <p className="text-gray-500 font-bold text-sm leading-relaxed max-w-2xl">
-                                Required by law for selling, renting, or SEAI grant applications. We provide the certification you need with fast turnaround and expert accuracy.
+                                {tr.complianceDesc}
                             </p>
                         </div>
                         <div className="w-full md:w-auto mt-4 md:mt-0">
                             <Link to="/contact-us">
                                 <button className="w-full md:w-auto bg-white text-[#007F00] font-black px-8 py-4 rounded-xl border border-green-100 hover:bg-green-50 transition-all text-xs uppercase tracking-widest shadow-sm cursor-pointer active:scale-95">
-                                    Book Now
+                                    {tr.complianceCta}
                                 </button>
                             </Link>
                         </div>
@@ -128,41 +240,14 @@ const Services = () => {
             <section className="py-24 bg-white">
                 <div className="container mx-auto px-6 max-w-7xl">
                     <div className="text-center mb-16">
-                        <h2 className="text-3xl font-black text-gray-900 mb-2 uppercase tracking-tight">Our Core Offerings</h2>
-                        <p className="text-gray-400 text-xs font-black uppercase tracking-widest">Expertise Across All Sectors</p>
+                        <h2 className="text-3xl font-black text-gray-900 mb-2 uppercase tracking-tight">{tr.servicesTitle}</h2>
+                        <p className="text-gray-400 text-xs font-black uppercase tracking-widest">{tr.servicesSubtitle}</p>
                     </div>
 
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        <ServiceItem
-                            icon={<Zap size={24} />}
-                            title="Domestic BER"
-                            description="Full SEAI registered assessments for homeowners and landlords. Required for all sales, rentals, and grant applications."
-                        />
-                        <ServiceItem
-                            icon={<Shield size={24} />}
-                            title="Commercial BER"
-                            description="Non-Domestic energy ratings for businesses and retail units. Ensure compliance and optimize operational costs."
-                        />
-                        <ServiceItem
-                            icon={<BarChart3 size={24} />}
-                            title="Energy Audits"
-                            description="Detailed analysis of energy usage with actionable insights on where to save and how to modernize your property."
-                        />
-                        <ServiceItem
-                            icon={<Globe2 size={24} />}
-                            title="Grant Advisory"
-                            description="Navigate the SEAI grant system with expert guidance. We help you qualify for the maximum funding available."
-                        />
-                        <ServiceItem
-                            icon={<Cpu size={24} />}
-                            title="Technical Analysis"
-                            description="Specialized surveys for heat pump suitability, insulation upgrades, and solar PV potential calculations."
-                        />
-                        <ServiceItem
-                            icon={<Truck size={24} />}
-                            title="Support Services"
-                            description="Continuous advisory for property portfolios, new build provisional ratings, and final compliance checks."
-                        />
+                        {tr.services.map((svc, i) => (
+                            <ServiceItem key={i} icon={serviceIcons[i]} title={svc.title} description={svc.description} />
+                        ))}
                     </div>
                 </div>
             </section>
@@ -171,26 +256,14 @@ const Services = () => {
             <section className="py-24 bg-gray-50 border-y border-gray-100">
                 <div className="container mx-auto px-6">
                     <div className="text-center mb-16">
-                        <h2 className="text-3xl font-black text-gray-900 mb-2 uppercase tracking-tight">How It Works</h2>
-                        <p className="text-gray-400 text-xs font-black uppercase tracking-widest">A simple 3-step process</p>
+                        <h2 className="text-3xl font-black text-gray-900 mb-2 uppercase tracking-tight">{tr.howTitle}</h2>
+                        <p className="text-gray-400 text-xs font-black uppercase tracking-widest">{tr.howSubtitle}</p>
                     </div>
 
                     <div className="grid md:grid-cols-3 gap-12 max-w-5xl mx-auto">
-                        <ProcessStep
-                            number="01"
-                            title="Schedule"
-                            description="Contact us to book your on-site assessment at a time that suits you."
-                        />
-                        <ProcessStep
-                            number="02"
-                            title="Survey"
-                            description="Our registered assessor visits your property for a comprehensive technical survey."
-                        />
-                        <ProcessStep
-                            number="03"
-                            title="Finalize"
-                            description="Receive your BER certificate and detailed advisory report within 48 hours."
-                        />
+                        {tr.steps.map((step, i) => (
+                            <ProcessStep key={i} number={`0${i + 1}`} title={step.title} description={step.description} />
+                        ))}
                     </div>
                 </div>
             </section>
@@ -200,13 +273,13 @@ const Services = () => {
                 <div className="container max-w-full">
                     <div className="bg-gray-50 p-12 md:p-20 text-center relative overflow-hidden border border-gray-100">
                         <div className="relative z-10">
-                            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 uppercase tracking-tight">Need expert energy <br />advice?</h2>
+                            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 uppercase tracking-tight">{tr.ctaTitle}</h2>
                             <p className="text-gray-500 text-lg mb-10 max-w-xl mx-auto font-medium">
-                                Our team is ready to help you optimize your property and ensure full regulatory compliance.
+                                {tr.ctaDesc}
                             </p>
                             <Link to="/contact-us">
                                 <button className="bg-[#007F00] text-white font-black px-12 py-5 rounded-2xl hover:bg-[#006400] transition-all shadow-xl flex items-center gap-3 mx-auto transform hover:-translate-y-1 active:translate-y-0 cursor-pointer">
-                                    Get Started <ArrowRight size={20} />
+                                    {tr.ctaButton} <ArrowRight size={20} />
                                 </button>
                             </Link>
                         </div>
@@ -216,6 +289,15 @@ const Services = () => {
         </div>
     );
 };
+
+const serviceIcons = [
+    <Zap size={24} />,
+    <Shield size={24} />,
+    <BarChart3 size={24} />,
+    <Globe2 size={24} />,
+    <Cpu size={24} />,
+    <Truck size={24} />,
+];
 
 const ServiceItem = ({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) => (
     <div className="p-10 bg-white rounded-[2.5rem] border border-gray-100 hover:border-green-100 transition-all hover:shadow-lg group cursor-pointer">
