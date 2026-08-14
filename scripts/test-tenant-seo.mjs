@@ -56,6 +56,13 @@ const cases = [
 ];
 
 const count = (html, pattern) => (html.match(pattern) || []).length;
+const tenantHosts = [
+  'theberman.eu',
+  'epccert.com',
+  'dpecert.fr',
+  'xn--certificadoenergtico-q2b.eu',
+  'certificadoenergia.com',
+];
 
 for (const testCase of cases) {
   globalThis.fetch = async () => new Response(contaminatedHtml, {
@@ -83,6 +90,9 @@ for (const testCase of cases) {
   assert.ok(!html.includes('stale tenant description'), `${testCase.host}: stale description removed`);
   assert.ok(!html.includes('wrong-tenant.example'), `${testCase.host}: stale canonical removed`);
   assert.ok(!html.includes('Wrong tenant'), `${testCase.host}: stale structured data removed`);
+  for (const otherHost of tenantHosts.filter(host => !testCase.host.includes(host))) {
+    assert.ok(!html.includes(otherHost), `${testCase.host}: must not reference tenant ${otherHost}`);
+  }
   const seoStart = html.indexOf(`tenant-seo:start (${testCase.tenant})`);
   const seoEnd = html.indexOf(`tenant-seo:end (${testCase.tenant})`);
   const descriptionPosition = html.indexOf('<meta name="description"');

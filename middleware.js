@@ -1129,17 +1129,18 @@ function breadcrumbSchema(pathname, tenant) {
 // ─── Hreflang builder ────────────────────────────────────────────────────────
 function hreflangTags(pathname, tenant) {
   const cleanPath = pathname === '/' ? '/' : pathname;
-  const domains = [
-    { lang:'en-IE', base:'https://www.theberman.eu' },
-    { lang:'en-GB', base:'https://www.epccert.com' },
-    { lang:'fr-FR', base:'https://www.dpecert.fr' },
-    { lang:'es-ES', base:'https://www.xn--certificadoenergtico-q2b.eu' },
-    { lang:'pt-PT', base:'https://www.certificadoenergia.com' },
-    { lang:'x-default', base:'https://www.theberman.eu' },
-  ];
-  return domains.map(d =>
-    `<link rel="alternate" hreflang="${d.lang}" href="${d.base}${cleanPath}" />` 
-  ).join('\n  ');
+  const current = {
+    ireland: { lang: 'en-IE', base: 'https://www.theberman.eu' },
+    england: { lang: 'en-GB', base: 'https://www.epccert.com' },
+    france: { lang: 'fr-FR', base: 'https://www.dpecert.fr' },
+    spain: { lang: 'es-ES', base: 'https://www.xn--certificadoenergtico-q2b.eu' },
+    portugal: { lang: 'pt-PT', base: 'https://www.certificadoenergia.com' },
+  }[tenant] || { lang: 'en-IE', base: 'https://www.theberman.eu' };
+
+  // These tenants are independent regional businesses, not translated copies
+  // of one page. Never reference another tenant from the current site's source.
+  return `<link rel="alternate" hreflang="${current.lang}" href="${current.base}${cleanPath}" />
+  <link rel="alternate" hreflang="x-default" href="${current.base}${cleanPath}" />`;
 }
 
 // ─── Main handler ─────────────────────────────────────────────────────────────
