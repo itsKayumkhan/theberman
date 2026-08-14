@@ -129,17 +129,13 @@ export const VisualEditorView = ({ selectedTenant }: Props) => {
         setExpandedSection(null);
     }, [loadPageContent]);
 
-    // Track changes
-    useEffect(() => {
-        setHasChanges(JSON.stringify(sectionData) !== JSON.stringify(originalData));
-    }, [sectionData, originalData]);
-
     // Update a field value
     const updateField = (sectionId: string, key: string, value: any) => {
         setSectionData(prev => ({
             ...prev,
             [sectionId]: { ...prev[sectionId], [key]: value },
         }));
+        setHasChanges(true);
     };
 
     // Save all sections to DB
@@ -245,6 +241,7 @@ export const VisualEditorView = ({ selectedTenant }: Props) => {
             map[section.id] = getDefaultsForTenant(selectedPage.id, section.id, selectedTenant);
         }
         setSectionData(map);
+        setHasChanges(true);
     };
 
     // Discard unsaved changes

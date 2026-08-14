@@ -450,12 +450,18 @@ const HireAgent = () => {
         }
     };
 
+    const canonicalPath = isSpanish
+        ? '/asesor-energetico'
+        : tenant === 'ireland'
+            ? '/energy-advisor'
+            : '/hire-agent';
+
     return (
         <div className="font-sans text-gray-900 bg-white min-h-screen">
             <SEOHead
                 title={tr.seoTitle}
                 description={tr.seoDesc}
-                canonical={isSpanish ? '/asesor-energetico' : '/hire-agent'}
+                canonical={canonicalPath}
                 skipSiteNameSuffix={isEngland || (!isSpanish && !isPortuguese && !isFrench)}
                 ogTitle={tr.ogTitle}
                 ogDescription={tr.ogDescription}
@@ -467,7 +473,7 @@ const HireAgent = () => {
                         '@type': 'BreadcrumbList',
                         itemListElement: [
                             { '@type': 'ListItem', position: 1, name: 'Home', item: `${tenantDomain}/` },
-                            { '@type': 'ListItem', position: 2, name: isEngland ? 'Energy Advisor' : 'Hire an Energy Advisor', item: `${tenantDomain}/hire-agent` },
+                            { '@type': 'ListItem', position: 2, name: isEngland ? 'Energy Advisor' : 'Hire an Energy Advisor', item: `${tenantDomain}${canonicalPath}` },
                         ],
                     },
                     {
