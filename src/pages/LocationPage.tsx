@@ -74,7 +74,7 @@ const LocationPage = () => {
     };
     const displayName = isEngland && !townName && englandDisplayMap[rawCountyName.toLowerCase()]
         ? englandDisplayMap[rawCountyName.toLowerCase()]
-        : countyName;
+        : countyName.replace(/\b\w/g, c => c.toUpperCase());
 
     // Load custom location page content from DB
     useEffect(() => {
