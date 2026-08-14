@@ -1385,6 +1385,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   // 1. Remove GTM-57CD932S IIFE init (targets only the GTM init function, not other scripts)
   // 2. Remove GTM-57CD932S noscript iframe (targets specific iframe src, cannot match others)
   // 3. Remove cookie-consent-wrapped scripts (type="text/plain" + data-cookieconsent)
+  const tenantSeoSlot = '<!-- tenant-seo-slot -->';
   let cleanHtml = html
     // Remove GTM-57CD932S by targeting the GTM IIFE signature — safe, cannot cross script blocks
     .replace(/\(function\(w,d,s,l,i\)\{[\s\S]*?\}\)\(window,document,\'script\',\'dataLayer\',\'GTM-57CD932S\'\);/g, '')
@@ -1398,9 +1399,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     .replace(/<script\s[^>]*data-cookieconsent[^>]*type="text\/plain"[^>]*>[\s\S]*?<\/script>/gi, '')
     // Remove the cookie consent comment wrapper if present
     .replace(/<!--\s*Google Tag Manager \+ Meta Pixel[^-]*-->/gi, '')
-    // Strip every pre-injected SEO element so exactly one tenant can own the
-    // source HTML. This also removes tags captured by a previous prerender.
-    .replace(/<!--\s*tenant-seo:start[\s\S]*?tenant-seo:end[^>]*-->/gi, '')
+    // Preserve the original title position as an insertion slot. Support both
+    // the current marker and the older fallback comment still present in some
+    // cached/deployed index files.
+    .replace(/<!--\s*tenant-seo:start[\s\S]*?tenant-seo:end[^>]*-->/gi, tenantSeoSlot)
+    .replace(/<!--\s*Fallback title[^>]*-->\s*<title(?:\s[^>]*)?>[\s\S]*?<\/title>/gi, tenantSeoSlot)
+    // Strip every other pre-injected SEO element so exactly one tenant can own
+    // the source HTML. This also removes tags captured by a previous prerender.
     .replace(/<title(?:\s[^>]*)?>[\s\S]*?<\/title>/gi, '')
     .replace(/<meta\s+[^>]*name=["']description["'][^>]*\/?>/gi, '')
     .replace(/<meta\s+[^>]*property=["']og:title["'][^>]*\/?>/gi, '')
@@ -1445,9 +1450,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   ${schemaBlock}
   <!-- tenant-seo:end (${tenant}) -->`;
 
+  // If an unusual upstream HTML file has no known title marker, retain a safe
+  // fallback slot at the end of <head>. Normal builds replace the slot above.
+  if (!cleanHtml.includes(tenantSeoSlot)) {
+    cleanHtml = cleanHtml.replace('</head>', `${tenantSeoSlot}\n</head>`);
+  }
+
   const injected = cleanHtml.replace(
+    tenantSeoSlot,
+    tenantSeoBlock
+  ).replace(
     '</head>',
-    `${tenantSeoBlock}\n  ${gtmHead}\n  ${metaPixelSnippet}\n</head>`
+    `  ${gtmHead}\n  ${metaPixelSnippet}\n</head>`
   ).replace(
     /<body([^>]*)>/i,
     `<body$1>${gtmBody}` 

@@ -83,7 +83,31 @@ for (const testCase of cases) {
   assert.ok(!html.includes('stale tenant description'), `${testCase.host}: stale description removed`);
   assert.ok(!html.includes('wrong-tenant.example'), `${testCase.host}: stale canonical removed`);
   assert.ok(!html.includes('Wrong tenant'), `${testCase.host}: stale structured data removed`);
+  const seoStart = html.indexOf(`tenant-seo:start (${testCase.tenant})`);
+  const seoEnd = html.indexOf(`tenant-seo:end (${testCase.tenant})`);
+  const descriptionPosition = html.indexOf('<meta name="description"');
+  const themeColorPosition = html.indexOf('<meta name="theme-color"');
+  assert.ok(seoStart < descriptionPosition && descriptionPosition < seoEnd, `${testCase.host}: metadata is one block`);
+  assert.ok(seoEnd < themeColorPosition, `${testCase.host}: SEO block replaces original title slot`);
   assert.match(response.headers.get('vary') || '', /Host/);
 }
 
-console.log(`Tenant SEO isolation passed for ${cases.length} tenants.`);
+// Older deployed builds used this fallback comment instead of tenant-seo
+// markers. Keep this fixture because it is the exact shape visible in Ctrl+U.
+const legacyHtml = indexHtml.replace(
+  /<!--\s*tenant-seo:start[\s\S]*?tenant-seo:end\s*-->/i,
+  `<!-- Fallback title (overridden by middleware + react-helmet-async per-page). -->
+  <title>Energy Rating Certificates & Assessments</title>`,
+);
+globalThis.fetch = async () => new Response(legacyHtml, {
+  headers: { 'content-type': 'text/html; charset=utf-8' },
+});
+const legacyResponse = await middleware(new Request('https://www.epccert.com/'));
+const legacySource = await legacyResponse.text();
+const legacyStart = legacySource.indexOf('tenant-seo:start (england)');
+const legacyEnd = legacySource.indexOf('tenant-seo:end (england)');
+assert.ok(!legacySource.includes('Fallback title'), 'legacy fallback comment removed');
+assert.ok(legacyStart < legacySource.indexOf('<meta name="description"') && legacySource.indexOf('<meta name="description"') < legacyEnd, 'legacy source metadata is one block');
+assert.ok(legacyEnd < legacySource.indexOf('<meta name="theme-color"'), 'legacy source block replaces fallback position');
+
+console.log(`Tenant SEO isolation passed for ${cases.length} tenants and the legacy Ctrl+U source.`);
