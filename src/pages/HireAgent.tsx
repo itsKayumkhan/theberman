@@ -455,7 +455,7 @@ const HireAgent = () => {
             <SEOHead
                 title={tr.seoTitle}
                 description={tr.seoDesc}
-                canonical="/hire-agent"
+                canonical={isSpanish ? '/asesor-energetico' : '/hire-agent'}
                 skipSiteNameSuffix={isEngland || (!isSpanish && !isPortuguese && !isFrench)}
                 ogTitle={tr.ogTitle}
                 ogDescription={tr.ogDescription}

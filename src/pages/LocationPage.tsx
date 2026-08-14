@@ -26,7 +26,7 @@ const LocationPage = () => {
 
     // Get the correct location data based on tenant
     const locationData = getTownsForTenant(tenant);
-    const rawCountyName = county ? county.replace(/^epc-assessment-/, '').replace(/-/g, ' ') : '';
+    const rawCountyName = county ? county.replace(/^epc-assessment-/, '').replace(/^certificado-energetico-/, '').replace(/-/g, ' ') : '';
 
     // Map popular England city slugs to their actual county names in the data
     const englandCityMap: Record<string, string> = {

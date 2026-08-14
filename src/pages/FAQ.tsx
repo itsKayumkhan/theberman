@@ -202,7 +202,7 @@ const FAQ = () => {
             <SEOHead
                 title={tr.seoTitle}
                 description={tr.seoDesc}
-                canonical={isEngland ? '/epc-faq' : isSpanish || isPortugal ? '/faq' : '/ber-faqs/'}
+                canonical={isEngland ? '/epc-faq' : isSpanish ? '/preguntas-frecuentes' : isPortugal ? '/faq' : '/ber-faqs/'}
                 skipSiteNameSuffix={isEngland || (!isSpanish && !isFrance && !isPortugal)}
                 ogTitle={tr.ogTitle}
                 ogDescription={tr.ogDescription}

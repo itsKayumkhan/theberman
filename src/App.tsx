@@ -92,6 +92,19 @@ function App() {
                         <Route path="catalogue/:slug" element={<ListingDetail />} />
                         <Route path="locations" element={<Locations />} />
                         <Route path="region" element={<RegionPage />} />
+                        {/* Spain localized routes — must be before :county catch-all */}
+                        <Route path="sobre-nosotros" element={<About />} />
+                        <Route path="preguntas-frecuentes" element={<FAQ />} />
+                        <Route path="preguntas-frecuentes/*" element={<FAQ />} />
+                        <Route path="directorio" element={<Catalogue />} />
+                        <Route path="directorio/businesses" element={<Catalogue />} />
+                        <Route path="directorio/:slug" element={<ListingDetail />} />
+                        <Route path="contacto" element={<Contact />} />
+                        <Route path="asesor-energetico" element={<HireAgent />} />
+                        <Route path="ubicaciones" element={<Locations />} />
+                        <Route path="certificado-energetico-:county" element={<LocationPage />} />
+                        <Route path="certificado-energetico-:county/:town" element={<LocationPage />} />
+                        {/* England location routes */}
                         <Route path="epc-assessment-:county" element={<LocationPage />} />
                         <Route path="epc-assessment-:county/:town" element={<LocationPage />} />
                         <Route path=":county" element={<LocationPage />} />

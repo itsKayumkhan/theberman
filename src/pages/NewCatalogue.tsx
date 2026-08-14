@@ -347,7 +347,9 @@ const NewCatalogue = () => {
                     : (!isSpanish && !isFrance && !isPortugal)
                         ? (pathView === null ? t.seoDescription : pathView === 'assessors' ? 'Browse Certified BER Assessors Across Ireland and Connect with Professionals for Property Energy Ratings and BER Certificates' : 'Browse Home Energy Upgrade Companies, Retrofit Contractors, Insulation Specialists, Solar Installers, and Energy Consultants Across Ireland')
                         : t.seoDescription}
-                canonical={isEngland
+                canonical={isSpanish
+                    ? (pathView === null ? '/directorio' : pathView === 'assessors' ? '/directorio/tecnicos-certificadores' : '/directorio/empresas-energia')
+                    : isEngland
                     ? (pathView === null ? '/catalogue' : pathView === 'assessors' ? '/catalogue/epc-assessors' : '/catalogue/epc-businesses')
                     : (pathView === null ? '/catalogue' : pathView === 'assessors' ? '/catalogue/ber-assessors' : '/catalogue/businesses')}
                 jsonLd={[

@@ -189,7 +189,7 @@ const Contact = () => {
             <SEOHead
                 title={tr.seoTitle}
                 description={tr.seoDesc}
-                canonical="/contact-us"
+                canonical={isSpanish ? '/contacto' : '/contact-us'}
                 ogTitle={tr.ogTitle}
                 ogDescription={tr.ogDescription}
                 twitterTitle={tr.twitterTitle}

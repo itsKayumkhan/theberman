@@ -195,7 +195,7 @@ const About = () => {
         '@type': 'BreadcrumbList',
         itemListElement: [
             { '@type': 'ListItem', position: 1, name: isPortugal ? 'Início' : 'Home', item: `${baseUrl}/` },
-            { '@type': 'ListItem', position: 2, name: isPortugal ? 'Sobre Nós' : 'About Us', item: `${baseUrl}/about-us` },
+            { '@type': 'ListItem', position: 2, name: isPortugal ? 'Sobre Nós' : isSpanish ? 'Sobre Nosotros' : 'About Us', item: `${baseUrl}${isSpanish ? '/sobre-nosotros' : '/about-us'}` },
         ],
     };
 
@@ -204,7 +204,7 @@ const About = () => {
             <SEOHead
                 title={tr.seoTitle}
                 description={tr.seoDesc}
-                canonical="/about-us"
+                canonical={isSpanish ? '/sobre-nosotros' : '/about-us'}
                 ogTitle={tr.ogTitle}
                 ogDescription={tr.ogDescription}
                 twitterTitle={tr.twitterTitle}
