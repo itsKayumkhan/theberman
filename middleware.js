@@ -376,6 +376,14 @@ function toTitle(slug) {
   return slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 function getMeta(pathname, tenant) {
   const cleanPath = pathname.replace(/\/$/, ''); // strip trailing slash
   const activePath = cleanPath === '' ? '/' : cleanPath;
@@ -1137,8 +1145,17 @@ export default async function middleware(req) {
   const url  = new URL(req.url);
   const path = url.pathname;
 
-  const hostname = req.headers.get('host') || url.hostname;
-  const cleanHost = hostname.replace(/^www\./, '').toLowerCase();
+  // Prefer the original forwarded hostname on Vercel, and remove proxy ports.
+  // A comma-separated value can be supplied by multi-hop proxies; the first host
+  // is the browser-facing tenant domain.
+  const forwardedHost = req.headers.get('x-forwarded-host');
+  const hostname = (forwardedHost || req.headers.get('host') || url.hostname)
+    .split(',')[0]
+    .trim();
+  const cleanHost = hostname
+    .replace(/:\d+$/, '')
+    .replace(/^www\./, '')
+    .toLowerCase();
   const tenant = DOMAIN_TO_TENANT[cleanHost] || 'ireland';
 
 
@@ -1379,7 +1396,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     .replace(/<script\s[^>]*data-cookieconsent[^>]*type="text\/plain"[^>]*>[\s\S]*?<\/script>/gi, '')
     // Remove the cookie consent comment wrapper if present
     .replace(/<!--\s*Google Tag Manager \+ Meta Pixel[^-]*-->/gi, '')
-    // Strip any pre-injected SEO meta tags so the middleware's injected values are authoritative
+    // Strip every pre-injected SEO element so exactly one tenant can own the
+    // source HTML. This also removes tags captured by a previous prerender.
+    .replace(/<!--\s*tenant-seo:start[\s\S]*?tenant-seo:end[^>]*-->/gi, '')
+    .replace(/<title(?:\s[^>]*)?>[\s\S]*?<\/title>/gi, '')
     .replace(/<meta\s+[^>]*name=["']description["'][^>]*\/?>/gi, '')
     .replace(/<meta\s+[^>]*property=["']og:title["'][^>]*\/?>/gi, '')
     .replace(/<meta\s+[^>]*property=["']og:description["'][^>]*\/?>/gi, '')
@@ -1387,55 +1407,45 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     .replace(/<meta\s+[^>]*property=["']og:image["'][^>]*\/?>/gi, '')
     .replace(/<meta\s+[^>]*property=["']og:locale["'][^>]*\/?>/gi, '')
     .replace(/<meta\s+[^>]*property=["']og:site_name["'][^>]*\/?>/gi, '')
+    .replace(/<meta\s+[^>]*property=["']og:type["'][^>]*\/?>/gi, '')
     .replace(/<meta\s+[^>]*name=["']twitter:card["'][^>]*\/?>/gi, '')
     .replace(/<meta\s+[^>]*name=["']twitter:title["'][^>]*\/?>/gi, '')
     .replace(/<meta\s+[^>]*name=["']twitter:description["'][^>]*\/?>/gi, '')
     .replace(/<meta\s+[^>]*name=["']twitter:image["'][^>]*\/?>/gi, '')
     .replace(/<meta\s+[^>]*name=["']author["'][^>]*\/?>/gi, '')
-    .replace(/<link\s+rel=["']canonical["'][^>]*\/?>/gi, '');
+    .replace(/<meta\s+[^>]*name=["']google-site-verification["'][^>]*\/?>/gi, '')
+    .replace(/<meta\s+[^>]*name=["']facebook-domain-verification["'][^>]*\/?>/gi, '')
+    .replace(/<link\s+[^>]*rel=["']canonical["'][^>]*\/?>/gi, '')
+    .replace(/<link\s+[^>]*rel=["']alternate["'][^>]*hreflang=["'][^"']+["'][^>]*\/?>/gi, '')
+    .replace(/<script\s+[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi, '');
+
+  const safeTitle = escapeHtml(title);
+  const safeDesc = escapeHtml(desc);
+  const tenantSeoBlock = `  <!-- tenant-seo:start (${tenant}) -->
+  <title>${safeTitle}</title>
+  <meta name="description" content="${safeDesc}" />
+  <link rel="canonical" href="${canonical}" />
+  <meta name="author" content="${siteName}" />
+  <meta property="og:title" content="${safeTitle}" />
+  <meta property="og:description" content="${safeDesc}" />
+  <meta property="og:url" content="${canonical}" />
+  <meta property="og:image" content="${ogImage}" />
+  <meta property="og:locale" content="${locale}" />
+  <meta property="og:site_name" content="${siteName}" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="${safeTitle}" />
+  <meta name="twitter:description" content="${safeDesc}" />
+  <meta name="twitter:image" content="${ogImage}" />
+  ${gscMeta}
+  ${fbMeta}
+  ${hreflangTags(path, tenant)}
+  ${schemaBlock}
+  <!-- tenant-seo:end (${tenant}) -->`;
 
   const injected = cleanHtml.replace(
-    /<title>[^<]*<\/title>/,
-    `<title>${title}</title>` 
-  ).replace(
-    /<meta name="description" content="[^"]*" \/>/,
-    `<meta name="description" content="${desc}" />` 
-  ).replace(
-    /<link rel="canonical" href="[^"]*" \/>/,
-    `<link rel="canonical" href="${canonical}" />` 
-  ).replace(
-    /<meta property="og:title" content="[^"]*" \/>/,
-    `<meta property="og:title" content="${title}" />` 
-  ).replace(
-    /<meta property="og:description" content="[^"]*" \/>/,
-    `<meta property="og:description" content="${desc}" />` 
-  ).replace(
-    /<meta property="og:url" content="[^"]*" \/>/,
-    `<meta property="og:url" content="${canonical}" />` 
-  ).replace(
-    /<meta property="og:image" content="[^"]*" \/>/,
-    `<meta property="og:image" content="${ogImage}" />` 
-  ).replace(
-    /<meta property="og:locale" content="[^"]*" \/>/,
-    `<meta property="og:locale" content="${locale}" />` 
-  ).replace(
-    /<meta property="og:site_name" content="[^"]*" \/>/,
-    `<meta property="og:site_name" content="${siteName}" />` 
-  ).replace(
-    /<meta name="twitter:title" content="[^"]*" \/>/,
-    `<meta name="twitter:title" content="${title}" />` 
-  ).replace(
-    /<meta name="twitter:description" content="[^"]*" \/>/,
-    `<meta name="twitter:description" content="${desc}" />` 
-  ).replace(
-    /<meta name="twitter:image" content="[^"]*" \/>/,
-    `<meta name="twitter:image" content="${ogImage}" />` 
-  ).replace(
-    /<meta name="author" content="[^"]*" \/>/,
-    `<meta name="author" content="${siteName}" />` 
-  ).replace(
     '</head>',
-    `  <meta name="description" content="${desc}" />\n  <link rel="canonical" href="${canonical}" />\n  <meta property="og:title" content="${title}" />\n  <meta property="og:description" content="${desc}" />\n  <meta property="og:url" content="${canonical}" />\n  <meta property="og:image" content="${ogImage}" />\n  <meta property="og:locale" content="${locale}" />\n  <meta property="og:site_name" content="${siteName}" />\n  <meta property="og:type" content="website" />\n  <meta name="twitter:card" content="summary_large_image" />\n  <meta name="twitter:title" content="${title}" />\n  <meta name="twitter:description" content="${desc}" />\n  <meta name="twitter:image" content="${ogImage}" />\n  ${gscMeta}\n  ${fbMeta}\n  ${hreflangTags(path, tenant)}\n  ${schemaBlock}\n  ${gtmHead}\n  ${metaPixelSnippet}\n</head>` 
+    `${tenantSeoBlock}\n  ${gtmHead}\n  ${metaPixelSnippet}\n</head>`
   ).replace(
     /<body([^>]*)>/i,
     `<body$1>${gtmBody}` 
@@ -1447,6 +1457,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       ...Object.fromEntries(res.headers),
       'content-type': 'text/html; charset=utf-8',
       'cache-control': 'public, max-age=3600, stale-while-revalidate=86400',
+      'vary': ['Host', 'X-Forwarded-Host', res.headers.get('vary')]
+        .filter(Boolean)
+        .join(', '),
     },
   });
 }
