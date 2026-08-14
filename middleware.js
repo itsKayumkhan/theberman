@@ -2,6 +2,8 @@
 // Injects: canonical, title, meta description, OG tags, hreflang, JSON-LD schema
 // Zero changes to the React app needed.
 
+import { HOME_SEO } from './seo-metadata.js';
+
 export const config = { matcher: '/((?!_next|assets|favicon|logo).*)' };
 
 // Exact domain -> tenant map (matches src/lib/tenant.ts)
@@ -38,8 +40,8 @@ const DOMAIN_TO_TENANT = {
 // ─── Page metadata map (Ireland) ─────────────────────────────────────────────
 const PAGE_META_IE = {
   '/': {
-    title: "The Berman – Ireland's Largest BER Website | BER Certificates & Energy Ratings",
-    desc:  "Ireland's largest BER website. Get fast, reliable BER certificates from 100+ SEAI-registered assessors nationwide. Compare quotes and book online instantly.",
+    title: HOME_SEO.ireland.title,
+    desc: HOME_SEO.ireland.description,
   },
   '/about': {
     title: "About The Berman | Ireland's BER Certificate Platform",
@@ -114,8 +116,8 @@ const PAGE_META_IE = {
 // ─── Page metadata map (England) ─────────────────────────────────────────────
 const PAGE_META_EN = {
   '/': {
-    title: "EPC Certificate England | Domestic & Commercial EPC",
-    desc: "Book Accredited EPC Assessments Across England. Fast Domestic and Commercial EPC Certificates with Competitive Pricing and Nationwide Coverage",
+    title: HOME_SEO.england.title,
+    desc: HOME_SEO.england.description,
   },
   '/about': {
     title: 'About EPC Cert | Energy Performance Certificate Experts',
@@ -195,8 +197,8 @@ const PAGE_META_EN = {
 // ─── Page metadata map (Spain) ────────────────────────────────────────────────
 const PAGE_META_ES = {
   '/': {
-    title: "Certificado Energético en España | Precio desde 60€ | Técnicos Acreditados",
-    desc: "¿Necesitas tu certificado energético? Compara presupuestos de técnicos acreditados en toda España. Desde 60€, visita incluida, registro oficial. Entrega en 24–72h. ¡Solicita presupuesto gratis!"
+    title: HOME_SEO.spain.title,
+    desc: HOME_SEO.spain.description,
   },
   '/sobre-nosotros': {
     title: "Quiénes Somos | Plataforma Certificado Energético España | CertificadoEnergético.eu",
@@ -255,8 +257,8 @@ const PAGE_META_ES = {
 // ─── Page metadata map (France) ───────────────────────────────────────────────
 const PAGE_META_FR = {
   '/': {
-    title: "Certificat DPE France | Prix à partir de 60€ | Experts Certifiés",
-    desc: "Obtenez votre certificat DPE en France. Comparez les devis d'experts certifiés en France. Prix à partir de 60€, visite incluse, enregistrement officiel. Devis gratuit.",
+    title: HOME_SEO.france.title,
+    desc: HOME_SEO.france.description,
   },
   '/about-us': {
     title: "À Propos - Experts en Diagnostic de Performance Énergétique | DPE Cert France",
@@ -307,8 +309,8 @@ const PAGE_META_FR = {
 // ─── Page metadata map (Portugal) ─────────────────────────────────────────────
 const PAGE_META_PT = {
   '/': {
-    title: "Certificado Energético Portugal | Preço desde 60€ | Técnicos Acreditados",
-    desc: "Obtenha o seu certificado energético em Portugal. Compare orçamentos de técnicos acreditados. Preço desde 60€, visita incluída, registo oficial. Orçamento gratuito.",
+    title: HOME_SEO.portugal.title,
+    desc: HOME_SEO.portugal.description,
   },
   '/about-us': {
     title: "Sobre Nós - Especialistas em Certificação Energética | Certificado Energia",

@@ -11,6 +11,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { usePageContent, cmsValue } from '../hooks/usePageContent';
 import SEOHead from '../components/SEOHead';
 import InternalLinks from '../components/InternalLinks';
+import { HOME_SEO } from '../../seo-metadata.js';
 
 interface PromoSettings {
     is_enabled: boolean;
@@ -30,8 +31,7 @@ const HomePage = () => {
 
     const brandName = isSpanish ? 'Certificado Energético' : tenant === 'england' ? 'EPC Cert' : tenant === 'france' ? 'DPE Cert France' : tenant === 'portugal' ? 'Certificado Energia' : 'The Berman';
     const regAuthority = isSpanish ? 'CEE CAT' : tenant === 'england' ? 'accredited' : tenant === 'france' ? 'DPE' : tenant === 'portugal' ? 'ADENE' : 'SEAI';
-    const ratingName = isSpanish ? 'Certificado Energético' : tenant === 'england' ? 'EPC' : tenant === 'france' ? 'DPE' : tenant === 'portugal' ? 'Certificado Energético' : 'BER';
-    const country = isSpanish ? 'Spain' : tenant === 'england' ? 'England' : tenant === 'france' ? 'France' : tenant === 'portugal' ? 'Portugal' : 'Ireland';
+    const homeSeo = HOME_SEO[tenant] || HOME_SEO.ireland;
 
     useEffect(() => {
         const fetchPromo = async () => {
@@ -49,31 +49,9 @@ const HomePage = () => {
     return (
         <div className="font-sans text-gray-900 overflow-x-hidden">
             <SEOHead
-                title={isSpanish
-                    ? `Home | ${brandName} ${ratingName} Ratings`
-                    : tenant === 'england'
-                        ? 'EPC Certificate England | Energy Performance Certificate & Assessors'
-                        : tenant === 'france'
-                            ? 'DPE Cert France | Diagnostic de Performance Énergétique'
-                        : tenant === 'portugal'
-                            ? 'Certificado Energia Portugal | Certificados de Eficiência Energética'
-                            : 'BER Certificates Ireland | Largest BER Certificate Platform'
-                }
-                description={isSpanish
-                    ? `El sitio web más grande de ${ratingName} en ${country}. Evaluaciones de ${ratingName} rápidas, fiables y sin complicaciones. Obtenga cotizaciones competitivas de certificadores locales hoy.`
-                    : tenant === 'england'
-                        ? 'EPCCert.com provides fast, reliable, and affordable EPC Certificates across England for homeowners, landlords, property managers, and businesses.'
-                        : tenant === 'france'
-                            ? 'Le plus grand site de DPE en France. Diagnostics de performance énergétique rapides, fiables et sans tracas. Obtenez des devis compétitifs de diagnostiqueurs locaux dès aujourd\'hui.'
-                        : tenant === 'portugal'
-                            ? 'A plataforma líder de certificação energética em Portugal. Obtenha o seu Certificado Energético com peritos qualificados. Peça um orçamento grátis online.'
-                            : "Ireland's largest BER marketplace. Instantly compare quotes from trusted SEAI-registered assessors near you and book your BER assessment in minutes."
-                }
-                ogTitle={tenant === 'ireland' ? 'Get a BER Certificate | SEAI Registered Assessors Nationwide.' : tenant === 'england' ? "EPCCert.com | England's Trusted EPC Certificate & Energy Assessment Provider" : undefined}
-                ogDescription={tenant === 'ireland' ? "Ireland's largest BER platform. Compare quotes from trusted local assessors and book your Building Energy Rating assessment online today." : tenant === 'england' ? 'Book your EPC Certificate online with certified energy assessors across England. Reliable Domestic & Commercial Energy Performance Certificates.' : undefined}
-                twitterTitle={tenant === 'ireland' ? 'BER Certificate Ireland | Compare Quotes Instantly' : tenant === 'england' ? 'EPC Certificate England | Fast & Trusted Energy Performance Certificates' : undefined}
-                twitterDescription={tenant === 'ireland' ? 'Compare BER quotes from SEAI-registered assessors nationwide. Fast, reliable, and easy to book online.' : tenant === 'england' ? 'Need an Energy Performance Certificate in England? Get fast, affordable EPC assessments from qualified assessors. Book online with EPCCert today.' : undefined}
-                skipSiteNameSuffix={tenant === 'ireland' || tenant === 'england'}
+                title={homeSeo.title}
+                description={homeSeo.description}
+                skipSiteNameSuffix
                 canonical="/"
                 jsonLd={[
                     {
@@ -292,7 +270,7 @@ const HomePage = () => {
                             </h2>
                             <div className="space-y-6">
                                 {[
-                                    { title: c('benefits', 'benefit1_title', isSpanish ? "Visita Presencial Profesional" : (tenant === 'england' ? "Compare Multiple Quotes and Save" : tenant === 'france' ? "Comparez Plusieurs Devis" : "Compare Multiple Quotes")), desc: c('benefits', 'benefit1_desc', isSpanish ? "No realizamos visitas virtuales, solo hacemos certificaciones tras una visita exhaustiva y profesional. Además nuestros colaboradores les asesoran y les darán los mejores consejos para mejorar la Eficiencia Energética de su propiedad." : (tenant === 'england' ? "Receive quotes from accredited EPC assessors and choose the option that best suits your property and budget." : tenant === 'france' ? "Recevez des devis de diagnostiqueurs certifiés et choisissez l\'option qui convient le mieux à votre bien et à votre budget." : "Receive quotes from trusted assessors and find the option that suits your needs.")) },
+                                    { title: c('benefits', 'benefit1_title', isSpanish ? "Visita Presencial Profesional" : (tenant === 'england' ? "Compare Multiple Quotes and Save" : tenant === 'france' ? "Comparez Plusieurs Devis" : "Compare Multiple Quotes")), desc: c('benefits', 'benefit1_desc', isSpanish ? "No realizamos visitas virtuales, solo hacemos certificaciones tras una visita exhaustiva y profesional. Además nuestros colaboradores les asesoran y les darán los mejores consejos para mejorar la Eficiencia Energética de su propiedad." : (tenant === 'england' ? "Receive quotes from accredited EPC assessors and choose the option that best suits your property and budget." : tenant === 'france' ? "Recevez des devis de diagnostiqueurs certifiés et choisissez l'option qui convient le mieux à votre bien et à votre budget." : "Receive quotes from trusted assessors and find the option that suits your needs.")) },
                                     { title: c('benefits', 'benefit2_title', isSpanish ? "Solo Certificadores Acreditados" : (tenant === 'england' ? "Accredited EPC Assessors Only" : tenant === 'france' ? "Diagnostiqueurs Certifiés Uniquement" : "SEAI-registered BER Assessors")), desc: c('benefits', 'benefit2_desc', isSpanish ? "Todos los certificadores están plenamente acreditados y verificados." : (tenant === 'england' ? "All assessors are accredited, vetted and qualified to issue Energy Performance Certificates in England." : tenant === 'france' ? "Tous les diagnostiqueurs sont certifiés et vérifiés." : "Every assessor is verified to help maintain high service standards.")) },
                                     { title: c('benefits', 'benefit3_title', isSpanish ? "Garantía de Devolución" : (tenant === 'england' ? "Local Assessors, National Coverage" : tenant === 'france' ? "Diagnostiqueurs Locaux, Couverture Nationale" : "Book with Confidence")), desc: c('benefits', 'benefit3_desc', isSpanish ? "Te aseguramos un servicio profesional o te devolvemos tu dinero." : (tenant === 'england' ? "Connect with accredited EPC assessors serving your local area and across England." : tenant === 'france' ? "Connectez-vous avec des diagnostiqueurs certifiés près de chez vous et partout en France." : "We're committed to helping property owners connect with trusted professionals.")) },
                                     { title: c('benefits', 'benefit4_title', isSpanish ? "Reserva Online Instantánea" : (tenant === 'england' ? "Book Your EPC Assessment Online" : tenant === 'france' ? "Réservation en Ligne Instantanée" : "Quick Online Booking")), desc: c('benefits', 'benefit4_desc', isSpanish ? "Sin llamadas de teléfono de ida y vuelta. Reserva todo en tiempo real." : (tenant === 'england' ? "Request quotes, review assessor details and confirm your EPC assessment online at your convenience." : tenant === 'france' ? "Sans appels téléphoniques. Réservez tout en temps réel." : "Choose an appointment time that fits your schedule.")) }
@@ -804,9 +782,10 @@ const HomePage = () => {
                                             duration: 5000
                                         });
                                         (e.target as HTMLFormElement).reset();
-                                    } catch (err: any) {
+                                    } catch (err: unknown) {
                                         console.error('Newsletter error:', err);
-                                        toast.error(err.message || (isSpanish ? 'Erro ao subscrever' : tenant === 'portugal' ? 'Erro ao subscrever' : 'Failed to subscribe'));
+                                        const errorMessage = err instanceof Error ? err.message : '';
+                                        toast.error(errorMessage || (isSpanish ? 'Erro ao subscrever' : tenant === 'portugal' ? 'Erro ao subscrever' : 'Failed to subscribe'));
                                     } finally {
                                         setIsSubmitting(false);
                                     }
