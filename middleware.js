@@ -2,7 +2,7 @@
 // Injects: canonical, title, meta description, OG tags, hreflang, JSON-LD schema
 // Zero changes to the React app needed.
 
-export const config = { matcher: '/((?!_next|assets|favicon|logo|robots).*)' };
+export const config = { matcher: '/((?!_next|assets|favicon|logo).*)' };
 
 // Exact domain -> tenant map (matches src/lib/tenant.ts)
 const DOMAIN_TO_TENANT = {
@@ -980,12 +980,28 @@ export default async function middleware(req) {
     if (path === '/faq') return Response.redirect(`${url.protocol}//${hostname}/epc-faq`, 301);
   }
 
+  // Dynamic robots.txt per tenant
+  if (path === '/robots.txt') {
+    const robotDomain = tenant === 'spain' ? 'https://www.xn--certificadoenergtico-q2b.eu'
+      : tenant === 'england' ? 'https://www.epccert.com'
+      : tenant === 'france' ? 'https://www.dpecert.fr'
+      : tenant === 'portugal' ? 'https://www.certificadoenergia.com'
+      : 'https://www.theberman.eu';
+    const robots = `User-agent: *\nAllow: /\n\nSitemap: ${robotDomain}/sitemap.xml\n`;
+    return new Response(robots, {
+      status: 200,
+      headers: { 'Content-Type': 'text/plain', 'Cache-Control': 'public, max-age=3600' }
+    });
+  }
+
   // Dynamic Sitemap Interception
   if (path === '/sitemap.xml') {
     let urls = [];
     let domain = '';
     if (tenant === 'spain') { urls = SITEMAP_ES; domain = 'https://www.xn--certificadoenergtico-q2b.eu'; }
     else if (tenant === 'england') { urls = SITEMAP_EN; domain = 'https://www.epccert.com'; }
+    else if (tenant === 'france') { urls = SITEMAP_FR; domain = 'https://www.dpecert.fr'; }
+    else if (tenant === 'portugal') { urls = SITEMAP_PT; domain = 'https://www.certificadoenergia.com'; }
     else { urls = SITEMAP_IE; domain = 'https://www.theberman.eu'; }
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
@@ -1974,4 +1990,97 @@ const SITEMAP_ES = [
   '/certificado-energetico-las-palmas',
   '/certificado-energetico-bilbao',
   '/certificado-energetico-alicante'
+];
+
+const SITEMAP_FR = [
+  '/',
+  '/about-us',
+  '/contact-us',
+  '/catalogue',
+  '/hire-agent',
+  '/ber-faqs',
+  '/blog',
+  '/news',
+  '/locations',
+  '/paris',
+  '/lyon',
+  '/marseille',
+  '/toulouse',
+  '/nice',
+  '/nantes',
+  '/bordeaux',
+  '/lille',
+  '/strasbourg',
+  '/rennes',
+  '/montpellier',
+  '/dijon',
+  '/rouen',
+  '/caen',
+  '/le-havre',
+  '/brest',
+  '/clermont-ferrand',
+  '/limoges',
+  '/poitiers',
+  '/orleans',
+  '/tours',
+  '/amiens',
+  '/reims',
+  '/metz',
+  '/nancy',
+  '/besancon',
+  '/perpignan',
+  '/avignon',
+  '/aix-en-provence',
+  '/cannes',
+  '/toulon',
+  '/annecy',
+  '/chambery',
+  '/valence',
+  '/grenoble',
+  '/saint-etienne',
+];
+
+const SITEMAP_PT = [
+  '/',
+  '/about-us',
+  '/contact-us',
+  '/catalogue',
+  '/hire-agent',
+  '/faq',
+  '/blog',
+  '/news',
+  '/locations',
+  '/lisboa',
+  '/porto',
+  '/braga',
+  '/coimbra',
+  '/faro',
+  '/aveiro',
+  '/setubal',
+  '/leiria',
+  '/funchal',
+  '/ponta-delgada',
+  '/evora',
+  '/beja',
+  '/portalegre',
+  '/guarda',
+  '/castelo-branco',
+  '/viseu',
+  '/santarem',
+  '/vila-real',
+  '/braganca',
+  '/lagos',
+  '/portimao',
+  '/albufeira',
+  '/loule',
+  '/sintra',
+  '/cascais',
+  '/mafra',
+  '/oeiras',
+  '/amadora',
+  '/odivelas',
+  '/loures',
+  '/vilanova-de-gaia',
+  '/matosinhos',
+  '/guimaraes',
 ];
