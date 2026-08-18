@@ -10,8 +10,8 @@ const PrivacyPolicy = () => {
     const isPortugal = tenant === 'portugal';
     const tenantEmail = getTenantEmail(tenant);
     const tenantDomain = getTenantDomain(tenant);
-    const brand = isSpanish ? 'Certificado Energético' : isEngland ? 'EPC Cert' : isFrance ? 'DPE France' : isPortugal ? 'Certificado Energético' : 'The Berman';
-    const lastUpdated = isSpanish ? '2 de febrero de 2026' : 'February 2, 2026';
+    const brand = isSpanish ? 'Certificado Energético' : isEngland ? 'EPC Cert' : isFrance ? 'DPE France' : isPortugal ? 'Certificado Energia' : 'The Berman';
+    const lastUpdated = isSpanish ? '2 de febrero de 2026' : isPortugal ? '2 de fevereiro de 2026' : 'February 2, 2026';
 
     const tr = isSpanish ? {
         seoTitle: 'Política de Privacidad',
@@ -91,6 +91,45 @@ const PrivacyPolicy = () => {
         emailLabel: 'Email',
         addressLabel: 'Address',
         address: 'London, England',
+    } : isPortugal ? {
+        seoTitle: 'Política de Privacidade',
+        seoDesc: 'Política de Privacidade do Certificado Energia. Comprometemo-nos a proteger os seus dados pessoais de acordo com a legislação portuguesa e o RGPD.',
+        badge: 'Legal',
+        title1: 'Política de',
+        title2: 'Privacidade.',
+        lastUpdatedLabel: 'Última atualização',
+        hero: 'A sua privacidade é fundamental para nós. Concebemos a nossa política para ser transparente e estar em conformidade com o RGPD.',
+        introH: 'Introdução',
+        introP: `Bem-vindo a ${brand} ("nós", "nosso" ou "nos"). Comprometemo-nos a proteger os seus dados pessoais e o seu direito à privacidade. Esta Política de Privacidade explica como recolhemos, usamos e partilhamos informações quando utiliza o nosso website (${tenantDomain}) e os nossos serviços em Portugal.`,
+        collectH: 'Informação que Recolhemos',
+        collectIntro: 'Quando solicita um orçamento de Certificado Energético ou utiliza a nossa plataforma, recolhemos informações que o identificam, tais como:',
+        collectItems: [
+            'Dados de contacto (nome, endereço de email, número de telefone).',
+            'Dados da propriedade (código postal, morada, tipo de imóvel).',
+            'Informações da conta (se se registar como utilizador ou avaliador).',
+            'Dados técnicos (endereço IP, tipo de navegador, padrões de utilização).',
+        ],
+        useH: 'Como Utilizamos os Dados',
+        useIntro: 'Tratamos as suas informações com base em interesses legítimos, no cumprimento do contrato consigo e no cumprimento das nossas obrigações legais.',
+        useItems: [
+            'Para facilitar a geração de orçamentos e a marcação com avaliadores.',
+            'Para comunicar consigo em relação com o seu Certificado Energético.',
+            'Para melhorar a funcionalidade do site e a experiência do utilizador.',
+            'Para cumprir a regulamentação da ADENE e a legislação portuguesa em matéria de edifícios.',
+        ],
+        rightsH: 'Os Seus Direitos',
+        rightsIntro: 'Ao abrigo do RGPD e da legislação portuguesa de proteção de dados, tem os seguintes direitos:',
+        rightsItems: [
+            'O direito de aceder aos dados pessoais que tratamos sobre si.',
+            'O direito de solicitar a retificação de dados inexatos.',
+            'O direito de solicitar a eliminação dos seus dados (direito ao esquecimento).',
+            'O direito de se opor ao tratamento ou solicitar a sua limitação.',
+        ],
+        contactH: 'Contacte-nos',
+        contactIntro: 'Se tiver alguma questão sobre esta Política de Privacidade ou sobre as nossas práticas de tratamento de dados, contacte o nosso Responsável pela Proteção de Dados:',
+        emailLabel: 'Email',
+        addressLabel: 'Morada',
+        address: 'Lisboa, Portugal',
     } : {
         seoTitle: 'Privacy Policy',
         seoDesc: "Privacy Policy for The Berman. We are committed to protecting your personal data in accordance with Irish law and GDPR.",
