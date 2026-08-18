@@ -82,6 +82,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             }
         });
 
+        // Track the last login timestamp for any session creation (password, reset link, confirmation link, etc.)
+        const recordLogin = async (userId: string) => {
+            try {
+                await supabase
+                    .from('profiles')
+                    .update({ last_login: new Date().toISOString() })
+                    .eq('id', userId);
+            } catch {
+                // silent — don't block auth flow
+            }
+        };
+
         // Listen for changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             // Only update state if it changed to prevent unnecessary re-renders
@@ -93,6 +105,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 setUser(session?.user ?? null);
                 if (session?.user?.id) {
                     fetchProfile(session.user.id);
+                    if (event === 'SIGNED_IN') {
+                        recordLogin(session.user.id);
+                    }
                 }
                 // Redirect to update-password page on PASSWORD_RECOVERY
                 if (event === 'PASSWORD_RECOVERY') {
