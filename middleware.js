@@ -3,6 +3,7 @@
 // Zero changes to the React app needed.
 
 import { HOME_SEO, PAGE_SEO } from './seo-metadata.js';
+import { SITEMAP_BY_TENANT } from './sitemap-data.js';
 
 export const config = { matcher: '/((?!_next|assets|favicon|logo).*)' };
 
@@ -1207,13 +1208,14 @@ export default async function middleware(req) {
 
   // Dynamic Sitemap Interception
   if (path === '/sitemap.xml') {
-    let urls = [];
+    const sitemapData = SITEMAP_BY_TENANT[tenant] || SITEMAP_BY_TENANT.ireland;
+    const urls = sitemapData || [];
     let domain = '';
-    if (tenant === 'spain') { urls = SITEMAP_ES; domain = 'https://www.xn--certificadoenergtico-q2b.eu'; }
-    else if (tenant === 'england') { urls = SITEMAP_EN; domain = 'https://www.epccert.com'; }
-    else if (tenant === 'france') { urls = SITEMAP_FR; domain = 'https://www.dpecert.fr'; }
-    else if (tenant === 'portugal') { urls = SITEMAP_PT; domain = 'https://www.certificadoenergia.com'; }
-    else { urls = SITEMAP_IE; domain = 'https://www.theberman.eu'; }
+    if (tenant === 'spain') domain = 'https://www.xn--certificadoenergtico-q2b.eu';
+    else if (tenant === 'england') domain = 'https://www.epccert.com';
+    else if (tenant === 'france') domain = 'https://www.dpecert.fr';
+    else if (tenant === 'portugal') domain = 'https://www.certificadoenergia.com';
+    else domain = 'https://www.theberman.eu';
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
     const today = new Date().toISOString().split('T')[0];
