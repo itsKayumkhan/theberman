@@ -1164,18 +1164,27 @@ export default async function middleware(req) {
   const url  = new URL(req.url);
   const path = url.pathname;
 
-  // Prefer the original forwarded hostname on Vercel, and remove proxy ports.
-  // A comma-separated value can be supplied by multi-hop proxies; the first host
-  // is the browser-facing tenant domain.
+  // The Host header is the browser-facing domain on Vercel. x-forwarded-host
+  // is used as a fallback. If a proxy supplies a comma-separated list, prefer
+  // the first host that maps to a tenant other than the Ireland base domain,
+  // then any known tenant, so dpecert.fr/spain/etc. don't inherit the Berman
+  // default just because theberman.eu appears first in a forwarded list.
   const forwardedHost = req.headers.get('x-forwarded-host');
-  const hostname = (forwardedHost || req.headers.get('host') || url.hostname)
-    .split(',')[0]
-    .trim();
-  const cleanHost = hostname
-    .replace(/:\d+$/, '')
-    .replace(/^www\./, '')
-    .toLowerCase();
+  const reqHost = req.headers.get('host') || url.hostname;
+  const candidates = [reqHost, url.hostname, forwardedHost]
+    .filter(Boolean)
+    .flatMap(h => h.split(',').map(v => v.trim()));
+
+  const mapped = candidates
+    .map(h => ({ raw: h.replace(/:\d+$/, ''), clean: h.replace(/:\d+$/, '').replace(/^www\./, '').toLowerCase() }))
+    .find(({ clean }) => DOMAIN_TO_TENANT[clean] && clean !== 'theberman.eu') ||
+    candidates
+    .map(h => ({ raw: h.replace(/:\d+$/, ''), clean: h.replace(/:\d+$/, '').replace(/^www\./, '').toLowerCase() }))
+    .find(({ clean }) => DOMAIN_TO_TENANT[clean]);
+
+  const cleanHost = mapped ? mapped.clean : (candidates[0] ? candidates[0].replace(/:\d+$/, '').replace(/^www\./, '').toLowerCase() : 'theberman.eu');
   const tenant = DOMAIN_TO_TENANT[cleanHost] || 'ireland';
+  const hostname = mapped ? mapped.raw : (candidates[0] ? candidates[0].replace(/:\d+$/, '') : 'theberman.eu');
 
 
 
