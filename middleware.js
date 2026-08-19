@@ -373,6 +373,16 @@ const COUNTY_NAMES = {
   wexford:'Wexford', wicklow:'Wicklow',
 };
 
+// ─── Tenant logo files (public/ is shared across all domains, so /logo.png is
+// always the Berman logo — each tenant must reference its own file) ───────────
+const TENANT_LOGOS = {
+  ireland:  '/logo.png',
+  spain:    '/certificado-logo-trimmed.png',
+  england:  '/epc-logo-trimmed.png',
+  france:   '/dpecert-logo.png',
+  portugal: '/certificado-energia-logo.png',
+};
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function toTitle(slug) {
   return slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
@@ -498,7 +508,7 @@ function orgSchema(tenant) {
           '@id': 'https://www.xn--certificadoenergtico-q2b.eu/#organization',
           name: 'Certificado Energético España',
           url: 'https://www.xn--certificadoenergtico-q2b.eu/',
-          logo: 'https://www.xn--certificadoenergtico-q2b.eu/logo.png',
+          logo: 'https://www.xn--certificadoenergtico-q2b.eu/certificado-logo-trimmed.png',
           description: "La plataforma líder de España para conectar con técnicos acreditados en certificación energética. Desde 60€, visita incluida.",
           areaServed: { '@type': 'Country', name: 'España' },
           knowsAbout: ['Certificado de Eficiencia Energética','Calificación Energética','Etiqueta Energética','Eficiencia Energética'],
@@ -542,7 +552,7 @@ function orgSchema(tenant) {
           '@id': 'https://www.epccert.com/#organization',
           name: 'EPC Cert',
           url: 'https://www.epccert.com/',
-          logo: 'https://www.epccert.com/logo.png',
+          logo: 'https://www.epccert.com/epc-logo-trimmed.png',
           description: "England's leading EPC certificate platform. Compare quotes from accredited Energy Performance Certificate assessors nationwide.",
           areaServed: { '@type': 'Country', name: 'England' },
           knowsAbout: ['EPC Certificate','Energy Performance Certificate','MEES','Domestic Energy Assessor','Commercial EPC'],
@@ -588,7 +598,7 @@ function orgSchema(tenant) {
           '@id': 'https://www.dpecert.fr/#organization',
           name: 'DPE Cert France',
           url: 'https://www.dpecert.fr/',
-          logo: 'https://www.dpecert.fr/logo.png',
+          logo: 'https://www.dpecert.fr/dpecert-logo.png',
           description: "La plateforme de confiance pour le diagnostic de performance énergétique en France. Comparez les devis de diagnostiqueurs certifiés.",
           areaServed: { '@type': 'Country', name: 'France' },
           knowsAbout: ['DPE','Diagnostic de Performance Énergétique','Diagnostic Immobilier','Efficacité Énergétique'],
@@ -632,7 +642,7 @@ function orgSchema(tenant) {
           '@id': 'https://www.certificadoenergia.com/#organization',
           name: 'Certificado Energia',
           url: 'https://www.certificadoenergia.com/',
-          logo: 'https://www.certificadoenergia.com/logo.png',
+          logo: 'https://www.certificadoenergia.com/certificado-energia-logo.png',
           description: "A plataforma líder de certificação energética em Portugal. Obtenha o seu certificado energético com peritos qualificados.",
           areaServed: { '@type': 'Country', name: 'Portugal' },
           knowsAbout: ['Certificado Energético','Eficiência Energética','Sistema de Certificação Energética','Edifícios'],
@@ -1268,11 +1278,7 @@ export default async function middleware(req) {
   const canonicalPath = pageMeta.canonical || (path === '/' ? '/' : path);
   const canonical = `${canonicalBase}${canonicalPath}`;
   
-  let ogImage = 'https://www.theberman.eu/logo.png';
-  if (tenant === 'spain') ogImage = 'https://www.xn--certificadoenergtico-q2b.eu/logo.png';
-  else if (tenant === 'england') ogImage = 'https://www.epccert.com/logo.png';
-  else if (tenant === 'france') ogImage = 'https://www.dpecert.fr/logo.png';
-  else if (tenant === 'portugal') ogImage = 'https://www.certificadoenergia.com/logo.png';
+  const ogImage = `${canonicalBase}${TENANT_LOGOS[tenant] || TENANT_LOGOS.ireland}`;
 
   // Build all schemas
   const schemas = [];
@@ -1309,7 +1315,7 @@ export default async function middleware(req) {
       publisher: {
         '@type': 'Organization',
         name: tenant === 'england' ? 'EPC Cert' : tenant === 'france' ? 'DPE Cert France' : tenant === 'portugal' ? 'Certificado Energia' : tenant === 'spain' ? 'Certificado Energético' : 'The Berman',
-        logo: { '@type': 'ImageObject', url: `${canonicalBase}/logo.png` }
+        logo: { '@type': 'ImageObject', url: `${canonicalBase}${TENANT_LOGOS[tenant] || TENANT_LOGOS.ireland}` }
       },
       mainEntityOfPage: { '@type': 'WebPage', '@id': `${canonicalBase}${path}` },
       inLanguage: tenant === 'spain' ? 'es-ES' : tenant === 'england' ? 'en-GB' : tenant === 'france' ? 'fr-FR' : tenant === 'portugal' ? 'pt-PT' : 'en-IE',
@@ -1333,7 +1339,7 @@ export default async function middleware(req) {
       publisher: {
         '@type': 'Organization',
         name: tenant === 'england' ? 'EPC Cert' : tenant === 'france' ? 'DPE Cert France' : tenant === 'portugal' ? 'Certificado Energia' : tenant === 'spain' ? 'Certificado Energético' : 'The Berman',
-        logo: { '@type': 'ImageObject', url: `${canonicalBase}/logo.png` }
+        logo: { '@type': 'ImageObject', url: `${canonicalBase}${TENANT_LOGOS[tenant] || TENANT_LOGOS.ireland}` }
       },
       mainEntityOfPage: { '@type': 'WebPage', '@id': `${canonicalBase}${path}` },
       inLanguage: tenant === 'spain' ? 'es-ES' : tenant === 'england' ? 'en-GB' : tenant === 'france' ? 'fr-FR' : tenant === 'portugal' ? 'pt-PT' : 'en-IE',

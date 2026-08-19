@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { getTenantFromDomain } from '../lib/tenant';
 import { getTownsForTenant } from '../lib/tenantData';
 import { supabase } from '../lib/supabase';
+import NotFound from './NotFound';
 
 interface LocationPageData {
     hero_title: string;
@@ -23,6 +24,7 @@ const LocationPage = () => {
     const isFrance = tenant === 'france';
     const isPortugal = tenant === 'portugal';
     const [customData, setCustomData] = useState<LocationPageData | null>(null);
+    const [dbChecked, setDbChecked] = useState(false);
 
     // Get the correct location data based on tenant
     const locationData = getTownsForTenant(tenant);
@@ -90,6 +92,8 @@ const LocationPage = () => {
                 if (data) setCustomData(data);
             } catch {
                 // Ignore errors, fallback to generated content
+            } finally {
+                setDbChecked(true);
             }
         };
         fetchLocationPage();
@@ -135,6 +139,17 @@ const LocationPage = () => {
         meta.content = pageDescription;
         document.head.appendChild(meta);
     }, [pageTitle, pageDescription]);
+
+    // Unknown location → real 404. Prevents random URLs (via the :county catch-all
+    // route) from rendering an auto-generated location page instead of Not Found.
+    const normalizeSlug = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    const isKnownCounty = !!countyKey;
+    const isKnownTown = !town || townsInCounty.some(t => normalizeSlug(t) === normalizeSlug(town));
+    if (!isKnownCounty || !isKnownTown) {
+        // A custom location page saved in the DB is still allowed to render
+        if (!dbChecked) return null;
+        if (!customData) return <NotFound />;
+    }
 
     const heroTitle = customData?.hero_title || `${labels.assessor} ${labels.in} ${townName || displayName}`;
     const heroSubtitle = customData?.hero_subtitle || (isSpanish
