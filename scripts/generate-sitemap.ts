@@ -4,6 +4,8 @@ import { fileURLToPath } from 'url';
 import { TOWNS_BY_COUNTY } from '../src/data/irishTowns';
 import { TOWNS_BY_COUNTY_SPAIN } from '../src/data/spainTowns';
 import { TOWNS_BY_COUNTY_ENGLAND } from '../src/data/englandTowns';
+import { TOWNS_BY_COUNTY_FRANCE } from '../src/data/franceTowns';
+import { TOWNS_BY_COUNTY_PORTUGAL } from '../src/data/portugalTowns';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,7 +22,11 @@ const generateSitemap = (domain: string, tenant: string): string => {
     const baseUrl = `https://${domain}`;
     
     // Get location data based on tenant
-    const locationData = tenant === 'spain' ? TOWNS_BY_COUNTY_SPAIN : tenant === 'england' ? TOWNS_BY_COUNTY_ENGLAND : TOWNS_BY_COUNTY;
+    const locationData = tenant === 'spain' ? TOWNS_BY_COUNTY_SPAIN
+      : tenant === 'england' ? TOWNS_BY_COUNTY_ENGLAND
+      : tenant === 'france' ? TOWNS_BY_COUNTY_FRANCE
+      : tenant === 'portugal' ? TOWNS_BY_COUNTY_PORTUGAL
+      : TOWNS_BY_COUNTY;
     
     // Static pages
     const staticPages = [
@@ -47,7 +53,7 @@ const generateSitemap = (domain: string, tenant: string): string => {
     
     // County pages
     Object.keys(locationData).forEach(county => {
-        const countySlug = county.replace(/\s+/g, '-').toLowerCase();
+        const countySlug = county.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-').toLowerCase();
         urls.push({
             loc: `${baseUrl}/${countySlug}`,
             lastmod: new Date().toISOString().split('T')[0],
@@ -57,7 +63,7 @@ const generateSitemap = (domain: string, tenant: string): string => {
         
         // Town pages
         locationData[county].forEach(town => {
-            const townSlug = town.replace(/\s+/g, '-').toLowerCase();
+            const townSlug = town.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-').toLowerCase();
             urls.push({
                 loc: `${baseUrl}/${countySlug}/${townSlug}`,
                 lastmod: new Date().toISOString().split('T')[0],
@@ -86,6 +92,8 @@ const domains = [
     { domain: 'theberman.eu', tenant: 'ireland' },
     { domain: 'certificadoenergético.eu', tenant: 'spain' },
     { domain: 'epccert.com', tenant: 'england' },
+    { domain: 'dpecert.fr', tenant: 'france' },
+    { domain: 'certificadoenergia.com', tenant: 'portugal' },
 ];
 
 domains.forEach(({ domain, tenant }) => {
