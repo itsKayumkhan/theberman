@@ -378,10 +378,10 @@ const COUNTY_NAMES = {
 // always the Berman logo — each tenant must reference its own file) ───────────
 const TENANT_LOGOS = {
   ireland:  '/logo.png',
-  spain:    '/certificado-logo-trimmed.png',
-  england:  '/epc-logo-trimmed.png',
-  france:   '/dpecert-logo.png',
-  portugal: '/certificado-energia-logo.png',
+  spain:    '/og-spain.png',
+  england:  '/og-england.png',
+  france:   '/og-france.png',
+  portugal: '/og-portugal.png',
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
