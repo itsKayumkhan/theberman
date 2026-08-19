@@ -91,6 +91,7 @@ serve(async (req: Request) => {
             .from('catalogue_listings')
             .insert({
                 name: companyName,
+                trading_name: tradingName || null,
                 slug,
                 company_name: companyName,
                 description: description || (isPortugueseDesc ? `${companyName} - Prestador de serviços profissionais.` : `${companyName} - Professional services provider.`),
@@ -99,6 +100,7 @@ serve(async (req: Request) => {
                 address: fullAddress,
                 website: website,
                 owner_id: user_id,
+                tenant,
                 is_active: true,
                 social_media: {
                     facebook: facebook || undefined,

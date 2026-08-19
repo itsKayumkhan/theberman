@@ -203,7 +203,7 @@ const BusinessOnboarding = () => {
             if (!existingListing) {
                 await supabase.auth.refreshSession();
                 const { error: fnError } = await supabase.functions.invoke('confirm-business-registration', {
-                    body: { registrationData, paymentIntentId: 'FREE_BUSINESS' }
+                    body: { registrationData, paymentIntentId: 'FREE_BUSINESS', tenant }
                 });
                 if (fnError) {
                     console.error('Edge function error:', fnError);
