@@ -108,6 +108,7 @@ const Subscribe = () => {
                                     const { error } = await supabase
                                         .from('leads')
                                         .insert([{
+                                            tenant,
                                             name: 'Guide Subscriber',
                                             email: email,
                                             message: 'Requested Complete Home Energy Upgrade Guide via Subscribe Page',

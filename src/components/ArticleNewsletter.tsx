@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { getTenantFromDomain } from '../lib/tenant';
 import toast from 'react-hot-toast';
 
 const ArticleNewsletter = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const tenant = getTenantFromDomain();
 
     return (
         <section className="py-20 bg-[#1a1a1a] text-white">
@@ -25,6 +27,7 @@ const ArticleNewsletter = () => {
                             const { error } = await supabase
                                 .from('leads')
                                 .insert([{
+                                    tenant,
                                     name: 'Blog Subscriber',
                                     email: email,
                                     message: 'Subscribed via article page newsletter',

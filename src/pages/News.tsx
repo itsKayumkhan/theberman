@@ -414,6 +414,7 @@ const NewsPage = () => {
                                 const { error } = await supabase
                                     .from('leads')
                                     .insert([{
+                                        tenant,
                                         name: 'News Subscriber',
                                         email: email,
                                         message: 'Requested push emails regarding special offers and energy upgrades via RT News Mode',

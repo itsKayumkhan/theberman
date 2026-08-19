@@ -78,6 +78,7 @@ const PublicAssessorProfile = () => {
             const { error } = await supabase
                 .from('leads')
                 .insert([{
+                    tenant,
                     name: formData.name,
                     email: formData.email,
                     phone: formData.phone,

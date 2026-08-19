@@ -151,6 +151,7 @@ const Contact = () => {
             const { error } = await supabase
                 .from('leads')
                 .insert([{
+                    tenant,
                     name: data.name,
                     email: data.email,
                     phone: data.phone,
