@@ -1198,7 +1198,7 @@ export default async function middleware(req) {
     const robots = `User-agent: *\nAllow: /\n\nSitemap: ${url.protocol}//${requestHost}/sitemap.xml\n`;
     return new Response(robots, {
       status: 200,
-      headers: { 'Content-Type': 'text/plain', 'Cache-Control': 'public, max-age=3600' }
+      headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=3600' }
     });
   }
 
@@ -1226,7 +1226,7 @@ export default async function middleware(req) {
 
     return new Response(xml, {
       status: 200,
-      headers: { 'Content-Type': 'application/xml', 'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400' }
+      headers: { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400' }
     });
   }
 
