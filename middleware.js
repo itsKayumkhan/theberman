@@ -1194,12 +1194,8 @@ export default async function middleware(req) {
 
   // Dynamic robots.txt per tenant
   if (path === '/robots.txt') {
-    const robotDomain = tenant === 'spain' ? 'https://www.xn--certificadoenergtico-q2b.eu'
-      : tenant === 'england' ? 'https://www.epccert.com'
-      : tenant === 'france' ? 'https://www.dpecert.fr'
-      : tenant === 'portugal' ? 'https://www.certificadoenergia.com'
-      : 'https://www.theberman.eu';
-    const robots = `User-agent: *\nAllow: /\n\nSitemap: ${robotDomain}/sitemap.xml\n`;
+    const requestHost = req.headers.get('host') || url.host;
+    const robots = `User-agent: *\nAllow: /\n\nSitemap: ${url.protocol}//${requestHost}/sitemap.xml\n`;
     return new Response(robots, {
       status: 200,
       headers: { 'Content-Type': 'text/plain', 'Cache-Control': 'public, max-age=3600' }
@@ -1210,24 +1206,20 @@ export default async function middleware(req) {
   if (path === '/sitemap.xml') {
     const sitemapData = SITEMAP_BY_TENANT[tenant] || SITEMAP_BY_TENANT.ireland;
     const urls = sitemapData || [];
-    let domain = '';
-    if (tenant === 'spain') domain = 'https://www.xn--certificadoenergtico-q2b.eu';
-    else if (tenant === 'england') domain = 'https://www.epccert.com';
-    else if (tenant === 'france') domain = 'https://www.dpecert.fr';
-    else if (tenant === 'portugal') domain = 'https://www.certificadoenergia.com';
-    else domain = 'https://www.theberman.eu';
+    const requestHost = req.headers.get('host') || url.host;
+    const sitemapBase = `${url.protocol}//${requestHost}`;
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
     const today = new Date().toISOString().split('T')[0];
-    
+
     // Add homepage if not in array
     if (!urls.includes('/')) {
-        xml += `  <url>\n    <loc>${domain}/</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n`;
+        xml += `  <url>\n    <loc>${encodeURI(`${sitemapBase}/`)}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n`;
     }
 
     for (const u of urls) {
       const isHome = u === '/';
-      const loc = isHome ? domain + '/' : domain + u;
+      const loc = encodeURI(isHome ? `${sitemapBase}/` : `${sitemapBase}${u}`);
       xml += `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${isHome ? 'daily' : 'weekly'}</changefreq>\n    <priority>${isHome ? '1.0' : '0.8'}</priority>\n  </url>\n`;
     }
     xml += `</urlset>`;
