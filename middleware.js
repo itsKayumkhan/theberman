@@ -38,331 +38,6 @@ const DOMAIN_TO_TENANT = {
   'www.certificadoenergia.com': 'portugal',
 };
 
-// ─── Page metadata map (Ireland) ─────────────────────────────────────────────
-const PAGE_META_IE = {
-  '/': {
-    title: HOME_SEO.ireland.title,
-    desc: HOME_SEO.ireland.description,
-  },
-  '/about': {
-    title: "About The Berman | Ireland's BER Certificate Platform",
-    desc:  "Learn about The Berman — Ireland's largest BER certificate platform connecting property owners with 100+ SEAI-registered assessors across every county.",
-  },
-  '/about-us': {
-    title: "About The Berman | Ireland's BER Certificate Platform",
-    desc:  "Learn about The Berman — Ireland's largest BER certificate platform connecting property owners with 100+ SEAI-registered assessors across every county.",
-  },
-  '/services': {
-    title: 'BER Certificate Services Ireland | Residential & Commercial | The Berman',
-    desc:  'Get residential, apartment and commercial BER certificates across Ireland. Compare quotes from SEAI-registered assessors and book online with The Berman.',
-  },
-  '/pricing': {
-    title: 'BER Certificate Cost Ireland 2026 | Compare Prices | The Berman',
-    desc:  'How much does a BER certificate cost in Ireland? Compare prices from €150 from SEAI-registered assessors. Get the best BER quote with The Berman.',
-  },
-  '/faq': {
-    title: 'BER Certificate FAQs Ireland | Common Questions Answered | The Berman',
-    desc:  'Answers to the most common BER certificate questions in Ireland. What is a BER? How long does it last? How much does it cost? Find out with The Berman.',
-  },
-  '/ber-faqs/': {
-    title: 'BER Certificate FAQs Ireland | Common Questions Answered | The Berman',
-    desc:  'Answers to the most common BER certificate questions in Ireland. What is a BER? How long does it last? How much does it cost? Find out with The Berman.',
-  },
-  '/contact-us': {
-    title: 'Contact The Berman | BER Certificate Support Ireland',
-    desc:  'Contact The Berman for BER certificate support. Ireland\'s largest BER platform — we\'re here to help with quotes, bookings and assessor queries.',
-  },
-  '/locations': {
-    title: 'BER Assessors by Location | All Counties Ireland | The Berman',
-    desc:  'Find SEAI-registered BER assessors in every county and town in Ireland. Compare local quotes and book your BER certificate online with The Berman.',
-  },
-  '/catalogue': {
-    title: 'Find BER Assessors Ireland | Browse & Compare Quotes | The Berman',
-    desc:  'Browse SEAI-registered BER assessors across Ireland. Compare quotes, check availability and book your BER certificate online instantly with The Berman.',
-  },
-  '/news': {
-    title: 'BER Certificate News & Updates Ireland | The Berman',
-    desc:  'Latest BER certificate news, SEAI updates and energy rating information for Irish homeowners and landlords. Stay informed with The Berman.',
-  },
-  '/blog': {
-    title: 'BER Certificate Blog | Energy Rating Guides Ireland | The Berman',
-    desc:  'Expert guides on BER certificates, energy efficiency upgrades, SEAI grants and property energy ratings in Ireland. Read more on The Berman blog.',
-  },
-  '/hire-agent': {
-    title: 'Hire a BER Assessor Ireland | The Berman',
-    desc:  'Hire a SEAI-registered BER assessor through The Berman. Fast, reliable and affordable BER certificates anywhere in Ireland.',
-  },
-  '/get-quote': {
-    title: 'Get a BER Certificate Quote | Free Quotes Ireland | The Berman',
-    desc:  'Get free BER certificate quotes from SEAI-registered assessors near you. Compare prices and book online instantly with The Berman.',
-  },
-  '/blog/ber-certificate-cost-ireland': {
-    title: 'How Much Does a BER Certificate Cost in Ireland? | 2026 Price Guide',
-    desc:  'BER certificate costs in Ireland range from €150–€300. Compare prices from SEAI-registered assessors near you. Get the best BER cert quote with The Berman.',
-  },
-  '/blog/new-ber-rating-scale-2026-ireland': {
-    title: 'New BER Rating Scale 2026 — A0, A1, A2, A3 Ireland Explained | The Berman',
-    desc:  "Ireland's new 2026 BER scale runs from A0 to G. Learn what each rating means, how it affects SEAI grants, and how to get your property rated under the new system.",
-  },
-  '/blog/ber-cert-for-landlords-ireland': {
-    title: 'BER Certificate for Landlords Ireland 2026 | Legal Requirements & Costs',
-    desc:  'Landlords in Ireland must have a valid BER certificate. Learn the legal requirements, costs (from €150), how long it lasts, and how to get one fast with The Berman.',
-  },
-  '/blog/seai-grants-2026-ireland': {
-    title: 'SEAI Grants 2026 Ireland — Up to €25,000 for Home Energy Upgrades',
-    desc:  'Full guide to SEAI energy upgrade grants in 2026. What grants are available, how much you can get (up to €25,000), and why you need a BER certificate to apply.',
-  },
-};
-
-// ─── Page metadata map (England) ─────────────────────────────────────────────
-const PAGE_META_EN = {
-  '/': {
-    title: HOME_SEO.england.title,
-    desc: HOME_SEO.england.description,
-  },
-  '/about': {
-    title: 'About EPC Cert | Energy Performance Certificate Experts',
-    desc: 'Learn about EPC Cert, trusted Energy Performance Certificate experts helping property owners across England arrange EPC assessments',
-  },
-  '/about-us': {
-    title: 'About EPC Cert | Energy Performance Certificate Experts',
-    desc: 'Learn about EPC Cert, trusted Energy Performance Certificate experts helping property owners across England arrange EPC assessments',
-  },
-  '/services': {
-    title: 'EPC Certificate Services England | Residential & Commercial | EPC Cert',
-    desc: 'Get residential, landlord and commercial EPC certificates across England. Compare quotes from accredited assessors and book online with EPC Cert.',
-  },
-  '/pricing': {
-    title: 'EPC Certificate Cost England 2026 | Compare Prices | EPC Cert',
-    desc: 'How much does an EPC certificate cost in England? Compare prices from accredited assessors. Get the best EPC quote with EPC Cert.',
-  },
-  '/faq': {
-    title: 'EPC Certificate FAQ England | EPC Assessor',
-    desc: 'Find Answers to Common EPC Certificate Questions, Including Costs, Timelines, and Legal',
-  },
-  '/epc-faq': {
-    title: 'EPC Certificate FAQ England 2026 | Landlord & MEES Questions Answered',
-    desc: 'Answers to common EPC questions in England — costs, landlord MEES requirements, Band C 2030 deadline, how to improve ratings, and who can carry out assessments.',
-  },
-  '/contact-us': {
-    title: 'Contact EPC Cert | EPC Certificate Support England',
-    desc: "Contact EPC Cert for EPC certificate support. England's leading EPC platform — we're here to help.",
-  },
-  '/locations': {
-    title: 'EPC Assessors by Location | All Counties England | EPC Cert',
-    desc: 'Find accredited EPC assessors in every county and town in England. Compare local quotes and book online with EPC Cert.',
-  },
-  '/catalogue': {
-    title: 'Find EPC Assessors England | Browse & Compare Quotes | EPC Cert',
-    desc: 'Browse accredited EPC assessors across England. Compare quotes and book your EPC certificate online instantly with EPC Cert.',
-  },
-  '/news': {
-    title: 'EPC Certificate News & Updates England | EPC Cert',
-    desc: 'Latest EPC news, government regulations, and energy efficiency updates for English homeowners and landlords.',
-  },
-  '/blog': {
-    title: 'EPC Certificate Blog | Energy Efficiency Guides England | EPC Cert',
-    desc: 'Expert guides on Energy Performance Certificates, home efficiency improvements, and landlord regulations in England.',
-  },
-  '/hire-agent': {
-    title: 'Hire an EPC Assessor England | EPC Cert',
-    desc: 'Hire an accredited EPC assessor through EPC Cert. Fast, reliable and affordable EPC certificates anywhere in England.',
-  },
-  '/get-quote': {
-    title: 'Get a Free EPC Certificate Quote | Compare Prices England | EPC Cert',
-    desc: 'Get free EPC certificate quotes from accredited assessors near you. Compare and book online instantly with EPC Cert.',
-  },
-  // Blog posts — England
-  '/blog/epc-certificate-cost-guide': {
-    title: 'How Much Does an EPC Certificate Cost in England? | 2026 Price Guide',
-    desc: 'EPC certificates in England cost £45–£150 for domestic properties. Compare prices from accredited assessors near you. Get your best EPC quote with EPC Cert.',
-  },
-  '/blog/landlord-epc-requirements-england-2026': {
-    title: 'Landlord EPC Requirements England 2026 | MEES Band C 2030 Deadline Guide',
-    desc: 'England MEES requires EPC Band E now; all rentals must reach Band C by 2030. Fines up to £30,000. Learn what landlords must do and how EPC Cert can help.',
-  },
-  '/blog/how-to-improve-epc-rating-england': {
-    title: 'How to Improve Your EPC Rating England 2026 | E to C Upgrade Guide',
-    desc: 'Improve your EPC rating from E to C in England. Guide to loft insulation, heat pumps, boilers & solar panels with costs, grants available, and step-by-step plan.',
-  },
-  '/blog/commercial-epc-england-guide': {
-    title: 'Commercial EPC England 2026 | MEES Requirements, Costs & How to Comply',
-    desc: 'Commercial EPCs are required when selling or renting in England. MEES demands Band C by 2030. Costs from £150. Compare commercial EPC quotes with EPC Cert.',
-  },
-  '/blog/epc-band-c-2030-deadline-landlord-guide': {
-    title: 'EPC Band C 2030 Deadline — Landlord Action Plan England | EPC Cert',
-    desc: 'All English rentals must reach EPC Band C by 2030. With fines up to £30,000, here\'s your step-by-step landlord action plan to comply on time and save money.',
-  },
-};
-
-// ─── Page metadata map (Spain) ────────────────────────────────────────────────
-const PAGE_META_ES = {
-  '/': {
-    title: HOME_SEO.spain.title,
-    desc: HOME_SEO.spain.description,
-  },
-  '/sobre-nosotros': {
-    title: "Quiénes Somos | Plataforma Certificado Energético España | CertificadoEnergético.eu",
-    desc: "Somos la plataforma que conecta propietarios con técnicos certificadores acreditados en toda España. Más de 1.000 certificados completados. Rápido, transparente y 100% oficial."
-  },
-  '/contacto': {
-    title: "Solicita tu Certificado Energético en España | Presupuesto Gratis | Contacto",
-    desc: "Solicita presupuesto gratuito para tu certificado energético. Técnicos acreditados en toda España. Visita incluida, registro oficial y entrega en 24–72h. Presupuesto sin compromiso."
-  },
-  '/directorio': {
-    title: "Directorio Técnicos Certificado Energético España | Compara y Contrata",
-    desc: "Encuentra técnicos acreditados para tu certificado energético en toda España. Compara precios, lee valoraciones y contrata profesionales colegiados. ¡Presupuesto gratis!"
-  },
-  '/directorio/tecnicos-certificadores': {
-    title: "Directorio de Técnicos Certificadores Energéticos | España",
-    desc: "Busca técnicos competentes acreditados en toda España para la emisión de Certificados de Eficiencia Energética residenciales y comerciales."
-  },
-  '/directorio/empresas-energia': {
-    title: "Empresas de Eficiencia Energética en España | Directorio",
-    desc: "Conecta con empresas de eficiencia energética en toda España: instaladores solares, expertos en aislamiento, bombas de calor y consultores de reformas."
-  },
-  '/asesor-energetico': {
-    title: "Contrata Asesor Energético en España | Visita + Registro en 24–48h",
-    desc: "Habla con un asesor energético independiente. Te ayudamos a evaluar mejoras, priorizar actuaciones y mejorar la calificación de tu inmueble. Presupuesto sin compromiso."
-  },
-  '/preguntas-frecuentes': {
-    title: "Preguntas Frecuentes Certificado Energético España | Precios, Validez, Multas",
-    desc: "¿Cuánto cuesta el certificado energético? ¿Es obligatorio para alquilar? ¿Cuánto tarda? Resolvemos todas tus dudas sobre el CEE en España. Guía completa 2026."
-  },
-  '/blog': {
-    title: "Blog Certificado Energético España | Guías, Precios, Normativa 2026",
-    desc: "Guías prácticas sobre el certificado energético en España: precios 2026, cómo mejorar tu calificación, normativa obligatoria y ayudas para reformas. Actualizado julio 2026."
-  },
-  '/blog/precio-certificado-energetico-espana': {
-    title: "Precio del Certificado Energético en España 2026 | Guía Completa",
-    desc: "Descubre cuánto cuesta el Certificado Energético en España, qué factores afectan al precio y cómo solicitar presupuesto a técnicos acreditados."
-  },
-  '/blog/certificado-energetico-obligatorio-espana': {
-    title: "¿Cuándo es Obligatorio el Certificado Energético en España? | Guía 2026",
-    desc: "Descubre cuándo es obligatorio el certificado energético en España: venta, alquiler, hipotecas, sanciones y excepciones. Guía completa actualizada 2026."
-  },
-  '/blog/mejorar-calificacion-energetica-vivienda': {
-    title: "Cómo Mejorar la Calificación Energética de tu Vivienda | Guía Completa",
-    desc: "Descubre las mejores reformas para mejorar la calificación energética de tu vivienda: aislamiento, ventanas, caldera, solar. Ayudas y subvenciones disponibles en 2026."
-  },
-  '/noticias': {
-    title: "Noticias Certificado Energético España 2026 | Normativa y Novedades",
-    desc: "Últimas noticias sobre el certificado energético en España: Orden ECM/599/2025, Directiva EPBD, obligación hipotecaria y nuevas exigencias 2030. Mantente al día."
-  },
-  '/ubicaciones': {
-    title: "Técnicos Certificado Energético en Toda España | Ubicaciones",
-    desc: "Conecta con técnicos certificadores acreditados en toda España. Compara presupuestos y organiza tu certificado energético en tu ciudad."
-  }
-};
-
-// ─── Page metadata map (France) ───────────────────────────────────────────────
-const PAGE_META_FR = {
-  '/': {
-    title: HOME_SEO.france.title,
-    desc: HOME_SEO.france.description,
-  },
-  '/about-us': {
-    title: "À Propos - Experts en Diagnostic de Performance Énergétique | DPE Cert France",
-    desc: "Découvrez DPE Cert France, la plateforme de confiance pour le diagnostic de performance énergétique en France. Diagnostiqueurs certifiés, évaluations rapides et professionnelles.",
-  },
-  '/services': {
-    title: "Nos Services - DPE Experts | DPE Cert France",
-    desc: "Services complets de diagnostic de performance énergétique incluant DPE, audits énergétiques et certifications pour logements et bâtiments commerciaux.",
-  },
-  '/pricing': {
-    title: "Tarifs - Coûts Transparent du DPE | DPE Cert France",
-    desc: "Tarifs clairs et transparents pour les diagnostics de performance énergétique. Formules pour appartements, maisons et locaux commerciaux.",
-  },
-  '/ber-faqs': {
-    title: "Questions Fréquentes DPE France | DPE Cert France",
-    desc: "Trouvez les réponses aux questions courantes sur le DPE, les diagnostics énergétiques, les coûts et les rénovations en France.",
-  },
-  '/ber-faqs/': {
-    title: "Questions Fréquentes DPE France | DPE Cert France",
-    desc: "Trouvez les réponses aux questions courantes sur le DPE, les diagnostics énergétiques, les coûts et les rénovations en France.",
-  },
-  '/contact-us': {
-    title: "Contact | DPE Cert France",
-    desc: "Contactez DPE Cert France pour vos diagnostics de performance énergétique. Diagnostiqueurs qualifiés et devis compétitifs.",
-  },
-  '/catalogue': {
-    title: "Catalogue d'Entreprises | DPE Cert France",
-    desc: "Parcourez le catalogue des entreprises d'efficacité énergétique vérifiées. Trouvez isolation, pompes à chaleur, solaire et plus.",
-  },
-  '/blog': {
-    title: "Blog | DPE Cert France",
-    desc: "Guides experts sur le DPE, les subventions énergétiques, les rénovations et plus encore.",
-  },
-  '/news': {
-    title: "Actualités | DPE Cert France",
-    desc: "Restez informé des nouvelles énergétiques, subventions et mises à jour du secteur du DPE.",
-  },
-  '/locations': {
-    title: "Diagnostiqueurs par Localisation | DPE Cert France",
-    desc: "Trouvez des diagnostiqueurs certifiés près de chez vous en France. Parcourez par région.",
-  },
-  '/hire-agent': {
-    title: "Conseiller Énergétique France | Conseil Énergétique Indépendant | DPE Cert France",
-    desc: "Recevez des conseils énergétiques indépendants, un accompagnement pour vos rénovations et un soutien technique pour améliorer les performances énergétiques de votre propriété.",
-  },
-};
-
-// ─── Page metadata map (Portugal) ─────────────────────────────────────────────
-const PAGE_META_PT = {
-  '/': {
-    title: HOME_SEO.portugal.title,
-    desc: HOME_SEO.portugal.description,
-  },
-  '/about-us': {
-    title: "Sobre Nós - Especialistas em Certificação Energética | Certificado Energia",
-    desc: "Conheça a Certificado Energia, a plataforma de confiança para certificação energética em Portugal. Peritos qualificados, avaliações rápidas e profissionais.",
-  },
-  '/services': {
-    title: "Os nossos Serviços - Certificados Energéticos | Certificado Energia",
-    desc: "Serviços completos de certificação energética incluindo certificados, avaliações e auditorias para propriedades residenciais e comerciais.",
-  },
-  '/pricing': {
-    title: "Preços - Custos Transparentes de Certificação Energética | Certificado Energia",
-    desc: "Preços claros e transparentes para certificação energética. Planos para apartamentos, casas e espaços comerciais.",
-  },
-  '/faq': {
-    title: "Perguntas Frequentes | Certificado Energia",
-    desc: "Encontre respostas às perguntas mais comuns sobre certificação energética, custos e melhorias em Portugal.",
-  },
-  '/ber-faqs': {
-    title: "Perguntas Frequentes | Certificado Energia",
-    desc: "Encontre respostas às perguntas mais comuns sobre certificação energética, custos e melhorias em Portugal.",
-  },
-  '/ber-faqs/': {
-    title: "Perguntas Frequentes | Certificado Energia",
-    desc: "Encontre respostas às perguntas mais comuns sobre certificação energética, custos e melhorias em Portugal.",
-  },
-  '/contact-us': {
-    title: "Contacto | Certificado Energia Portugal",
-    desc: "Contacte a Certificado Energia para certificação energética em Portugal. Peritos qualificados e orçamentos competitivos.",
-  },
-  '/catalogue': {
-    title: "Catálogo de Empresas | Certificado Energia",
-    desc: "Explore o catálogo de empresas de eficiência energética verificadas. Encontre isolamento, bombas de calor, solar e mais.",
-  },
-  '/blog': {
-    title: "Blog | Certificado Energia",
-    desc: "Guias especializados sobre certificação energética, subvenções, renovações e mais em Portugal.",
-  },
-  '/news': {
-    title: "Notícias | Certificado Energia",
-    desc: "Fique a par das novidades energéticas, subvenções e atualizações do setor da certificação energética em Portugal.",
-  },
-  '/locations': {
-    title: "Peritos por Localização | Certificado Energia",
-    desc: "Encontre peritos qualificados na sua zona em Portugal. Navegue por região.",
-  },
-  '/hire-agent': {
-    title: "Contratar um Consultor Energético | Certificado Energia",
-    desc: "Obtenha orientação gratuita e imparcial de um Consultor Energético certificado. Análise técnica verificada e preços competitivos para melhorar a eficiência da sua habitação.",
-  },
-};
-
 // ─── County display names (Ireland) ───────────────────────────────────────────
 const COUNTY_NAMES = {
   carlow:'Carlow', cavan:'Cavan', clare:'Clare', cork:'Cork', donegal:'Donegal',
@@ -406,9 +81,10 @@ function getMeta(pathname, tenant) {
     return { ...approved, desc: approved.description };
   }
 
-  if (tenant === 'spain') {
-    if (PAGE_META_ES[activePath]) return PAGE_META_ES[activePath];
+  const tenantSeo = PAGE_SEO[tenant] || PAGE_SEO.ireland;
+  const homeSeo = tenantSeo['/'];
 
+  if (tenant === 'spain') {
     // Check if it's a location page: /certificado-energetico-town
     const match = activePath.match(/^\/certificado-energetico-([a-z\-]+)$/);
     if (match) {
@@ -423,12 +99,10 @@ function getMeta(pathname, tenant) {
         desc: `Solicita tu certificado energético en ${displayCity}. Técnicos colegiados, visita presencial obligatoria incluida y entrega rápida en 24–48h. Compara presupuestos gratis.` 
       };
     }
-    return { title: null, desc: PAGE_META_ES['/'].desc };
+    return { title: null, desc: homeSeo.description };
   }
 
   if (tenant === 'england') {
-    if (PAGE_META_EN[activePath]) return PAGE_META_EN[activePath];
-
     // Check if it's an England location page: /epc-assessment-town
     const match = activePath.match(/^\/epc-assessment-([a-z\-]+)$/);
     if (match) {
@@ -439,13 +113,11 @@ function getMeta(pathname, tenant) {
         desc: `Need an EPC certificate in ${displayCity}? Compare quotes from local accredited assessors. Book your EPC assessment online with EPC Cert.` 
       };
     }
-    return { title: null, desc: PAGE_META_EN['/'].desc };
+    return { title: null, desc: homeSeo.description };
   }
 
   // France
   if (tenant === 'france') {
-    if (PAGE_META_FR[activePath]) return PAGE_META_FR[activePath];
-
     // Location page: /city or /city/town
     const parts = activePath.replace(/^\//, '').split('/');
     if (parts.length >= 1 && parts[0]) {
@@ -455,13 +127,11 @@ function getMeta(pathname, tenant) {
         desc: `Trouvez des diagnostiqueurs certifiés à ${city}. Obtenez votre DPE avec des diagnostiqueurs certifiés locaux.`,
       };
     }
-    return { title: PAGE_META_FR['/'].title, desc: PAGE_META_FR['/'].desc };
+    return { title: homeSeo.title, desc: homeSeo.description };
   }
 
   // Portugal
   if (tenant === 'portugal') {
-    if (PAGE_META_PT[activePath]) return PAGE_META_PT[activePath];
-
     // Location page: /city or /city/town
     const parts = activePath.replace(/^\//, '').split('/');
     if (parts.length >= 1 && parts[0]) {
@@ -471,12 +141,10 @@ function getMeta(pathname, tenant) {
         desc: `Encontre peritos qualificados em ${city}. Obtenha o seu certificado energético com peritos qualificados locais.`,
       };
     }
-    return { title: PAGE_META_PT['/'].title, desc: PAGE_META_PT['/'].desc };
+    return { title: homeSeo.title, desc: homeSeo.description };
   }
 
   // Ireland
-  if (PAGE_META_IE[activePath]) return PAGE_META_IE[activePath];
-
   const parts = activePath.replace(/^\//, '').split('/');
   const county = COUNTY_NAMES[parts[0]] || toTitle(parts[0]);
 
@@ -495,7 +163,7 @@ function getMeta(pathname, tenant) {
     };
   }
 
-  return { title: null, desc: PAGE_META_IE['/'].desc };
+  return { title: null, desc: homeSeo.description };
 }
 
 // ─── Schema builders ─────────────────────────────────────────────────────────

@@ -92,6 +92,51 @@ export const PAGE_SEO = Object.freeze({
       twitterDescription: 'Common questions about BER certificates, ratings and costs in Ireland, answered simply.',
       canonical: '/faq',
     },
+    '/about': {
+      title: "About The Berman | Ireland's BER Certificate Platform",
+      description: "Learn about The Berman — Ireland's largest BER certificate platform connecting property owners with 100+ SEAI-registered assessors across every county.",
+      canonical: '/about-us',
+    },
+    '/ber-faqs/': {
+      title: 'BER Certificate FAQs Ireland | Common Questions Answered | The Berman',
+      description: 'Answers to the most common BER certificate questions in Ireland. What is a BER? How long does it last? How much does it cost? Find out with The Berman.',
+      canonical: '/faq',
+    },
+    '/contact-us': {
+      title: 'Contact The Berman | BER Certificate Support Ireland',
+      description: "Contact The Berman for BER certificate support. Ireland's largest BER platform — we're here to help with quotes, bookings and assessor queries.",
+      canonical: '/contact-us',
+    },
+    '/news': {
+      title: 'BER Certificate News & Updates Ireland | The Berman',
+      description: 'Latest BER certificate news, SEAI updates and energy rating information for Irish homeowners and landlords. Stay informed with The Berman.',
+      canonical: '/news',
+    },
+    '/blog': {
+      title: 'BER Certificate Blog | Energy Rating Guides Ireland | The Berman',
+      description: 'Expert guides on BER certificates, energy efficiency upgrades, SEAI grants and property energy ratings in Ireland. Read more on The Berman blog.',
+      canonical: '/blog',
+    },
+    '/blog/ber-certificate-cost-ireland': {
+      title: 'How Much Does a BER Certificate Cost in Ireland? | 2026 Price Guide',
+      description: 'BER certificate costs in Ireland range from €150–€300. Compare prices from SEAI-registered assessors near you. Get the best BER cert quote with The Berman.',
+      canonical: '/blog/ber-certificate-cost-ireland',
+    },
+    '/blog/new-ber-rating-scale-2026-ireland': {
+      title: 'New BER Rating Scale 2026 — A0, A1, A2, A3 Ireland Explained | The Berman',
+      description: "Ireland's new 2026 BER scale runs from A0 to G. Learn what each rating means, how it affects SEAI grants, and how to get your property rated under the new system.",
+      canonical: '/blog/new-ber-rating-scale-2026-ireland',
+    },
+    '/blog/ber-cert-for-landlords-ireland': {
+      title: 'BER Certificate for Landlords Ireland 2026 | Legal Requirements & Costs',
+      description: 'Landlords in Ireland must have a valid BER certificate. Learn the legal requirements, costs (from €150), how long it lasts, and how to get one fast with The Berman.',
+      canonical: '/blog/ber-cert-for-landlords-ireland',
+    },
+    '/blog/seai-grants-2026-ireland': {
+      title: 'SEAI Grants 2026 Ireland — Up to €25,000 for Home Energy Upgrades',
+      description: 'Full guide to SEAI energy upgrade grants in 2026. What grants are available, how much you can get (up to €25,000), and why you need a BER certificate to apply.',
+      canonical: '/blog/seai-grants-2026-ireland',
+    },
   }),
   england: Object.freeze({
     '/': {
@@ -156,6 +201,66 @@ export const PAGE_SEO = Object.freeze({
       twitterTitle: 'Find EPC Certificate Services Across England | EPC Cert',
       twitterDescription: 'Browse EPC Cert locations across England and connect with certified energy assessors for quick, professional EPC Certificate services.',
       canonical: '/locations',
+    },
+    '/about': {
+      title: 'About EPC Cert | Energy Performance Certificate Experts',
+      description: 'Learn about EPC Cert, trusted Energy Performance Certificate experts helping property owners across England arrange EPC assessments',
+      canonical: '/about-us',
+    },
+    '/faq': {
+      title: 'EPC Certificate FAQ England | EPC Assessor',
+      description: 'Find Answers to Common EPC Certificate Questions, Including Costs, Timelines, and Legal',
+      canonical: '/faq',
+    },
+    '/epc-faq': {
+      title: 'EPC Certificate FAQ England 2026 | Landlord & MEES Questions Answered',
+      description: 'Answers to common EPC questions in England — costs, landlord MEES requirements, Band C 2030 deadline, how to improve ratings, and who can carry out assessments.',
+      canonical: '/epc-faq',
+    },
+    '/news': {
+      title: 'EPC Certificate News & Updates England | EPC Cert',
+      description: 'Latest EPC news, government regulations, and energy efficiency updates for English homeowners and landlords.',
+      canonical: '/news',
+    },
+    '/blog': {
+      title: 'EPC Certificate Blog | Energy Efficiency Guides England | EPC Cert',
+      description: 'Expert guides on Energy Performance Certificates, home efficiency improvements, and landlord regulations in England.',
+      canonical: '/blog',
+    },
+    '/hire-agent': {
+      title: 'Hire an EPC Assessor England | EPC Cert',
+      description: 'Hire an accredited EPC assessor through EPC Cert. Fast, reliable and affordable EPC certificates anywhere in England.',
+      canonical: '/hire-agent',
+    },
+    '/get-quote': {
+      title: 'Get a Free EPC Certificate Quote | Compare Prices England | EPC Cert',
+      description: 'Get free EPC certificate quotes from accredited assessors near you. Compare and book online instantly with EPC Cert.',
+      canonical: '/get-quote',
+    },
+    '/blog/epc-certificate-cost-guide': {
+      title: 'How Much Does an EPC Certificate Cost in England? | 2026 Price Guide',
+      description: 'EPC certificates in England cost £45–£150 for domestic properties. Compare prices from accredited assessors near you. Get your best EPC quote with EPC Cert.',
+      canonical: '/blog/epc-certificate-cost-guide',
+    },
+    '/blog/landlord-epc-requirements-england-2026': {
+      title: 'Landlord EPC Requirements England 2026 | MEES Band C 2030 Deadline Guide',
+      description: 'England MEES requires EPC Band E now; all rentals must reach Band C by 2030. Fines up to £30,000. Learn what landlords must do and how EPC Cert can help.',
+      canonical: '/blog/landlord-epc-requirements-england-2026',
+    },
+    '/blog/how-to-improve-epc-rating-england': {
+      title: 'How to Improve Your EPC Rating England 2026 | E to C Upgrade Guide',
+      description: 'Improve your EPC rating from E to C in England. Guide to loft insulation, heat pumps, boilers & solar panels with costs, grants available, and step-by-step plan.',
+      canonical: '/blog/how-to-improve-epc-rating-england',
+    },
+    '/blog/commercial-epc-england-guide': {
+      title: 'Commercial EPC England 2026 | MEES Requirements, Costs & How to Comply',
+      description: 'Commercial EPCs are required when selling or renting in England. MEES demands Band C by 2030. Costs from £150. Compare commercial EPC quotes with EPC Cert.',
+      canonical: '/blog/commercial-epc-england-guide',
+    },
+    '/blog/epc-band-c-2030-deadline-landlord-guide': {
+      title: 'EPC Band C 2030 Deadline — Landlord Action Plan England | EPC Cert',
+      description: "All English rentals must reach EPC Band C by 2030. With fines up to £30,000, here's your step-by-step landlord action plan to comply on time and save money.",
+      canonical: '/blog/epc-band-c-2030-deadline-landlord-guide',
     },
   }),
   spain: Object.freeze({
@@ -240,6 +345,195 @@ export const PAGE_SEO = Object.freeze({
       twitterDescription: 'Preguntas comunes sobre certificados energéticos, validez y costos en España, respondidas de forma sencilla.',
       canonical: '/faq',
     },
+    '/contacto': {
+      title: "Solicita tu Certificado Energético en España | Presupuesto Gratis | Contacto",
+      description: "Solicita presupuesto gratuito para tu certificado energético. Técnicos acreditados en toda España. Visita incluida, registro oficial y entrega en 24–72h. Presupuesto sin compromiso.",
+      canonical: '/contacto',
+    },
+    '/directorio': {
+      title: "Directorio Técnicos Certificado Energético España | Compara y Contrata",
+      description: "Encuentra técnicos acreditados para tu certificado energético en toda España. Compara precios, lee valoraciones y contrata profesionales colegiados. ¡Presupuesto gratis!",
+      canonical: '/directorio',
+    },
+    '/directorio/tecnicos-certificadores': {
+      title: "Directorio de Técnicos Certificadores Energéticos | España",
+      description: "Busca técnicos competentes acreditados en toda España para la emisión de Certificados de Eficiencia Energética residenciales y comerciales.",
+      canonical: '/directorio/tecnicos-certificadores',
+    },
+    '/directorio/empresas-energia': {
+      title: "Empresas de Eficiencia Energética en España | Directorio",
+      description: "Conecta con empresas de eficiencia energética en toda España: instaladores solares, expertos en aislamiento, bombas de calor y consultores de reformas.",
+      canonical: '/directorio/empresas-energia',
+    },
+    '/asesor-energetico': {
+      title: "Contrata Asesor Energético en España | Visita + Registro en 24–48h",
+      description: "Habla con un asesor energético independiente. Te ayudamos a evaluar mejoras, priorizar actuaciones y mejorar la calificación de tu inmueble. Presupuesto sin compromiso.",
+      canonical: '/asesor-energetico',
+    },
+    '/preguntas-frecuentes': {
+      title: "Preguntas Frecuentes Certificado Energético España | Precios, Validez, Multas",
+      description: "¿Cuánto cuesta el certificado energético? ¿Es obligatorio para alquilar? ¿Cuánto tarda? Resolvemos todas tus dudas sobre el CEE en España. Guía completa 2026.",
+      canonical: '/preguntas-frecuentes',
+    },
+    '/blog': {
+      title: "Blog Certificado Energético España | Guías, Precios, Normativa 2026",
+      description: "Guías prácticas sobre el certificado energético en España: precios 2026, cómo mejorar tu calificación, normativa obligatoria y ayudas para reformas. Actualizado julio 2026.",
+      canonical: '/blog',
+    },
+    '/blog/precio-certificado-energetico-espana': {
+      title: "Precio del Certificado Energético en España 2026 | Guía Completa",
+      description: "Descubre cuánto cuesta el Certificado Energético en España, qué factores afectan al precio y cómo solicitar presupuesto a técnicos acreditados.",
+      canonical: '/blog/precio-certificado-energetico-espana',
+    },
+    '/blog/certificado-energetico-obligatorio-espana': {
+      title: "¿Cuándo es Obligatorio el Certificado Energético en España? | Guía 2026",
+      description: "Descubre cuándo es obligatorio el certificado energético en España: venta, alquiler, hipotecas, sanciones y excepciones. Guía completa actualizada 2026.",
+      canonical: '/blog/certificado-energetico-obligatorio-espana',
+    },
+    '/blog/mejorar-calificacion-energetica-vivienda': {
+      title: "Cómo Mejorar la Calificación Energética de tu Vivienda | Guía Completa",
+      description: "Descubre las mejores reformas para mejorar la calificación energética de tu vivienda: aislamiento, ventanas, caldera, solar. Ayudas y subvenciones disponibles en 2026.",
+      canonical: '/blog/mejorar-calificacion-energetica-vivienda',
+    },
+    '/noticias': {
+      title: "Noticias Certificado Energético España 2026 | Normativa y Novedades",
+      description: "Últimas noticias sobre el certificado energético en España: Orden ECM/599/2025, Directiva EPBD, obligación hipotecaria y nuevas exigencias 2030. Mantente al día.",
+      canonical: '/noticias',
+    },
+  }),
+  france: Object.freeze({
+    '/': {
+      title: 'Certificat DPE France | Prix à partir de 60€ | Experts Certifiés',
+      description: "Obtenez votre certificat DPE en France. Comparez les devis d'experts certifiés en France. Prix à partir de 60€, visite incluse, enregistrement officiel. Devis gratuit.",
+      canonical: '/',
+    },
+    '/a-propos': {
+      title: "À Propos - Experts en Diagnostic de Performance Énergétique | DPE Cert France",
+      description: "Découvrez DPE Cert France, la plateforme de confiance pour le diagnostic de performance énergétique en France. Diagnostiqueurs certifiés, évaluations rapides et professionnelles.",
+      canonical: '/a-propos',
+    },
+    '/about-us': {
+      title: "À Propos - Experts en Diagnostic de Performance Énergétique | DPE Cert France",
+      description: "Découvrez DPE Cert France, la plateforme de confiance pour le diagnostic de performance énergétique en France. Diagnostiqueurs certifiés, évaluations rapides et professionnelles.",
+      canonical: '/a-propos',
+    },
+    '/services': {
+      title: "Nos Services - DPE Experts | DPE Cert France",
+      description: "Services complets de diagnostic de performance énergétique incluant DPE, audits énergétiques et certifications pour logements et bâtiments commerciaux.",
+      canonical: '/services',
+    },
+    '/pricing': {
+      title: "Tarifs - Coûts Transparent du DPE | DPE Cert France",
+      description: "Tarifs clairs et transparents pour les diagnostics de performance énergétique. Formules pour appartements, maisons et locaux commerciaux.",
+      canonical: '/pricing',
+    },
+    '/ber-faqs': {
+      title: "Questions Fréquentes DPE France | DPE Cert France",
+      description: "Trouvez les réponses aux questions courantes sur le DPE, les diagnostics énergétiques, les coûts et les rénovations en France.",
+      canonical: '/ber-faqs',
+    },
+    '/ber-faqs/': {
+      title: "Questions Fréquentes DPE France | DPE Cert France",
+      description: "Trouvez les réponses aux questions courantes sur le DPE, les diagnostics énergétiques, les coûts et les rénovations en France.",
+      canonical: '/ber-faqs',
+    },
+    '/contact-us': {
+      title: "Contact | DPE Cert France",
+      description: "Contactez DPE Cert France pour vos diagnostics de performance énergétique. Diagnostiqueurs qualifiés et devis compétitifs.",
+      canonical: '/contact-us',
+    },
+    '/catalogue': {
+      title: "Catalogue d'Entreprises | DPE Cert France",
+      description: "Parcourez le catalogue des entreprises d'efficacité énergétique vérifiées. Trouvez isolation, pompes à chaleur, solaire et plus.",
+      canonical: '/catalogue',
+    },
+    '/blog': {
+      title: "Blog | DPE Cert France",
+      description: "Guides experts sur le DPE, les subventions énergétiques, les rénovations et plus encore.",
+      canonical: '/blog',
+    },
+    '/news': {
+      title: "Actualités | DPE Cert France",
+      description: "Restez informé des nouvelles énergétiques, subventions et mises à jour du secteur du DPE.",
+      canonical: '/news',
+    },
+    '/locations': {
+      title: "Diagnostiqueurs par Localisation | DPE Cert France",
+      description: "Trouvez des diagnostiqueurs certifiés près de chez vous en France. Parcourez par région.",
+      canonical: '/locations',
+    },
+    '/hire-agent': {
+      title: "Conseiller Énergétique France | Conseil Énergétique Indépendant | DPE Cert France",
+      description: "Recevez des conseils énergétiques indépendants, un accompagnement pour vos rénovations et un soutien technique pour améliorer les performances énergétiques de votre propriété.",
+      canonical: '/hire-agent',
+    },
+  }),
+  portugal: Object.freeze({
+    '/': {
+      title: 'Certificado Energético Portugal | Preço desde 60€ | Técnicos Acreditados',
+      description: 'Obtenha o seu certificado energético em Portugal. Compare orçamentos de técnicos acreditados. Preço desde 60€, visita incluída, registo oficial. Orçamento gratuito.',
+      canonical: '/',
+    },
+    '/about-us': {
+      title: "Sobre Nós - Especialistas em Certificação Energética | Certificado Energia",
+      description: "Conheça a Certificado Energia, a plataforma de confiança para certificação energética em Portugal. Peritos qualificados, avaliações rápidas e profissionais.",
+      canonical: '/about-us',
+    },
+    '/services': {
+      title: "Os nossos Serviços - Certificados Energéticos | Certificado Energia",
+      description: "Serviços completos de certificação energética incluindo certificados, avaliações e auditorias para propriedades residenciais e comerciais.",
+      canonical: '/services',
+    },
+    '/pricing': {
+      title: "Preços - Custos Transparentes de Certificação Energética | Certificado Energia",
+      description: "Preços claros e transparentes para certificação energética. Planos para apartamentos, casas e espaços comerciais.",
+      canonical: '/pricing',
+    },
+    '/faq': {
+      title: "Perguntas Frequentes | Certificado Energia",
+      description: "Encontre respostas às perguntas mais comuns sobre certificação energética, custos e melhorias em Portugal.",
+      canonical: '/faq',
+    },
+    '/ber-faqs': {
+      title: "Perguntas Frequentes | Certificado Energia",
+      description: "Encontre respostas às perguntas mais comuns sobre certificação energética, custos e melhorias em Portugal.",
+      canonical: '/ber-faqs',
+    },
+    '/ber-faqs/': {
+      title: "Perguntas Frequentes | Certificado Energia",
+      description: "Encontre respostas às perguntas mais comuns sobre certificação energética, custos e melhorias em Portugal.",
+      canonical: '/ber-faqs',
+    },
+    '/contact-us': {
+      title: "Contacto | Certificado Energia Portugal",
+      description: "Contacte a Certificado Energia para certificação energética em Portugal. Peritos qualificados e orçamentos competitivos.",
+      canonical: '/contact-us',
+    },
+    '/catalogue': {
+      title: "Catálogo de Empresas | Certificado Energia",
+      description: "Explore o catálogo de empresas de eficiência energética verificadas. Encontre isolamento, bombas de calor, solar e mais.",
+      canonical: '/catalogue',
+    },
+    '/blog': {
+      title: "Blog | Certificado Energia",
+      description: "Guias especializados sobre certificação energética, subvenções, renovações e mais em Portugal.",
+      canonical: '/blog',
+    },
+    '/news': {
+      title: "Notícias | Certificado Energia",
+      description: "Fique a par das novidades energéticas, subvenções e atualizações do setor da certificação energética em Portugal.",
+      canonical: '/news',
+    },
+    '/locations': {
+      title: "Peritos por Localização | Certificado Energia",
+      description: "Encontre peritos qualificados na sua zona em Portugal. Navegue por região.",
+      canonical: '/locations',
+    },
+    '/hire-agent': {
+      title: "Contratar um Consultor Energético | Certificado Energia",
+      description: "Obtenha orientação gratuita e imparcial de um Consultor Energético certificado. Análise técnica verificada e preços competitivos para melhorar a eficiência da sua habitação.",
+      canonical: '/hire-agent',
+    },
   }),
 });
 
@@ -247,12 +541,6 @@ export const HOME_SEO = Object.freeze({
   ireland: PAGE_SEO.ireland['/'],
   england: PAGE_SEO.england['/'],
   spain: PAGE_SEO.spain['/'],
-  france: Object.freeze({
-    title: 'Certificat DPE France | Prix à partir de 60€ | Experts Certifiés',
-    description: "Obtenez votre certificat DPE en France. Comparez les devis d'experts certifiés en France. Prix à partir de 60€, visite incluse, enregistrement officiel. Devis gratuit.",
-  }),
-  portugal: Object.freeze({
-    title: 'Certificado Energético Portugal | Preço desde 60€ | Técnicos Acreditados',
-    description: 'Obtenha o seu certificado energético em Portugal. Compare orçamentos de técnicos acreditados. Preço desde 60€, visita incluída, registo oficial. Orçamento gratuito.',
-  }),
+  france: PAGE_SEO.france['/'],
+  portugal: PAGE_SEO.portugal['/'],
 });
