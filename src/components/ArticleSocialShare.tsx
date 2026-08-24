@@ -12,11 +12,10 @@ interface Props {
     label?: string;
 }
 
-const PRODUCTION_URL = 'https://www.theberman.eu';
-
 const ArticleSocialShare = ({ title, label = 'Share this blog post' }: Props) => {
     const path = typeof window !== 'undefined' ? window.location.pathname : '';
-    const url = `${PRODUCTION_URL}${path}`;
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.theberman.eu';
+    const url = `${origin}${path}`;
 
     return (
         <div className="mt-16 pt-8 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-6">

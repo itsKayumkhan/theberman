@@ -7,6 +7,126 @@ import { SITEMAP_BY_TENANT } from './sitemap-data.js';
 
 export const config = { matcher: '/((?!_next|assets|favicon|logo).*)' };
 
+// ─── Tenant route isolation ───────────────────────────────────────────────────
+// Prevents Google from indexing routes that belong to a different tenant.
+// When Googlebot crawls epccert.com/sobre-nosotros, it gets a 301 redirect
+// to epccert.com/about-us instead of indexing a Spanish page on an English domain.
+
+// Tenant-specific static routes → equivalent route on other tenants
+// Routes listed here are ONLY valid on the tenants in the 'tenants' array.
+// On any other tenant, they get 301-redirected to the 'redirect' path.
+const TENANT_SPECIFIC_ROUTES = {
+  '/sobre-nosotros':      { tenants: ['spain'],            redirect: '/about-us' },
+  '/servicios':           { tenants: ['spain'],            redirect: '/services' },
+  '/precios':             { tenants: ['spain'],            redirect: '/pricing' },
+  '/asesor-energetico':   { tenants: ['spain'],            redirect: '/energy-advisor' },
+  '/ubicaciones':         { tenants: ['spain'],            redirect: '/locations' },
+  '/tecnicos':            { tenants: ['spain'],            redirect: '/catalogue' },
+  '/pedir-presupuesto':   { tenants: ['spain'],            redirect: '/get-quote' },
+  '/registrate-tecnico':  { tenants: ['spain'],            redirect: '/hire-agent' },
+  '/epc-faq':             { tenants: ['england'],          redirect: '/faq' },
+  '/sobre-nos':           { tenants: ['portugal'],         redirect: '/about-us' },
+  '/servicos':            { tenants: ['portugal'],         redirect: '/services' },
+  '/precos':              { tenants: ['portugal'],         redirect: '/pricing' },
+  '/catalogo':            { tenants: ['portugal'],         redirect: '/catalogue' },
+  '/consultor-energetico':{ tenants: ['portugal'],         redirect: '/energy-advisor' },
+  '/localizacoes':        { tenants: ['portugal'],         redirect: '/locations' },
+  '/noticias':            { tenants: ['portugal'],         redirect: '/news' },
+  '/faqs':                { tenants: ['portugal'],         redirect: '/faq' },
+  '/contacto':            { tenants: ['spain', 'portugal'],redirect: '/contact-us' },
+};
+
+// Tenant-specific prefix routes → redirect the prefix and keep the rest
+const TENANT_PREFIX_ROUTES = {
+  '/directorio':            { tenants: ['spain'],    redirect: '/catalogue' },
+  '/preguntas-frecuentes':  { tenants: ['spain'],    redirect: '/faq' },
+};
+
+// Location page prefixes — only valid on their own tenant
+const LOCATION_PREFIXES = {
+  spain:   '/certificado-energetico-',
+  england: '/epc-assessment-',
+};
+
+// Dynamic route prefixes valid on all tenants (e.g. /blog/some-post)
+const DYNAMIC_PREFIXES = new Set(['blog', 'news', 'catalogue', 'profiles', 'quote']);
+
+// Shared static routes valid on all tenants
+const SHARED_ROUTES = new Set([
+  '/', '/about-us', '/about', '/services', '/pricing', '/contact-us',
+  '/catalogue', '/catalogue/businesses', '/catalogue/ber-assessors',
+  '/catalogue/epc-assessors', '/catalogue/epc-businesses',
+  '/locations', '/blog', '/news', '/faq', '/ber-faqs', '/ber-faqs/',
+  '/energy-advisor', '/hire-agent', '/privacy', '/terms', '/cookie-policy',
+  '/assessor-terms', '/login', '/secure-admin-login', '/signup', '/subscribe',
+  '/get-quote', '/forgot-password', '/update-password', '/auth/error',
+  '/admin', '/secure-admin-portal', '/membership-payment', '/thank-you',
+  '/registration-pending', '/dashboard/ber-assessor', '/dashboard/user',
+  '/dashboard/business', '/assessor-onboarding', '/business-onboarding',
+]);
+
+function getTenantRedirect(path, tenant) {
+  // Check exact tenant-specific routes
+  const specific = TENANT_SPECIFIC_ROUTES[path];
+  if (specific && !specific.tenants.includes(tenant)) {
+    return specific.redirect;
+  }
+
+  // Check prefix-based tenant routes (e.g. /directorio/businesses → /catalogue/businesses)
+  for (const [prefix, cfg] of Object.entries(TENANT_PREFIX_ROUTES)) {
+    if (path === prefix || path.startsWith(prefix + '/')) {
+      if (!cfg.tenants.includes(tenant)) {
+        return cfg.redirect + path.slice(prefix.length);
+      }
+    }
+  }
+
+  // Check location prefixes from other tenants
+  for (const [t, prefix] of Object.entries(LOCATION_PREFIXES)) {
+    if (path.startsWith(prefix) && tenant !== t) {
+      return '/locations';
+    }
+  }
+
+  return null;
+}
+
+function isValidPath(path, tenant, sitemapUrls) {
+  // Shared routes are always valid
+  if (SHARED_ROUTES.has(path)) return true;
+
+  // Tenant-specific routes — valid only on their tenants
+  const specific = TENANT_SPECIFIC_ROUTES[path];
+  if (specific) return specific.tenants.includes(tenant);
+
+  // Tenant prefix routes
+  for (const [prefix, cfg] of Object.entries(TENANT_PREFIX_ROUTES)) {
+    if (path === prefix || path.startsWith(prefix + '/')) {
+      return cfg.tenants.includes(tenant);
+    }
+  }
+
+  // Location prefixes — only valid on their tenant
+  for (const [t, prefix] of Object.entries(LOCATION_PREFIXES)) {
+    if (path.startsWith(prefix)) return tenant === t;
+  }
+
+  // Check sitemap for this tenant
+  if (sitemapUrls && sitemapUrls.includes(path)) return true;
+
+  // Dynamic routes (blog/:slug, news/:id, catalogue/:slug, etc.)
+  const parts = path.replace(/^\//, '').split('/');
+  if (parts.length >= 2 && DYNAMIC_PREFIXES.has(parts[0])) return true;
+
+  // Check if first segment is a known location in the sitemap
+  if (parts.length >= 1 && parts[0]) {
+    if (sitemapUrls && sitemapUrls.includes(`/${parts[0]}`)) return true;
+    if (parts.length >= 2 && sitemapUrls && sitemapUrls.includes(`/${parts[0]}/${parts[1]}`)) return true;
+  }
+
+  return false;
+}
+
 // Exact domain -> tenant map (matches src/lib/tenant.ts)
 const DOMAIN_TO_TENANT = {
   'theberman.eu': 'ireland',
@@ -867,6 +987,18 @@ export default async function middleware(req) {
   } else if (tenant === 'england') {
     if (path === '/about') return Response.redirect(`${url.protocol}//${hostname}/about-us`, 301);
     if (path === '/faq') return Response.redirect(`${url.protocol}//${hostname}/epc-faq`, 301);
+  } else if (tenant === 'portugal') {
+    if (path === '/about') return Response.redirect(`${url.protocol}//${hostname}/sobre-nos`, 301);
+    if (path === '/faq') return Response.redirect(`${url.protocol}//${hostname}/faqs`, 301);
+    if (path === '/news') return Response.redirect(`${url.protocol}//${hostname}/noticias`, 301);
+    if (path === '/locations') return Response.redirect(`${url.protocol}//${hostname}/localizacoes`, 301);
+    if (path === '/energy-advisor') return Response.redirect(`${url.protocol}//${hostname}/consultor-energetico`, 301);
+  }
+
+  // Tenant route isolation: redirect wrong-tenant routes to the correct equivalent
+  const tenantRedirect = getTenantRedirect(path, tenant);
+  if (tenantRedirect) {
+    return Response.redirect(`${url.protocol}//${hostname}${tenantRedirect}`, 301);
   }
 
   // Dynamic robots.txt per tenant
@@ -936,6 +1068,10 @@ export default async function middleware(req) {
   const pageMeta = getMeta(path, tenant);
   const { title: rawTitle, desc } = pageMeta;
 
+  // Check if this path is valid for the current tenant
+  const sitemapUrls = SITEMAP_BY_TENANT[tenant] || [];
+  const pathValid = isValidPath(path, tenant, sitemapUrls);
+
   const existingTitleMatch = html.match(/<title>([^<]*)<\/title>/);
   const existingTitle = existingTitleMatch ? existingTitleMatch[1] : '';
   const title = rawTitle || existingTitle;
@@ -965,8 +1101,10 @@ export default async function middleware(req) {
   const isLocationIE = tenant === 'ireland' && parts.length >= 1 && countyKeys.includes(parts[0]);
   const isLocationES = tenant === 'spain' && path.startsWith('/certificado-energetico-');
   const isLocationEN = tenant === 'england' && path.startsWith('/epc-assessment-');
+  const isLocationFR = tenant === 'france' && parts.length >= 1 && !SHARED_ROUTES.has(path) && !DYNAMIC_PREFIXES.has(parts[0]) && sitemapUrls.includes(path);
+  const isLocationPT = tenant === 'portugal' && parts.length >= 1 && !SHARED_ROUTES.has(path) && !DYNAMIC_PREFIXES.has(parts[0]) && sitemapUrls.includes(path);
   
-  if (isLocationIE || isLocationES || isLocationEN)
+  if (isLocationIE || isLocationES || isLocationEN || isLocationFR || isLocationPT)
     schemas.push(`<script type="application/ld+json">${locationSchema(path, tenant)}</script>`);
 
   // BlogPosting schema for blog posts
@@ -1115,6 +1253,35 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   const safeOgDesc = escapeHtml(pageMeta.ogDescription || desc);
   const safeTwitterTitle = escapeHtml(pageMeta.twitterTitle || pageMeta.ogTitle || title);
   const safeTwitterDesc = escapeHtml(pageMeta.twitterDescription || pageMeta.ogDescription || desc);
+
+  // If the path is not valid for this tenant, inject noindex to prevent
+  // Google from indexing cross-tenant pages (e.g. Ireland location pages
+  // showing up in epccert.com search results).
+  if (!pathValid) {
+    const noindexBlock = `  <!-- tenant-seo:start (${tenant}) noindex -->
+  <title>${safeTitle}</title>
+  <meta name="description" content="${safeDesc}" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="canonical" href="${canonical}" />
+  <!-- tenant-seo:end (${tenant}) -->`;
+    let noindexHtml = cleanHtml;
+    if (!noindexHtml.includes(tenantSeoSlot)) {
+      noindexHtml = noindexHtml.replace('</head>', `${tenantSeoSlot}\n</head>`);
+    }
+    const finalNoindex = noindexHtml.replace(tenantSeoSlot, noindexBlock);
+    return new Response(finalNoindex, {
+      status: res.status,
+      headers: {
+        ...Object.fromEntries(res.headers),
+        'content-type': 'text/html; charset=utf-8',
+        'cache-control': 'public, max-age=3600, stale-while-revalidate=86400',
+        'vary': ['Host', 'X-Forwarded-Host', res.headers.get('vary')]
+          .filter(Boolean)
+          .join(', '),
+      },
+    });
+  }
+
   const tenantSeoBlock = `  <!-- tenant-seo:start (${tenant}) -->
   <title>${safeTitle}</title>
   <meta name="description" content="${safeDesc}" />

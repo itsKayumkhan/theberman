@@ -21,8 +21,9 @@ const ReferralProgram = () => {
   const [settings, setSettings] = useState<any>(null);
 
   const requiredReferrals = 30;
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.theberman.eu';
   const referralLink = stats?.referral_code 
-    ? `https://www.theberman.eu/signup?ref=${stats.referral_code}`
+    ? `${origin}/signup?ref=${stats.referral_code}`
     : '';
 
   useEffect(() => {

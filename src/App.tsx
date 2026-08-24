@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './hooks/useAuth';
@@ -55,7 +56,82 @@ const FaqRedirect = () => {
     if (tenant === 'england') {
         return <Navigate to={{ pathname: '/epc-faq', search: window.location.search }} replace />;
     }
+    if (tenant === 'portugal') {
+        return <Navigate to={{ pathname: '/faqs', search: window.location.search }} replace />;
+    }
     return <FAQ />;
+};
+
+// Tenant-specific routes that should redirect to the equivalent on the current tenant
+const TENANT_ROUTE_MAP: Record<string, string> = {
+    '/sobre-nosotros': '/about-us',
+    '/servicios': '/services',
+    '/precios': '/pricing',
+    '/asesor-energetico': '/energy-advisor',
+    '/ubicaciones': '/locations',
+    '/tecnicos': '/catalogue',
+    '/pedir-presupuesto': '/get-quote',
+    '/registrate-tecnico': '/hire-agent',
+    '/directorio': '/catalogue',
+    '/preguntas-frecuentes': '/faq',
+    '/epc-faq': '/faq',
+    '/sobre-nos': '/about-us',
+    '/servicos': '/services',
+    '/precos': '/pricing',
+    '/catalogo': '/catalogue',
+    '/consultor-energetico': '/energy-advisor',
+    '/localizacoes': '/locations',
+    '/noticias': '/news',
+    '/faqs': '/faq',
+    '/contacto': '/contact-us',
+};
+
+// Routes that are ONLY valid on specific tenants
+const TENANT_SPECIFIC_ROUTES: Record<string, string[]> = {
+    '/sobre-nosotros': ['spain'],
+    '/servicios': ['spain'],
+    '/precios': ['spain'],
+    '/asesor-energetico': ['spain'],
+    '/ubicaciones': ['spain'],
+    '/tecnicos': ['spain'],
+    '/pedir-presupuesto': ['spain'],
+    '/registrate-tecnico': ['spain'],
+    '/directorio': ['spain'],
+    '/preguntas-frecuentes': ['spain'],
+    '/contacto': ['spain', 'portugal'],
+    '/epc-faq': ['england'],
+    '/sobre-nos': ['portugal'],
+    '/servicos': ['portugal'],
+    '/precos': ['portugal'],
+    '/catalogo': ['portugal'],
+    '/consultor-energetico': ['portugal'],
+    '/localizacoes': ['portugal'],
+    '/noticias': ['portugal'],
+    '/faqs': ['portugal'],
+};
+
+const TenantRouteGuard: React.FC<{ children: React.ReactElement }> = ({ children }) => {
+    const tenant = getTenantFromDomain();
+    const pathname = window.location.pathname;
+
+    // Check if this is a tenant-specific route that shouldn't exist on the current tenant
+    const allowedTenants = TENANT_SPECIFIC_ROUTES[pathname];
+    if (allowedTenants && !allowedTenants.includes(tenant)) {
+        const redirect = TENANT_ROUTE_MAP[pathname] || '/';
+        return <Navigate to={{ pathname: redirect, search: window.location.search }} replace />;
+    }
+
+    // Check for Spain location prefix on non-Spain tenants
+    if (pathname.startsWith('/certificado-energetico-') && tenant !== 'spain') {
+        return <Navigate to="/locations" replace />;
+    }
+
+    // Check for England location prefix on non-England tenants
+    if (pathname.startsWith('/epc-assessment-') && tenant !== 'england') {
+        return <Navigate to="/locations" replace />;
+    }
+
+    return children;
 };
 
 function App() {
@@ -95,25 +171,35 @@ function App() {
                         <Route path="locations" element={<Locations />} />
                         <Route path="region" element={<RegionPage />} />
                         {/* Spain localized routes — must be before :county catch-all */}
-                        <Route path="sobre-nosotros" element={<About />} />
-                        <Route path="preguntas-frecuentes" element={<FAQ />} />
-                        <Route path="preguntas-frecuentes/*" element={<FAQ />} />
-                        <Route path="directorio" element={<Catalogue />} />
-                        <Route path="directorio/businesses" element={<Catalogue />} />
-                        <Route path="directorio/:slug" element={<ListingDetail />} />
-                        <Route path="contacto" element={<Contact />} />
-                        <Route path="asesor-energetico" element={<HireAgent />} />
-                        <Route path="ubicaciones" element={<Locations />} />
-                        <Route path="servicios" element={<Services />} />
-                        <Route path="precios" element={<Pricing />} />
-                        <Route path="tecnicos" element={<Catalogue />} />
-                        <Route path="pedir-presupuesto" element={<QuoteForm />} />
-                        <Route path="registrate-tecnico" element={<HireAgent />} />
-                        <Route path="certificado-energetico-:county" element={<LocationPage />} />
-                        <Route path="certificado-energetico-:county/:town" element={<LocationPage />} />
+                        <Route path="sobre-nosotros" element={<TenantRouteGuard><About /></TenantRouteGuard>} />
+                        <Route path="preguntas-frecuentes" element={<TenantRouteGuard><FAQ /></TenantRouteGuard>} />
+                        <Route path="preguntas-frecuentes/*" element={<TenantRouteGuard><FAQ /></TenantRouteGuard>} />
+                        <Route path="directorio" element={<TenantRouteGuard><Catalogue /></TenantRouteGuard>} />
+                        <Route path="directorio/businesses" element={<TenantRouteGuard><Catalogue /></TenantRouteGuard>} />
+                        <Route path="directorio/:slug" element={<TenantRouteGuard><ListingDetail /></TenantRouteGuard>} />
+                        <Route path="contacto" element={<TenantRouteGuard><Contact /></TenantRouteGuard>} />
+                        <Route path="asesor-energetico" element={<TenantRouteGuard><HireAgent /></TenantRouteGuard>} />
+                        <Route path="ubicaciones" element={<TenantRouteGuard><Locations /></TenantRouteGuard>} />
+                        <Route path="servicios" element={<TenantRouteGuard><Services /></TenantRouteGuard>} />
+                        <Route path="precios" element={<TenantRouteGuard><Pricing /></TenantRouteGuard>} />
+                        <Route path="tecnicos" element={<TenantRouteGuard><Catalogue /></TenantRouteGuard>} />
+                        <Route path="pedir-presupuesto" element={<TenantRouteGuard><QuoteForm /></TenantRouteGuard>} />
+                        <Route path="registrate-tecnico" element={<TenantRouteGuard><HireAgent /></TenantRouteGuard>} />
+                        <Route path="certificado-energetico-:county" element={<TenantRouteGuard><LocationPage /></TenantRouteGuard>} />
+                        <Route path="certificado-energetico-:county/:town" element={<TenantRouteGuard><LocationPage /></TenantRouteGuard>} />
                         {/* England location routes */}
-                        <Route path="epc-assessment-:county" element={<LocationPage />} />
-                        <Route path="epc-assessment-:county/:town" element={<LocationPage />} />
+                        <Route path="epc-assessment-:county" element={<TenantRouteGuard><LocationPage /></TenantRouteGuard>} />
+                        <Route path="epc-assessment-:county/:town" element={<TenantRouteGuard><LocationPage /></TenantRouteGuard>} />
+                        {/* Portugal localized routes */}
+                        <Route path="sobre-nos" element={<TenantRouteGuard><About /></TenantRouteGuard>} />
+                        <Route path="servicos" element={<TenantRouteGuard><Services /></TenantRouteGuard>} />
+                        <Route path="precos" element={<TenantRouteGuard><Pricing /></TenantRouteGuard>} />
+                        <Route path="catalogo" element={<TenantRouteGuard><Catalogue /></TenantRouteGuard>} />
+                        <Route path="consultor-energetico" element={<TenantRouteGuard><HireAgent /></TenantRouteGuard>} />
+                        <Route path="localizacoes" element={<TenantRouteGuard><Locations /></TenantRouteGuard>} />
+                        <Route path="noticias" element={<TenantRouteGuard><News /></TenantRouteGuard>} />
+                        <Route path="faqs" element={<TenantRouteGuard><FAQ /></TenantRouteGuard>} />
+                        <Route path="faqs/*" element={<TenantRouteGuard><FAQ /></TenantRouteGuard>} />
                         <Route path=":county" element={<LocationPage />} />
                         <Route path=":county/:town" element={<LocationPage />} />
                         <Route path="privacy" element={<PrivacyPolicy />} />
