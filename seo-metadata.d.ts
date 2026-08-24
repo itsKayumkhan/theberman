@@ -4,10 +4,10 @@ export interface TenantHomeSeo {
 }
 
 export interface TenantPageSeo extends TenantHomeSeo {
-  readonly ogTitle: string;
-  readonly ogDescription: string;
-  readonly twitterTitle: string;
-  readonly twitterDescription: string;
+  readonly ogTitle?: string;
+  readonly ogDescription?: string;
+  readonly twitterTitle?: string;
+  readonly twitterDescription?: string;
   readonly canonical: string;
 }
 

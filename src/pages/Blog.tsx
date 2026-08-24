@@ -49,6 +49,19 @@ const CATEGORY_LABELS_ES: Record<string, string> = {
     'FAQs': 'Preguntas Frecuentes',
 };
 
+const CATEGORY_LABELS_PT: Record<string, string> = {
+    'All Posts': 'Todos os Artigos',
+    'BER Explained': 'Certificação Energética',
+    'Costs & Grants': 'Custos e Apoios',
+    'Home Upgrades': 'Melhorias da Habitação',
+    'Selling & Renting': 'Venda e Arrendamento',
+    'Green Mortgages & Finance': 'Financiamento Verde',
+    'Regulations': 'Legislação e Regulamentação',
+    'Success Stories': 'Casos de Sucesso',
+    'How-to & Guides': 'Guias Práticos',
+    'FAQs': 'Perguntas Frequentes',
+};
+
 const BlogPage = () => {
     const [articles, setArticles] = useState<BlogArticle[]>([]);
     const [loading, setLoading] = useState(true);
@@ -144,7 +157,9 @@ const BlogPage = () => {
         newBadge: 'New',
         locale: 'en-IE' as const,
     };
-    const categoryLabel = (cat: string) => isSpanish ? (CATEGORY_LABELS_ES[cat] || cat) : cat;
+    const categoryLabel = (cat: string) =>
+        isSpanish ? (CATEGORY_LABELS_ES[cat] || cat) :
+        isPortugal ? (CATEGORY_LABELS_PT[cat] || cat) : cat;
 
     useEffect(() => {
         const fetchArticles = async () => {
@@ -249,14 +264,19 @@ const BlogPage = () => {
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-gray-100">
                         <div>
                             <span className="inline-block mb-3 px-3 py-1 rounded-full bg-green-50 text-[#007F00] text-[10px] font-black tracking-widest uppercase border border-green-100">
-                                {c('hero', 'badge', isSpanish ? 'Consejos' : 'Insights')}
+                                {c('hero', 'badge', isSpanish ? 'Consejos' : isPortugal ? 'Dicas e Guias' : 'Insights')}
                             </span>
                             <h1 className="text-4xl md:text-5xl font-black text-gray-900 uppercase tracking-tighter italic mb-2">
                                 {(isEngland || !isSpanish) ? tr.latest : c('hero', 'heading', tr.latest)}
                             </h1>
-                            {!isSpanish && !isEngland && (
+                            {!isSpanish && !isEngland && !isPortugal && (
                                 <p className="text-gray-600 font-medium tracking-wide text-sm max-w-xl mb-2">
                                     Stay informed with expert insights on BER Certificates, energy ratings, home energy upgrades, retrofit planning, and property efficiency in Ireland. Explore practical guides, industry updates, and advice designed to help homeowners make informed energy decisions.
+                                </p>
+                            )}
+                            {isPortugal && (
+                                <p className="text-gray-600 font-medium tracking-wide text-sm max-w-xl mb-2">
+                                    Guias, dicas e informação útil sobre certificação energética, eficiência energética, legislação, apoios e melhorias para tornar a sua casa mais eficiente.
                                 </p>
                             )}
                             {isEngland && (
@@ -298,7 +318,7 @@ const BlogPage = () => {
                     <div className="container mx-auto px-0 lg:px-6">
                         <Link to={`/blog/${featuredArticle.slug || featuredArticle.id}`} className="flex flex-col lg:flex-row group overflow-hidden">
                             <div className="w-full lg:w-1/2 p-8 lg:p-16 flex flex-col justify-center order-2 lg:order-1">
-                                <span className="text-[10px] font-bold text-[#007F00] uppercase tracking-widest mb-4">{featuredArticle.category}</span>
+                                <span className="text-[10px] font-bold text-[#007F00] uppercase tracking-widest mb-4">{categoryLabel(featuredArticle.category)}</span>
                                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-[1.1] tracking-tight group-hover:underline decoration-2 underline-offset-4">
                                     {featuredArticle.title}
                                 </h2>
@@ -307,9 +327,9 @@ const BlogPage = () => {
                                 )}
                                 <p className="text-gray-700 leading-relaxed mb-6 line-clamp-3">{featuredArticle.excerpt}</p>
                                 <div className="flex items-center gap-3 text-xs text-gray-400">
-                                    <span className="font-bold text-gray-600">{featuredArticle.author}</span>
+                                    <span className="font-bold text-gray-600">{isPortugal && featuredArticle.author === 'The Berman Team' ? brand : featuredArticle.author}</span>
                                     <span>&bull;</span>
-                                    <span>{featuredArticle.read_time}</span>
+                                    <span>{isPortugal ? featuredArticle.read_time.replace(' read', ' de leitura') : featuredArticle.read_time}</span>
                                     <span>&bull;</span>
                                     <span>{new Date(featuredArticle.published_at).toLocaleDateString(tr.locale, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                                 </div>
@@ -400,7 +420,7 @@ const BlogPage = () => {
                                                 />
                                                 {article.show_badge && (
                                                     <div className="absolute top-3 left-3 bg-[#007F00] text-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest rounded">
-                                                        New
+                                                        {tr.newBadge}
                                                     </div>
                                                 )}
                                             </div>
@@ -410,9 +430,9 @@ const BlogPage = () => {
                                             </h3>
                                             <p className="text-sm text-gray-500 line-clamp-2 mb-3">{article.excerpt}</p>
                                             <div className="mt-auto flex items-center gap-3 text-xs text-gray-400">
-                                                <span>{article.author}</span>
+                                                <span>{isPortugal && article.author === 'The Berman Team' ? brand : article.author}</span>
                                                 <span>&bull;</span>
-                                                <span>{article.read_time}</span>
+                                                <span>{isPortugal ? article.read_time.replace(' read', ' de leitura') : article.read_time}</span>
                                             </div>
                                         </Link>
                                     ))}
