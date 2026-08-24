@@ -2295,7 +2295,7 @@ const ContractorDashboard = () => {
                                                         value={quotePrice}
                                                         onChange={(e) => setQuotePrice(e.target.value)}
                                                         className="w-full bg-white border-2 border-gray-200 focus:border-green-500 rounded-lg px-4 py-3 text-center text-xl font-bold outline-none transition-all"
-                                                        placeholder="170"
+                                                        placeholder="85"
                                                     />
                                                 </div>
                                                 <p className="text-sm text-center font-bold text-gray-600">
@@ -2322,7 +2322,7 @@ const ContractorDashboard = () => {
                                                         <span className="text-blue-800 font-black">{formatCurrency(quotePrice ? parseInt(quotePrice) - assessorFee - vatSeaiFee : 0)}</span>
                                                     </div>
                                                 </div>
-                                                <p className="text-xs text-gray-400 text-center">{isSpanish ? 'Ej. 170, sin símbolo de moneda ni céntimos.' : isPortuguese ? 'Ex. 170, sem símbolo de moeda nem cêntimos.' : isFrench ? 'Ex. 170, sans symbole monétaire ni centimes.' : 'Eg. 170, no currency symbol or cents.'}</p>
+                                                <p className="text-xs text-gray-400 text-center">{isSpanish ? 'Ej. 85, sin símbolo de moneda ni céntimos.' : isPortuguese ? 'Ex. 85, sem símbolo de moeda nem cêntimos.' : isFrench ? 'Ex. 85, sans symbole monétaire ni centimes.' : 'Eg. 85, no currency symbol or cents.'}</p>
 
                                                 <div className="flex items-start gap-2 mt-4">
                                                     <input

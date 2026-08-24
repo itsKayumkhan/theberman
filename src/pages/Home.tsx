@@ -467,7 +467,7 @@ const HomePage = () => {
                         <div className="hidden lg:block flex-1 relative w-full max-w-xl mx-auto">
                             <div className="relative aspect-square bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-gray-100 group">
                                 <img
-                                    src={c('catalogue_promo', 'image_url', 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?q=80&w=800&fm=webp')}
+                                    src={c('catalogue_promo', 'image_url', `/catalogue-${tenant}.png`)}
                                     alt={tenant === 'england' ? 'Residential EPC assessment showing energy efficiency rating recommendations for a property owner - EPC Cert' : tenant === 'portugal' ? 'Melhorias Energéticas em Casa' : 'Home Energy Upgrades'}
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                     loading="lazy"

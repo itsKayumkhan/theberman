@@ -408,7 +408,7 @@ const Admin = () => {
         try {
             const { data, error } = await supabase
                 .from('profiles')
-                .select('id, full_name, email, phone, role, tenant, is_active, registration_status, subscription_status, subscription_start_date, subscription_end_date, stripe_payment_id, manual_override_reason, assessor_type, company_name, county, seai_number, last_login, created_at, deleted_at')
+                .select('id, full_name, email, phone, role, tenant, is_active, registration_status, subscription_status, subscription_start_date, subscription_end_date, stripe_payment_id, manual_override_reason, assessor_type, company_name, county, home_county, preferred_counties, preferred_towns, seai_number, last_login, created_at, deleted_at')
                 .eq('tenant', selectedTenant)
                 .is('deleted_at', null)
                 .order('created_at', { ascending: false });
