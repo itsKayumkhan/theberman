@@ -976,6 +976,51 @@ export default async function middleware(req) {
 
 
 
+  // France: site under construction — block all access
+  if (tenant === 'france') {
+    if (path === '/robots.txt') {
+      return new Response('User-agent: *\nDisallow: /\n', {
+        status: 200,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+      });
+    }
+    const underConstructionHtml = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<title>DPE Cert — Bientôt en ligne</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0c121d;color:#fff;display:flex;min-height:100vh;align-items:center;justify-content:center;text-align:center;padding:2rem}
+.wrap{max-width:600px}
+.logo{font-size:2.5rem;font-weight:900;margin-bottom:1.5rem;letter-spacing:-1px}
+.logo span{color:#9ACD32}
+h1{font-size:1.8rem;font-weight:800;margin-bottom:1rem}
+p{font-size:1.1rem;color:#94a3b8;line-height:1.6;margin-bottom:0.5rem}
+.icon{font-size:4rem;margin-bottom:1.5rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="icon">🚧</div>
+<div class="logo">DPE<span>Cert</span></div>
+<h1>Site en construction</h1>
+<p>Nous travaillons sur quelque chose de great.</p>
+<p>Revenez bientôt !</p>
+</div>
+</body>
+</html>`;
+    return new Response(underConstructionHtml, {
+      status: 503,
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Retry-After': '86400',
+      }
+    });
+  }
+
   // Handle redirects
   if (tenant === 'spain') {
     if (path === '/about') return Response.redirect(`${url.protocol}//${hostname}/sobre-nosotros`, 301);
