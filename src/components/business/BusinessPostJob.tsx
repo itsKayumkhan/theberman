@@ -11,6 +11,13 @@ const PROPERTY_SIZES = [
     'Under 70 m²', '70 - 90 m²', '90 - 110 m²', '110 - 140 m²', '140 - 160 m²',
     '160 - 185 m²', '185 - 230 m²', '230 - 280 m²', '280 - 370 m²', 'Over 370 m²'
 ];
+const COMMERCIAL_BUILDING_TYPES = ['Office', 'Retail / Shop', 'Warehouse / Industrial', 'Hospitality', 'Healthcare', 'Education', 'Mixed-Use', 'Other'];
+const COMMERCIAL_FLOOR_AREAS = [
+    'Under 100 m²', '100 - 250 m²', '250 - 500 m²', '500 - 1000 m²',
+    '1000 - 2500 m²', '2500 - 5000 m²', '5000 - 10000 m²', 'Over 10000 m²'
+];
+const COMMERCIAL_COMPLEXITY = ['Single unit', 'Multi-unit building', 'Multi-floor building', 'Large complex site'];
+const COMMERCIAL_PURPOSES = ['Compliance requirement', 'Selling property', 'Leasing property', 'ESG reporting', 'Grant / funding', 'Energy upgrade planning', 'Other'];
 const TIME_SLOTS = ['Any time', '8am - 10am', '10am - 2pm', '2pm - 6pm', '6pm - 8pm'];
 const BER_PURPOSES = ['Selling', 'Letting', 'Govt Grant', 'Mortgage', 'New Build', 'Personal Interest', 'Other'];
 
@@ -159,6 +166,11 @@ export const BusinessPostJob = ({ businessUserId, listingId, businessName, busin
     const [propertySize, setPropertySize] = useState('');
     const [bedrooms, setBedrooms] = useState('');
     const [berPurpose, setBerPurpose] = useState('');
+    // Commercial-specific
+    const [buildingType, setBuildingType] = useState('');
+    const [floorArea, setFloorArea] = useState('');
+    const [buildingComplexity, setBuildingComplexity] = useState('');
+    const [assessmentPurpose, setAssessmentPurpose] = useState('');
 
     // Schedule
     const [preferredDate, setPreferredDate] = useState('');
@@ -171,12 +183,21 @@ export const BusinessPostJob = ({ businessUserId, listingId, businessName, busin
         setHomeownerName(''); setHomeownerEmail(''); setHomeownerPhone('');
         setCounty(''); setTown(''); setEircode('');
         setPropertyType(''); setPropertySize(''); setBedrooms(''); setBerPurpose('');
+        setBuildingType(''); setFloorArea(''); setBuildingComplexity(''); setAssessmentPurpose('');
         setPreferredDate(''); setPreferredTime(''); setNotes('');
     };
 
     const handleSubmit = async () => {
         if (isSubmitting) return; // Prevent double submission
-        if (!county || !town || !propertyType || !berPurpose) {
+        if (!county || !town) {
+            toast.error(isSpanish ? 'Por favor complete todos los campos obligatorios' : isPortuguese ? 'Por favor, preencha todos os campos obrigatórios' : isFrench ? 'Veuillez remplir tous les champs obligatoires' : 'Please fill in all required fields');
+            return;
+        }
+        if (jobType === 'domestic' && (!propertyType || !berPurpose)) {
+            toast.error(isSpanish ? 'Por favor complete todos los campos obligatorios' : isPortuguese ? 'Por favor, preencha todos os campos obrigatórios' : isFrench ? 'Veuillez remplir tous les champs obligatoires' : 'Please fill in all required fields');
+            return;
+        }
+        if (jobType === 'commercial' && (!buildingType || !floorArea || !assessmentPurpose)) {
             toast.error(isSpanish ? 'Por favor complete todos los campos obligatorios' : isPortuguese ? 'Por favor, preencha todos os campos obrigatórios' : isFrench ? 'Veuillez remplir tous les champs obligatoires' : 'Please fill in all required fields');
             return;
         }
@@ -211,10 +232,14 @@ export const BusinessPostJob = ({ businessUserId, listingId, businessName, busin
                 platform_fee: 0,
                 hidden_fee: 0,
                 notes: notes || null,
-                property_type: propertyType || null,
-                property_size: propertySize || null,
+                property_type: jobType === 'commercial' ? (buildingType || null) : (propertyType || null),
+                property_size: jobType === 'commercial' ? (floorArea || null) : (propertySize || null),
                 bedrooms: bedrooms ? parseInt(bedrooms) : null,
-                ber_purpose: berPurpose || null,
+                ber_purpose: jobType === 'commercial' ? (assessmentPurpose || null) : (berPurpose || null),
+                building_type: jobType === 'commercial' ? (buildingType || null) : null,
+                floor_area: jobType === 'commercial' ? (floorArea || null) : null,
+                building_complexity: jobType === 'commercial' ? (buildingComplexity || null) : null,
+                assessment_purpose: jobType === 'commercial' ? (assessmentPurpose || null) : null,
             };
 
             const { data, error } = await supabase
@@ -332,6 +357,7 @@ export const BusinessPostJob = ({ businessUserId, listingId, businessName, busin
                     <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Código Postal' : isPortuguese ? 'Código Postal' : isFrench ? 'Code Postal' : 'Eircode / Postcode'}</label>
                     <input value={eircode} onChange={e => setEircode(e.target.value.toUpperCase())} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]" placeholder={isSpanish ? 'Ej. 28001' : isPortuguese ? 'Ex. 1000-001' : isFrench ? 'Ex. 75001' : 'D14 AB12'} />
                 </div>
+                {jobType === 'domestic' && (<>
                 <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Tipo de Propiedad' : isPortuguese ? 'Tipo de Imóvel' : isFrench ? 'Type de Propriété' : 'Property Type'} *</label>
                     <select value={propertyType} onChange={e => setPropertyType(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]">
@@ -360,6 +386,37 @@ export const BusinessPostJob = ({ businessUserId, listingId, businessName, busin
                         {BER_PURPOSES.map(p => <option key={p} value={p}>{getDisplayLabel(p, lang)}</option>)}
                     </select>
                 </div>
+                </>)}
+                {jobType === 'commercial' && (<>
+                <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Tipo de Edificio' : isPortuguese ? 'Tipo de Edifício' : isFrench ? 'Type de Bâtiment' : 'Building Type'} *</label>
+                    <select value={buildingType} onChange={e => setBuildingType(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]">
+                        <option value="">{getDisplayLabel('Select', lang)}</option>
+                        {COMMERCIAL_BUILDING_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Superficie (m²)' : isPortuguese ? 'Área (m²)' : isFrench ? 'Surface (m²)' : 'Floor Area (m²)'} *</label>
+                    <select value={floorArea} onChange={e => setFloorArea(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]">
+                        <option value="">{getDisplayLabel('Select', lang)}</option>
+                        {COMMERCIAL_FLOOR_AREAS.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Complejidad' : isPortuguese ? 'Complexidade' : isFrench ? 'Complexité' : 'Building Complexity'}</label>
+                    <select value={buildingComplexity} onChange={e => setBuildingComplexity(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]">
+                        <option value="">{getDisplayLabel('Select', lang)}</option>
+                        {COMMERCIAL_COMPLEXITY.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Propósito' : isPortuguese ? 'Finalidade' : isFrench ? 'Objectif' : 'Assessment Purpose'} *</label>
+                    <select value={assessmentPurpose} onChange={e => setAssessmentPurpose(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]">
+                        <option value="">{getDisplayLabel('Select', lang)}</option>
+                        {COMMERCIAL_PURPOSES.map(p => <option key={p} value={p}>{p}</option>)}
+                    </select>
+                </div>
+                </>)}
                 <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1">{isSpanish ? 'Fecha Preferida' : isPortuguese ? 'Data Preferida' : isFrench ? 'Date Préférée' : 'Preferred Date'}</label>
                     <input type="date" value={preferredDate} onChange={e => setPreferredDate(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007F00]" />
