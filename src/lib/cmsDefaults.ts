@@ -713,7 +713,7 @@ export const CMS_PAGES: PageDefinition[] = [
                 ],
                 defaults: {
                     ireland: { phone: '', email: 'hello@theberman.eu', address: '', business_hours: '', map_url: '' },
-                    spain: { phone: '', email: 'info@certificadoenergético.eu', address: '', business_hours: '', map_url: '' },
+                    spain: { phone: '', email: 'hola@theberman.eu', address: '', business_hours: '', map_url: '' },
                     england: { phone: '', email: 'hello@epccert.com', address: '', business_hours: '', map_url: '' },
                     france: { phone: '', email: 'contact@dpefrance.eu', address: '', business_hours: '', map_url: '' },
                     portugal: { phone: '', email: 'hello@certificadoenergia.com', address: '', business_hours: '', map_url: '' },

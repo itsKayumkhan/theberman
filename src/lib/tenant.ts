@@ -144,7 +144,7 @@ export function getTenantWebsiteUrl(tenant: string): string {
 
 export function getTenantEmail(tenant: string): string {
   if (tenant === 'spain') {
-    return 'info@certificadoenergético.eu';
+    return 'hola@theberman.eu';
   }
   if (tenant === 'england') {
     return 'hello@epccert.com';
