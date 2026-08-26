@@ -442,6 +442,51 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
 
     const handleFinalSubmission = async () => {
         if (isSubmitting) return; // Prevent double submission
+
+        // Full validation — re-check all mandatory fields before insert
+        const missing: string[] = [];
+        if (isDomestic) {
+            if (!formData.jobType) missing.push('Assessment type');
+            if (!formData.preferredDate) missing.push('Preferred date');
+            if (!formData.preferredTime) missing.push('Preferred time');
+            if (!formData.propertyType) missing.push('Property type');
+            if (!formData.propertySize) missing.push('Property size');
+            if (!formData.bedrooms) missing.push('Bedrooms');
+            if (!formData.heatPump) missing.push('Heat pump');
+            if (!formData.county) missing.push('County');
+            if (!formData.town) missing.push('Town');
+            if (!formData.berPurpose) missing.push('Purpose');
+        } else if (isTechnical) {
+            if (!formData.jobType) missing.push('Assessment type');
+            if (!formData.technicalAssessmentType) missing.push('Assessment type');
+            if (!formData.technicalPropertyType) missing.push('Property type');
+            if (!formData.yearBuilt) missing.push('Year built');
+            if (!formData.currentHeating) missing.push('Current heating');
+            if (!formData.insulationStatus) missing.push('Insulation status');
+            if (!formData.propertySize) missing.push('Property size');
+            if (!formData.technicalPurpose) missing.push('Purpose');
+            if (!formData.county) missing.push('County');
+            if (!formData.town) missing.push('Town');
+        } else if (isCommercial) {
+            if (!formData.jobType) missing.push('Assessment type');
+            if (!formData.buildingType) missing.push('Building type');
+            if (!formData.floorArea) missing.push('Floor area');
+            if (!formData.buildingComplexity) missing.push('Building complexity');
+            if (!formData.assessmentPurpose) missing.push('Assessment purpose');
+            if (!formData.county) missing.push('County');
+            if (!formData.town) missing.push('Town');
+        }
+        // Common contact fields
+        if (!formData.fullName) missing.push('Full name');
+        if (!formData.email) missing.push('Email');
+        if (!formData.phone) missing.push('Phone');
+
+        if (missing.length > 0) {
+            toast.error(`Please complete: ${missing.join(', ')}`);
+            setIsSubmitting(false);
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             const { data: { session } } = await supabase.auth.getSession();
