@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useTranslation } from '../hooks/useTranslation';
 import { supabase } from '../lib/supabase';
 import { formatCurrency, getTenantFromDomain, getTenantCurrency } from '../lib/tenant';
-import { LogOut, FileText, User, Home, AlertCircle, X, Menu, Trash2, Search, Filter } from 'lucide-react';
+import { LogOut, FileText, User, Home, AlertCircle, X, Menu, Trash2, Search, Filter, ChevronDown, MapPin, CheckCircle2 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import QuoteModal from '../components/QuoteModal';
@@ -136,6 +136,7 @@ const UserDashboard = () => {
     const [view, setView] = useState<'assessments' | 'quotes'>('assessments');
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredAssessmentId, setFilteredAssessmentId] = useState<string | null>(null);
+    const [expandedAssessmentId, setExpandedAssessmentId] = useState<string | null>(null);
     const [confirmReject, setConfirmReject] = useState<{ assessmentId: string, quoteId: string } | null>(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -562,7 +563,7 @@ const UserDashboard = () => {
                                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                                     <div className="flex-1">
                                         <h2 className="text-3xl font-black text-gray-900 mb-2">
-                                            {view === 'assessments' ? (isSpanish ? 'Mis Certificaciones Energéticas' : isPortuguese ? 'Os Meus Certificados Energéticos' : isFrench ? `Mes Diagnostics ${assessmentLabel}` : `My ${assessmentLabel} Assessments`) : (isSpanish ? 'Presupuestos Recibidos' : isPortuguese ? 'Orçamentos Recebidos' : isFrench ? 'Devis Reçus' : 'Received Quotes')}
+                                            {view === 'assessments' ? (isSpanish ? 'Mis Certificaciones Energéticas' : isPortuguese ? 'Os Meus Certificados Energéticos' : isFrench ? `Mes Diagnostics ${assessmentLabel}` : `My ${assessmentLabel} Assessments`) : (isSpanish ? 'Tus Presupuestos' : isPortuguese ? 'Os Seus Orçamentos' : isFrench ? `Vos Devis ${assessmentLabel}` : `Your ${assessmentLabel} Quotes`)}
                                         </h2>
                                         <p className="text-gray-500 font-medium max-w-2xl">
                                             {view === 'assessments' ? (isSpanish ? 'Sigue el progreso de tu certificación energética y consulta las evaluaciones programadas.' : isPortuguese ? 'Acompanhe o progresso da sua certificação energética e veja as avaliações agendadas.' : isFrench ? `Suivez le progrès de votre diagnostic et consultez les évaluations planifiées.` : `Track the progress of your property certification and view scheduled ${assessmentLabel.toLowerCase()} assessments.`) : (isSpanish ? 'Revisa y gestiona presupuestos de nuestros certificadores energéticos verificados.' : isPortuguese ? 'Revise e gerencie orçamentos dos nossos peritos qualificados verificados.' : isFrench ? `Examinez et gérez les devis de nos diagnostiqueurs certifiés.` : `Review and manage quotes from our verified professional ${assessmentLabel} Assessors.`)}
@@ -858,16 +859,10 @@ const UserDashboard = () => {
                             </div>
 
                         ) : (
-                            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                 {(() => {
                                     const allQuotes = assessments.flatMap(a => (a.quotes || []).map(q => ({ ...q, assessment: a })))
                                         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-                                    const filteredQuotes = filteredAssessmentId
-                                        ? allQuotes.filter(q => q.assessment.id === filteredAssessmentId)
-                                        : allQuotes;
-                                    const filteredAssessment = filteredAssessmentId
-                                        ? assessments.find(a => a.id === filteredAssessmentId)
-                                        : null;
 
                                     if (allQuotes.length === 0) {
                                         return (
@@ -881,8 +876,41 @@ const UserDashboard = () => {
                                         );
                                     }
 
+                                    // Group quotes by assessment
+                                    const groupedQuotes = allQuotes.reduce((acc, q) => {
+                                        const key = q.assessment.id;
+                                        if (!acc[key]) acc[key] = { assessment: q.assessment, quotes: [] };
+                                        acc[key].quotes.push(q);
+                                        return acc;
+                                    }, {} as Record<string, { assessment: Assessment, quotes: typeof allQuotes }>);
+
+                                    const groupedArray = Object.values(groupedQuotes).sort((a, b) => {
+                                        const aLatest = Math.max(...a.quotes.map(q => new Date(q.created_at).getTime()));
+                                        const bLatest = Math.max(...b.quotes.map(q => new Date(q.created_at).getTime()));
+                                        return bLatest - aLatest;
+                                    });
+
+                                    const displayedGroups = filteredAssessmentId
+                                        ? groupedArray.filter(g => g.assessment.id === filteredAssessmentId)
+                                        : groupedArray;
+                                    const filteredAssessment = filteredAssessmentId
+                                        ? assessments.find(a => a.id === filteredAssessmentId)
+                                        : null;
+
+                                    // Auto-expand when filtered
+                                    const effectiveExpandedId = filteredAssessmentId || expandedAssessmentId;
+
                                     return (
                                         <>
+                                            {/* BER Cert style banner */}
+                                            <div className="bg-green-50 border border-green-100 rounded-2xl p-5 text-center">
+                                                <p className="text-sm font-bold text-green-800">
+                                                    {isSpanish ? 'Todos los presupuestos incluyen tasas y IVA (si aplica)' : isPortuguese ? 'Todos os orçamentos incluem taxas e IVA (se aplicável)' : isFrench ? 'Tous les devis incluent les frais et la TVA (le cas échéant)' : 'All quotes incl. SEAI fees & VAT (if applicable)'}
+                                                </p>
+                                                <p className="text-sm font-medium text-green-700 mt-1">
+                                                    {isSpanish ? 'Confirma tu reserva al instante abajo.' : isPortuguese ? 'Confirme a sua reserva instantaneamente abaixo.' : isFrench ? 'Confirmez instantanément votre réservation ci-dessous.' : 'Instantly confirm your booking below.'}
+                                                </p>
+                                            </div>
                                             {filteredAssessmentId && (
                                                 <div className="bg-green-50 border border-green-200 rounded-2xl p-4 flex items-center justify-between">
                                                     <div className="flex items-center gap-3">
@@ -893,7 +921,7 @@ const UserDashboard = () => {
                                                             <p className="text-sm font-black text-green-800">
                                                                 {isSpanish ? 'Presupuestos filtrados para:' : 'Quotes filtered for:'} {filteredAssessment?.property_address || filteredAssessment?.town || 'this job'}
                                                             </p>
-                                                            <p className="text-xs text-green-600 font-medium">{filteredQuotes.length} {isSpanish ? 'presupuesto(s)' : 'quote(s)'}</p>
+                                                            <p className="text-xs text-green-600 font-medium">{displayedGroups[0]?.quotes.length || 0} {isSpanish ? 'presupuesto(s)' : 'quote(s)'}</p>
                                                         </div>
                                                     </div>
                                                     <button
@@ -905,193 +933,240 @@ const UserDashboard = () => {
                                                     </button>
                                                 </div>
                                             )}
-                                            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                                                {/* Desktop Table View */}
-                                                <div className="overflow-x-auto hidden md:block">
-                                                    <table className="w-full text-sm">
-                                                        <thead>
-                                                            <tr className="bg-gray-50 border-b border-gray-200">
-                                                                <th className="text-left py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-widest">{isSpanish ? 'Propiedad' : 'Property'}</th>
-                                                                <th className="text-left py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-widest">{isSpanish ? 'Presupuesto' : 'Quote'}</th>
-                                                                <th className="text-left py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-widest">{isSpanish ? 'Disponibilidad' : 'Earliest Availability'}</th>
-                                                                <th className="text-left py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-widest">{isSpanish ? 'ID Certificador' : 'Assessor ID'}</th>
-                                                                <th className="text-right py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-widest">{isSpanish ? 'Acciones' : 'Actions'}</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {filteredQuotes.map((quote, index) => {
-                                                                return (
-                                                                <tr
-                                                                    key={quote.id}
-                                                                    className={`border-b border-gray-50 hover:bg-green-50/30 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/20'}`}
-                                                                >
-                                                                    <td className="py-4 px-6">
-                                                                        <div className="font-bold text-gray-900 line-clamp-1">{quote.assessment.property_address}</div>
-                                                                        <div className="text-[10px] text-gray-500 font-medium">{quote.assessment.town}</div>
-                                                                    </td>
-                                                                    <td className="py-4 px-6">
-                                                                        <div className="flex flex-col">
-                                                                            <div className="text-lg font-black text-gray-900">{formatCurrency(quote.price + hiddenFee)}</div>
-                                                                            <div className="text-[10px] text-gray-500 font-medium">
-                                                                                {isSpanish ? 'Depósito: ' : 'Deposit: '}{formatCurrency(bookingDepositAmount)}{isSpanish ? ' | Saldo: ' : ' | Balance: '}{formatCurrency(quote.price - platformFeeAmount)}
+                                            {displayedGroups.map(({ assessment, quotes }) => {
+                                                const isExpanded = effectiveExpandedId === assessment.id;
+                                                const pendingCount = quotes.filter(q => q.status === 'pending').length;
+                                                const hasAccepted = quotes.some(q => q.status === 'accepted');
+                                                const lowestPrice = Math.min(...quotes.map(q => q.price + hiddenFee));
+                                                const isCommercial = assessment.job_type === 'commercial';
+
+                                                return (
+                                                    <div key={assessment.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                                                        {/* Property Header Card - Clickable */}
+                                                        <button
+                                                            onClick={() => setExpandedAssessmentId(isExpanded ? null : assessment.id)}
+                                                            className="w-full p-5 flex items-center justify-between hover:bg-gray-50/50 transition-colors text-left"
+                                                        >
+                                                            <div className="flex items-center gap-4 min-w-0">
+                                                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${hasAccepted ? 'bg-green-50' : pendingCount > 0 ? 'bg-amber-50' : 'bg-gray-50'}`}>
+                                                                    <MapPin size={22} className={hasAccepted ? 'text-green-600' : pendingCount > 0 ? 'text-amber-500' : 'text-gray-400'} />
+                                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <h4 className="font-black text-gray-900 text-base truncate">{assessment.property_address || assessment.town || 'Property'}</h4>
+                                                                    <div className="flex items-center gap-2 mt-0.5">
+                                                                        <span className="text-[10px] text-gray-500 font-medium">{assessment.town}{assessment.county ? `, ${assessment.county}` : ''}</span>
+                                                                        {isCommercial && (
+                                                                            <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-blue-50 text-blue-600 border border-blue-100">Commercial</span>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="flex items-center gap-3 mt-1.5">
+                                                                        <span className="text-xs font-bold text-gray-900">
+                                                                            {quotes.length} {isSpanish ? 'presupuesto(s)' : 'quote(s)'}
+                                                                        </span>
+                                                                        {pendingCount > 0 && (
+                                                                            <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-100">
+                                                                                {pendingCount} {isSpanish ? 'pendiente(s)' : 'pending'}
+                                                                            </span>
+                                                                        )}
+                                                                        {hasAccepted && (
+                                                                            <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-green-50 text-green-700 border border-green-100">
+                                                                                {isSpanish ? 'Aceptado' : 'Accepted'}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex items-center gap-3 flex-shrink-0">
+                                                                <div className="text-right hidden sm:block">
+                                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{isSpanish ? 'Desde' : 'From'}</p>
+                                                                    <p className="text-lg font-black text-gray-900">{formatCurrency(lowestPrice)}</p>
+                                                                </div>
+                                                                <ChevronDown
+                                                                    size={24}
+                                                                    className={`text-gray-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
+                                                                />
+                                                            </div>
+                                                        </button>
+
+                                                        {/* Dropdown Content - Quotes for this property */}
+                                                        {isExpanded && (
+                                                            <div className="border-t border-gray-100 divide-y divide-gray-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                                                                {quotes.map((quote) => (
+                                                                    <div key={quote.id} className="p-5">
+                                                                        {/* Desktop layout */}
+                                                                        <div className="hidden md:flex items-center justify-between gap-6">
+                                                                            {/* Price */}
+                                                                            <div className="flex-shrink-0">
+                                                                                <div className="text-xl font-black text-gray-900">{formatCurrency(quote.price + hiddenFee)}</div>
+                                                                                <div className="text-[10px] text-gray-500 font-medium">
+                                                                                    {isSpanish ? 'Depósito: ' : 'Deposit: '}{formatCurrency(bookingDepositAmount)}{isSpanish ? ' | Saldo: ' : ' | Balance: '}{formatCurrency(quote.price - platformFeeAmount)}
+                                                                                </div>
                                                                             </div>
-                                                                        </div>
-                                                                    </td>
-                                                                    <td className="py-4 px-6 text-gray-600 font-medium whitespace-nowrap">
-                                                                        {quote.estimated_date ? new Date(quote.estimated_date).toLocaleDateString('en-IE', { weekday: 'short', day: 'numeric', month: 'short' }) : (isSpanish ? 'Por confirmar' : 'TBC')}
-                                                                    </td>
-                                                                    <td className="py-4 px-6">
-                                                                        {quote.contractor ? (
-                                                                            <div className="flex flex-col">
-                                                                                <span className="font-bold text-gray-700">
-                                                                                    {quote.status === 'accepted'
-                                                                                        ? quote.contractor.full_name
-                                                                                        : (isSpanish ? 'Certificador' : isPortuguese ? 'Perito' : isFrench ? 'Diagnostiqueur' : 'Assessor')}
-                                                                                </span>
-                                                                                {quote.status === 'accepted' && (
-                                                                                    <Link
-                                                                                        to={`/profiles/${quote.created_by}`}
-                                                                                        className="text-[10px] text-green-500 hover:text-green-600 font-bold hover:underline"
-                                                                                    >
-                                                                                        {isSpanish ? 'Ver Perfil' : 'View Profile'}
-                                                                                    </Link>
+
+                                                                            {/* Availability */}
+                                                                            <div className="flex-shrink-0">
+                                                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{isSpanish ? 'Disponibilidad' : 'Availability'}</p>
+                                                                                <p className="text-sm text-gray-700 font-medium whitespace-nowrap">
+                                                                                    {quote.estimated_date ? new Date(quote.estimated_date).toLocaleDateString('en-IE', { weekday: 'short', day: 'numeric', month: 'short' }) : (isSpanish ? 'Por confirmar' : 'TBC')}
+                                                                                </p>
+                                                                            </div>
+
+                                                                            {/* Assessor */}
+                                                                            <div className="flex-shrink-0">
+                                                                                {quote.contractor ? (
+                                                                                    <div className="flex flex-col">
+                                                                                        <span className="font-bold text-gray-700 text-sm">
+                                                                                            {quote.status === 'accepted'
+                                                                                                ? quote.contractor.full_name
+                                                                                                : `Ref-${quote.id.slice(0, 4).toUpperCase()}`}
+                                                                                        </span>
+                                                                                        <Link
+                                                                                            to={`/profiles/${quote.created_by}`}
+                                                                                            className="text-[10px] text-green-600 hover:text-green-700 font-bold hover:underline flex items-center gap-1"
+                                                                                        >
+                                                                                            <User size={10} />
+                                                                                            {isSpanish ? 'Ver Perfil' : isPortuguese ? 'Ver Perfil' : isFrench ? 'Voir le Profil' : 'View Profile'}
+                                                                                        </Link>
+                                                                                    </div>
+                                                                                ) : <span className="text-gray-400">-</span>}
+                                                                            </div>
+
+                                                                            {/* Status / Actions */}
+                                                                            <div className="flex-shrink-0 ml-auto">
+                                                                                {quote.status === 'pending' ? (
+                                                                                    (quote.assessment.quotes && quote.assessment.quotes.some(q => q.status === 'accepted')) ? (
+                                                                                        <div className="flex flex-col items-end">
+                                                                                            <span className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-gray-100 text-gray-500 border border-gray-200">
+                                                                                                {isSpanish ? 'Presupuesto Cerrado' : 'Quote Closed'}
+                                                                                            </span>
+                                                                                            <span className="mt-1 text-[9px] font-bold text-gray-500 italic">
+                                                                                                {isSpanish ? 'Trabajo Adjudicado' : 'Job Awarded'}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <div className="flex justify-end gap-3">
+                                                                                            <button
+                                                                                                onClick={() => setConfirmReject({ assessmentId: quote.assessment_id || quote.assessment.id, quoteId: quote.id })}
+                                                                                                className="p-2 text-red-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                                                                title={isSpanish ? 'Rechazar Presupuesto' : 'Reject Quote'}
+                                                                                            >
+                                                                                                <X size={18} />
+                                                                                            </button>
+                                                                                            <button
+                                                                                                onClick={() => setSelectedDetailsQuote(quote)}
+                                                                                                className="px-6 py-2.5 bg-[#007F00] text-white rounded-lg font-black text-xs hover:bg-[#006600] transition-all shadow-sm active:scale-95 leading-tight text-center"
+                                                                                            >
+                                                                                                {isSpanish ? <>Aceptar<br />Presupuesto</> : <>Accept<br />Quote</>}
+                                                                                            </button>
+                                                                                        </div>
+                                                                                    )
+                                                                                ) : (
+                                                                                    <div className="flex flex-col items-end">
+                                                                                        <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${quote.status === 'accepted' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
+                                                                                            {getQuoteStatusLabel(quote.status)}
+                                                                                        </span>
+                                                                                        <span className="mt-1 text-[9px] font-bold text-gray-400 italic">
+                                                                                            {new Date(quote.created_at).toLocaleDateString()}
+                                                                                        </span>
+                                                                                    </div>
                                                                                 )}
                                                                             </div>
-                                                                        ) : <span className="text-gray-400">-</span>}
-                                                                    </td>
-                                                                    <td className="py-4 px-6 text-right">
-                                                                        {quote.status === 'pending' ? (
-                                                                            (quote.assessment.quotes && quote.assessment.quotes.some(q => q.status === 'accepted')) ? (
-                                                                                <div className="flex flex-col items-end">
-                                                                                    <span className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-gray-100 text-gray-500 border border-gray-200">
-                                                                                        {isSpanish ? 'Presupuesto Cerrado' : 'Quote Closed'}
-                                                                                    </span>
-                                                                                    <span className="mt-1 text-[9px] font-bold text-gray-500 italic">
-                                                                                        {isSpanish ? 'Trabajo Adjudicado' : 'Job Awarded'}
+                                                                        </div>
+
+                                                                        {/* Mobile layout */}
+                                                                        <div className="md:hidden">
+                                                                            <div className="flex justify-between items-start mb-4">
+                                                                                <div>
+                                                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{new Date(quote.created_at).toLocaleDateString()}</p>
+                                                                                    <p className="text-xs text-gray-500 font-medium italic">
+                                                                                        {isSpanish ? 'Lo antes posible:' : 'Earliest:'} {quote.estimated_date ? new Date(quote.estimated_date).toLocaleDateString() : (isSpanish ? 'Por confirmar' : 'TBC')}
+                                                                                    </p>
+                                                                                </div>
+                                                                                <div className="text-right">
+                                                                                    <p className="text-xl font-black text-gray-900">{formatCurrency(quote.price + hiddenFee)}</p>
+                                                                                    <div className="text-[9px] text-gray-500 font-medium mt-0.5">
+                                                                                        {isSpanish ? `Depósito: ${formatCurrency(bookingDepositAmount)} / Saldo: ` : `Deposit: ${formatCurrency(bookingDepositAmount)} / Balance: `}{formatCurrency(quote.price - platformFeeAmount)}
+                                                                                    </div>
+                                                                                    <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter border ${quote.status === 'accepted' ? 'bg-green-50 text-green-700 border-green-100' :
+                                                                                        quote.status === 'rejected' ? 'bg-red-50 text-red-700 border-red-100' :
+                                                                                            'bg-amber-50 text-amber-700 border-amber-100'
+                                                                                        }`}>
+                                                                                        {getQuoteStatusLabel(quote.status)}
                                                                                     </span>
                                                                                 </div>
-                                                                            ) : (
-                                                                                <div className="flex justify-end gap-3">
-                                                                                    <button
-                                                                                        onClick={() => setConfirmReject({ assessmentId: quote.assessment_id || quote.assessment.id, quoteId: quote.id })}
-                                                                                        className="p-2 text-red-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                                                                                        title={isSpanish ? 'Rechazar Presupuesto' : 'Reject Quote'}
-                                                                                    >
-                                                                                        <X size={18} />
-                                                                                    </button>
-                                                                                    <button
-                                                                                        onClick={() => {
-                                                                                            // Show details modal first
-                                                                                            setSelectedDetailsQuote(quote);
-                                                                                        }}
-                                                                                        className="px-6 py-2.5 bg-[#007F00] text-white rounded-lg font-black text-xs hover:bg-[#006600] transition-all shadow-sm active:scale-95 leading-tight text-center"
-                                                                                    >
-                                                                                        {isSpanish ? <>Aceptar<br />Presupuesto</> : <>Accept<br />Quote</>}
-                                                                                    </button>
-                                                                                </div>
-                                                                            )
-                                                                        ) : (
-                                                                            <div className="flex flex-col items-end">
-                                                                                <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${quote.status === 'accepted' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
-                                                                                    {getQuoteStatusLabel(quote.status)}
-                                                                                </span>
-                                                                                <span className="mt-1 text-[9px] font-bold text-gray-400 italic">
-                                                                                    {new Date(quote.created_at).toLocaleDateString()}
-                                                                                </span>
                                                                             </div>
-                                                                        )}
-                                                                    </td>
-                                                                </tr>
-                                                            );
-                                                        })}
-                                                </tbody>
-                                            </table>
-                                        </div>
 
-                                        {/* Mobile Card View */}
-                                        <div className="md:hidden divide-y divide-gray-100">
-                                            {filteredQuotes.map((quote) => (
-                                                    <div key={quote.id} className="p-5">
-                                                        <div className="flex justify-between items-start mb-4">
-                                                            <div>
-                                                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{new Date(quote.created_at).toLocaleDateString()}</p>
-                                                                <h4 className="font-bold text-gray-900">{quote.assessment.town}</h4>
-                                                                <p className="text-xs text-gray-500 font-medium italic">
-                                                                    {isSpanish ? 'Lo antes posible:' : 'Earliest:'} {quote.estimated_date ? new Date(quote.estimated_date).toLocaleDateString() : (isSpanish ? 'Por confirmar' : 'TBC')}
-                                                                </p>
-                                                            </div>
-                                                            <div className="text-right">
-                                                                <p className="text-xl font-black text-gray-900">{formatCurrency(quote.price + hiddenFee)}</p>
-                                                                <div className="text-[9px] text-gray-500 font-medium mt-0.5">
-                                                                    {isSpanish ? `Depósito: ${formatCurrency(bookingDepositAmount)} / Saldo: ` : `Deposit: ${formatCurrency(bookingDepositAmount)} / Balance: `}{formatCurrency(quote.price - platformFeeAmount)}
-                                                                </div>
-                                                                <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter border ${quote.status === 'accepted' ? 'bg-green-50 text-green-700 border-green-100' :
-                                                                    quote.status === 'rejected' ? 'bg-red-50 text-red-700 border-red-100' :
-                                                                        'bg-amber-50 text-amber-700 border-amber-100'
-                                                                    }`}>
-                                                                    {getQuoteStatusLabel(quote.status)}
-                                                                </span>
-                                                            </div>
-                                                        </div>
+                                                                            {quote.contractor && (
+                                                                                <div className="flex items-center gap-2 mb-4 p-2 bg-gray-50 rounded-lg border border-gray-100">
+                                                                                    <div className="w-8 h-8 bg-white rounded-md flex items-center justify-center text-[#007F00] font-black text-xs shadow-sm border border-gray-100">
+                                                                                        {quote.status === 'accepted' ? quote.contractor.full_name.charAt(0) : '#'}
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <p className="text-[10px] font-bold text-gray-900">
+                                                                                            {quote.status === 'accepted'
+                                                                                                ? quote.contractor.full_name
+                                                                                                : `Ref-${quote.id.slice(0, 4).toUpperCase()}`}
+                                                                                        </p>
+                                                                                        <Link
+                                                                                            to={`/profiles/${quote.created_by}`}
+                                                                                            className="text-[9px] text-green-600 hover:text-green-700 font-bold hover:underline flex items-center gap-1"
+                                                                                        >
+                                                                                            <User size={9} />
+                                                                                            {isSpanish ? 'Ver Perfil' : isPortuguese ? 'Ver Perfil' : isFrench ? 'Voir le Profil' : 'View Profile'}
+                                                                                        </Link>
+                                                                                    </div>
+                                                                                </div>
+                                                                            )}
 
-                                                        {quote.contractor && (
-                                                            <div className="flex items-center gap-2 mb-4 p-2 bg-gray-50 rounded-lg border border-gray-100">
-                                                                <div className="w-8 h-8 bg-white rounded-md flex items-center justify-center text-[#007F00] font-black text-xs shadow-sm border border-gray-100">
-                                                                    {quote.status === 'accepted' ? quote.contractor.full_name.charAt(0) : '#'}
-                                                                </div>
-                                                                <div>
-                                                                    <p className="text-[10px] font-bold text-gray-900">
-                                                                        {quote.status === 'accepted'
-                                                                            ? quote.contractor.full_name
-                                                                            : (isSpanish ? 'Certificador' : isPortuguese ? 'Perito' : isFrench ? 'Diagnostiqueur' : 'Assessor')}
-                                                                    </p>
-                                                                    <p className="text-[9px] text-gray-400">{quote.status === 'accepted' ? quote.contractor.full_name : (isSpanish ? 'Pendiente de aceptación' : 'Pending acceptance')}</p>
+                                                                            {(() => {
+                                                                                if (quote.status === 'pending') {
+                                                                                    if (quote.assessment.status === 'quote_accepted') {
+                                                                                        return (
+                                                                                            <div className="text-center py-2 bg-gray-50 rounded-xl text-[10px] font-bold text-gray-500 border border-gray-100">
+                                                                                                {isSpanish ? 'Presupuesto Cerrado - Trabajo Adjudicado' : 'Quote Closed - Job Awarded'}
+                                                                                            </div>
+                                                                                        );
+                                                                                    }
+                                                                                    return (
+                                                                                        <div className="grid grid-cols-2 gap-3">
+                                                                                            <button
+                                                                                                onClick={() => setConfirmReject({ assessmentId: quote.assessment_id || quote.assessment.id, quoteId: quote.id })}
+                                                                                                className="w-full py-3 border border-red-100 text-red-600 rounded-xl font-black text-xs hover:bg-red-50 transition-all"
+                                                                                            >
+                                                                                                {isSpanish ? 'Rechazar' : 'Reject'}
+                                                                                            </button>
+                                                                                            <button
+                                                                                                onClick={() => setSelectedDetailsQuote(quote)}
+                                                                                                className="w-full py-3 bg-[#80FF80] text-white rounded-xl font-black text-xs hover:bg-[#66E666] transition-all shadow-md shadow-green-100"
+                                                                                            >
+                                                                                                {isSpanish ? 'Aceptar Presupuesto' : 'Accept Quote'}
+                                                                                            </button>
+                                                                                        </div>
+                                                                                    );
+                                                                                }
+                                                                                return (
+                                                                                    <div className="text-center py-2 bg-gray-50 rounded-xl text-[10px] font-bold text-gray-400">
+                                                                                        {isSpanish ? 'Procesado el' : 'Processed on'} {new Date(quote.created_at).toLocaleDateString()}
+                                                                                    </div>
+                                                                                );
+                                                                            })()}
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                                {/* SEAI registered footer */}
+                                                                <div className="py-3 flex items-center justify-center gap-2 bg-gray-50/50">
+                                                                    <CheckCircle2 size={16} className="text-green-600" />
+                                                                    <span className="text-xs font-medium text-gray-600">
+                                                                        {isSpanish ? 'Todos los certificadores están registrados oficialmente' : isPortuguese ? 'Todos os peritos estão registados na ADENE' : isFrench ? 'Tous les diagnostiqueurs sont certifiés' : 'All assessors are SEAI registered'}
+                                                                    </span>
                                                                 </div>
                                                             </div>
                                                         )}
-
-                                                        {(() => {
-                                                            if (quote.status === 'pending') {
-                                                                if (quote.assessment.status === 'quote_accepted') {
-                                                                    return (
-                                                                        <div className="text-center py-2 bg-gray-50 rounded-xl text-[10px] font-bold text-gray-500 border border-gray-100">
-                                                                            {isSpanish ? 'Presupuesto Cerrado - Trabajo Adjudicado' : 'Quote Closed - Job Awarded'}
-                                                                        </div>
-                                                                    );
-                                                                }
-                                                                return (
-                                                                    <>
-                                                                        <div className="grid grid-cols-2 gap-3">
-                                                                            <button
-                                                                                onClick={() => setConfirmReject({ assessmentId: quote.assessment_id || quote.assessment.id, quoteId: quote.id })}
-                                                                                className="w-full py-3 border border-red-100 text-red-600 rounded-xl font-black text-xs hover:bg-red-50 transition-all"
-                                                                            >
-                                                                                {isSpanish ? 'Rechazar' : 'Reject'}
-                                                                            </button>
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    setSelectedDetailsQuote(quote);
-                                                                                }}
-                                                                                className="w-full py-3 bg-[#80FF80] text-white rounded-xl font-black text-xs hover:bg-[#66E666] transition-all shadow-md shadow-green-100"
-                                                                            >
-                                                                                {isSpanish ? 'Aceptar Presupuesto' : 'Accept Quote'}
-                                                                            </button>
-                                                                        </div>
-                                                                    </>
-                                                                );
-                                                            }
-                                                            return (
-                                                                <div className="text-center py-2 bg-gray-50 rounded-xl text-[10px] font-bold text-gray-400">
-                                                                    {isSpanish ? 'Procesado el' : 'Processed on'} {new Date(quote.created_at).toLocaleDateString()}
-                                                                </div>
-                                                            );
-                                                        })()}
                                                     </div>
-                                                ))}
-                                        </div>
-                                    </div>
-                                </>
-                                );
+                                                );
+                                            })}
+                                        </>
+                                    );
                                 })()}
                             </div>
                         )}

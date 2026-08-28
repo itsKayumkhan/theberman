@@ -270,7 +270,7 @@ export const AddUserModal = ({ newUserRole, newUserFormData, setNewUserFormData,
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Amount to Pay (€)</label>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Amount to Pay ({tenant === 'england' ? '£' : '€'})</label>
                                         <input
                                             type="number"
                                             step="0.01"
@@ -285,7 +285,7 @@ export const AddUserModal = ({ newUserRole, newUserFormData, setNewUserFormData,
                                     <div className="flex items-center">
                                         <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 w-full">
                                             <p className="text-sm font-bold text-purple-900">
-                                                Fee: {newUserFormData.registrationAmount === 0 ? 'FREE' : `€${newUserFormData.registrationAmount.toFixed(2)}`}
+                                                Fee: {newUserFormData.registrationAmount === 0 ? 'FREE' : `${tenant === 'england' ? '£' : '€'}${newUserFormData.registrationAmount.toFixed(2)}`}
                                             </p>
                                             <p className="text-xs text-purple-700 mt-1">
                                                 {newUserFormData.registrationAmount === 0

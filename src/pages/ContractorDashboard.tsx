@@ -1046,26 +1046,6 @@ const ContractorDashboard = () => {
                                 </div>
                             ) : (
                                 <div className="space-y-6">
-                                    {/* Search Bar */}
-                                    <div className="relative">
-                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                        <input
-                                            type="text"
-                                            placeholder={isSpanish ? 'Buscar por ciudad, provincia, tipo o código postal...' : isPortuguese ? 'Pesquisar por cidade, distrito, tipo ou código postal...' : isFrench ? 'Rechercher par ville, région, type ou code postal...' : 'Search by town, county, type, or eircode...'}
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-2xl text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#007EA7]/20 focus:border-[#007EA7] transition-all shadow-sm"
-                                        />
-                                        {searchQuery && (
-                                            <button
-                                                onClick={() => setSearchQuery('')}
-                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                                            >
-                                                <X size={16} />
-                                            </button>
-                                        )}
-                                    </div>
-
                                     {/* ===== MERGED QUOTES TABLE (Domestic + Commercial) ===== */}
                                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                                         {/* Desktop Table View */}
@@ -1091,20 +1071,7 @@ const ContractorDashboard = () => {
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {myQuotes.filter(q => {
-                                                        if (!searchQuery.trim()) return true;
-                                                        const s = searchQuery.toLowerCase();
-                                                        const a = (q as any).assessment;
-                                                        return (
-                                                            (a?.town?.toLowerCase().includes(s)) ||
-                                                            (a?.county?.toLowerCase().includes(s)) ||
-                                                            (a?.property_type?.toLowerCase().includes(s)) ||
-                                                            (a?.building_type?.toLowerCase().includes(s)) ||
-                                                            (a?.eircode?.toLowerCase().includes(s)) ||
-                                                            (a?.ber_purpose?.toLowerCase().includes(s)) ||
-                                                            (a?.assessment_purpose?.toLowerCase().includes(s))
-                                                        );
-                                                    }).map((quote, index) => {
+                                                    {myQuotes.map((quote, index) => {
                                                         const isCompetitive = !quote.lowestPrice || quote.price <= quote.lowestPrice;
                                                         const a = (quote as any).assessment;
                                                         const isCommercial = a?.job_type === 'commercial';
@@ -1199,18 +1166,7 @@ const ContractorDashboard = () => {
 
                                         {/* Mobile Card View */}
                                         <div className="md:hidden divide-y divide-gray-100">
-                                            {myQuotes.filter(q => {
-                                                if (!searchQuery.trim()) return true;
-                                                const s = searchQuery.toLowerCase();
-                                                const a = (q as any).assessment;
-                                                return (
-                                                    (a?.town?.toLowerCase().includes(s)) ||
-                                                    (a?.county?.toLowerCase().includes(s)) ||
-                                                    (a?.property_type?.toLowerCase().includes(s)) ||
-                                                    (a?.building_type?.toLowerCase().includes(s)) ||
-                                                    (a?.eircode?.toLowerCase().includes(s))
-                                                );
-                                            }).map(quote => {
+                                            {myQuotes.map(quote => {
                                                 const a = (quote as any).assessment;
                                                 const isCommercial = a?.job_type === 'commercial';
                                                 return (

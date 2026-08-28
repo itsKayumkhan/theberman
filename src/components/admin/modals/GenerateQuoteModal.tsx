@@ -16,7 +16,9 @@ interface Props {
     onSubmit: (e: React.FormEvent) => void;
 }
 
-export const GenerateQuoteModal = ({ assessment, quoteData, setQuoteData, isUpdating, onClose, onSubmit }: Props) => (
+export const GenerateQuoteModal = ({ assessment, quoteData, setQuoteData, isUpdating, onClose, onSubmit }: Props) => {
+    const currencySymbol = assessment.tenant === 'england' ? '£' : '€';
+    return (
     <div
         className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
         onClick={onClose}
@@ -58,19 +60,16 @@ export const GenerateQuoteModal = ({ assessment, quoteData, setQuoteData, isUpda
                                 {(assessment.user?.full_name || assessment.contact_name || 'U').charAt(0)}
                             </div>
                             <div>
-                                <p className="text-xs font-bold text-gray-900">{assessment.user?.full_name || assessment.contact_name || 'Unknown Client'}</p>
-                                <p className="text-[10px] text-gray-500">{assessment.user?.email || assessment.contact_email}</p>
-                                {(assessment.user?.phone || assessment.contact_phone) && (
-                                    <p className="text-[10px] text-gray-400 font-medium mt-0.5">{assessment.user?.phone || assessment.contact_phone}</p>
-                                )}
+                                <p className="text-sm font-bold text-gray-900">{assessment.user?.full_name || assessment.contact_name || 'Unknown'}</p>
+                                <p className="text-[11px] text-gray-500 font-medium">{assessment.user?.email || assessment.contact_email || ''}</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <form onSubmit={onSubmit} className="space-y-4">
+                <form onSubmit={onSubmit} className="space-y-5">
                     <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-1">Quote Price (€)</label>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Quote Price ({currencySymbol})</label>
                         <input
                             required
                             type="number"
@@ -80,7 +79,7 @@ export const GenerateQuoteModal = ({ assessment, quoteData, setQuoteData, isUpda
                             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#007F00]"
                             placeholder="e.g. 250.00"
                         />
-                        <p className="text-[10px] text-gray-400 font-medium italic mt-2">* Quote must include Berman's €30 service fee.</p>
+                        <p className="text-[10px] text-gray-400 font-medium italic mt-2">* Quote must include Berman's {currencySymbol}30 service fee.</p>
                     </div>
                     <div>
                         <label className="block text-sm font-bold text-gray-700 mb-1">Estimated Date</label>
@@ -117,3 +116,4 @@ export const GenerateQuoteModal = ({ assessment, quoteData, setQuoteData, isUpda
         </div>
     </div>
 );
+};

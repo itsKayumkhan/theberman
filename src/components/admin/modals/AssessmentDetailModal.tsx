@@ -231,7 +231,7 @@ export const AssessmentDetailModal = ({
                                                 )}
                                             </div>
                                             <div className="text-right ml-4">
-                                                <p className="text-2xl font-bold text-emerald-600">€{quote.price}</p>
+                                                <p className="text-2xl font-bold text-emerald-600">{tenant === 'england' ? '£' : '€'}{quote.price}</p>
                                                 <p className="text-[9px] text-gray-400">{new Date(quote.created_at).toLocaleDateString('en-GB')}</p>
                                             </div>
                                         </div>
