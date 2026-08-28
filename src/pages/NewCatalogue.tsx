@@ -48,6 +48,8 @@ interface CatalogueListing {
     created_at: string;
     categories?: Category[];
     locations?: Location[];
+    preferred_counties?: string[];
+    preferred_towns?: string[];
     social_media?: {
         facebook?: string;
         instagram?: string;
@@ -206,6 +208,18 @@ const NewCatalogue = () => {
     };
 
     const getCardLocation = (listing: CatalogueListing): string => {
+        // For assessors with preferred towns, show those
+        if (listing.preferred_towns && listing.preferred_towns.length > 0) {
+            const towns = listing.preferred_towns.slice(0, 3);
+            const more = listing.preferred_towns.length > 3 ? ` +${listing.preferred_towns.length - 3}` : '';
+            return towns.join(', ') + more;
+        }
+        // Fall back to preferred counties (communities for Spain)
+        if (listing.preferred_counties && listing.preferred_counties.length > 0) {
+            const counties = listing.preferred_counties.slice(0, 3);
+            const more = listing.preferred_counties.length > 3 ? ` +${listing.preferred_counties.length - 3}` : '';
+            return counties.join(', ') + more;
+        }
         const locName = listing.locations?.[0]?.name;
         const genericCountries = ['Spain', 'España', 'France', 'Francia', 'Portugal', 'Ireland', 'England', 'Inglaterra'];
         if (locName && !genericCountries.includes(locName)) {
@@ -242,22 +256,23 @@ const NewCatalogue = () => {
             
             // Fetch owner profiles separately to determine role
             const ownerIds = [...new Set(filteredData.map(item => item.owner_id).filter(Boolean))];
-            let ownerRoles: Record<string, string> = {};
+            let ownerProfiles: Record<string, any> = {};
             
             if (ownerIds.length > 0) {
                 const { data: profilesData } = await supabase
                     .from('profiles')
-                    .select('id, role')
+                    .select('id, role, preferred_counties, preferred_towns')
                     .in('id', ownerIds);
                 
                 profilesData?.forEach((profile: any) => {
-                    ownerRoles[profile.id] = profile.role;
+                    ownerProfiles[profile.id] = profile;
                 });
             }
             
             // Filter by view type (businesses vs assessors)
             filteredData = filteredData.filter(item => {
-                const ownerRole = ownerRoles[item.owner_id];
+                const ownerProfile = ownerProfiles[item.owner_id];
+                const ownerRole = ownerProfile?.role;
                 if (activeView === 'businesses') {
                     return ownerRole === 'business';
                 } else {
@@ -298,11 +313,16 @@ const NewCatalogue = () => {
                 });
             }
 
-            const mappedData = filteredData.map(item => ({
-                ...item,
-                categories: (item.categories || []).map((c: any) => c.catalogue_categories).filter(Boolean),
-                locations: (item.locations || []).map((l: any) => l.catalogue_locations).filter(Boolean)
-            })) as CatalogueListing[];
+            const mappedData = filteredData.map(item => {
+                const ownerProfile = ownerProfiles[item.owner_id];
+                return {
+                    ...item,
+                    categories: (item.categories || []).map((c: any) => c.catalogue_categories).filter(Boolean),
+                    locations: (item.locations || []).map((l: any) => l.catalogue_locations).filter(Boolean),
+                    preferred_counties: ownerProfile?.preferred_counties || [],
+                    preferred_towns: ownerProfile?.preferred_towns || [],
+                } as CatalogueListing;
+            });
 
             setListings(mappedData);
         } catch (error) {

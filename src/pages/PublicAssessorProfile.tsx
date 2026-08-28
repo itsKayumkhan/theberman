@@ -186,7 +186,13 @@ const PublicAssessorProfile = () => {
                                             </div>
                                             <div className="flex items-center gap-2 text-gray-500">
                                                 <MapPin size={18} className="text-[#007EA7]" />
-                                                <span className="text-sm font-bold uppercase tracking-widest">{profile.home_county || 'Dublin'}, {isFrench ? 'FR' : isPortuguese ? 'PT' : isSpanish ? 'ES' : isEngland ? 'EN' : 'IE'}</span>
+                                                <span className="text-sm font-bold uppercase tracking-widest">
+                                                    {profile.preferred_towns?.length > 0
+                                                        ? profile.preferred_towns.slice(0, 3).join(', ') + (profile.preferred_towns.length > 3 ? ` +${profile.preferred_towns.length - 3}` : '')
+                                                        : profile.preferred_counties?.length > 0
+                                                            ? profile.preferred_counties.slice(0, 3).join(', ') + (profile.preferred_counties.length > 3 ? ` +${profile.preferred_counties.length - 3}` : '')
+                                                            : `${profile.home_county || 'Dublin'}, ${isFrench ? 'FR' : isPortuguese ? 'PT' : isSpanish ? 'ES' : isEngland ? 'EN' : 'IE'}`}
+                                                </span>
                                             </div>
                                             <div className="flex items-center gap-1">
                                                 <Star size={16} className="fill-yellow-400 text-yellow-400" />
@@ -272,6 +278,18 @@ const PublicAssessorProfile = () => {
                                             </span>
                                         ))}
                                     </div>
+                                    {profile.preferred_towns?.length > 0 && (
+                                        <div className="mt-4 pt-4 border-t border-gray-100">
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">{isSpanish ? 'Municipios' : isPortuguese ? 'Municípios' : isFrench ? 'Communes' : 'Towns'}</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {profile.preferred_towns.map((town: any) => (
+                                                    <span key={town} className="px-2.5 py-1 bg-green-50 text-green-700 text-xs font-medium rounded-lg border border-green-100">
+                                                        {town}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
