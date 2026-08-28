@@ -230,6 +230,7 @@ const ContractorDashboard = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [assessorFee, setAssessorFee] = useState<number>(25);
+    const [commercialAssessorFee, setCommercialAssessorFee] = useState<number>(50);
     const [vatSeaiFee, setVatSeaiFee] = useState<number>(0);
     const [hiddenFee, setHiddenFee] = useState<number>(5);
 
@@ -290,13 +291,15 @@ const ContractorDashboard = () => {
             const contractorTenantForSettings = profileData?.tenant || 'ireland';
             const { data: settingsData } = await supabase
                 .from('app_settings')
-                .select('platform_fee_amount, hidden_fee_amount, vat_seai_fee_amount')
+                .select('platform_fee_amount, hidden_fee_amount, vat_seai_fee_amount, commercial_platform_fee_amount')
                 .eq('tenant', contractorTenantForSettings)
                 .single();
             if (settingsData) {
                 const platform = parseFloat(settingsData.platform_fee_amount) || 25;
                 const hidden = parseFloat(settingsData.hidden_fee_amount) || 10;
+                const commercialPlatform = parseFloat(settingsData.commercial_platform_fee_amount) || 50;
                 setAssessorFee(platform);
+                setCommercialAssessorFee(commercialPlatform);
                 setHiddenFee(hidden);
                 setVatSeaiFee(parseFloat(settingsData.vat_seai_fee_amount) || 0);
             }
@@ -1369,6 +1372,7 @@ const ContractorDashboard = () => {
                                                             </td>
                                                             <td className="py-3 px-3 text-green-700 font-bold">
                                                                 {formatCurrency(job.contractor_payout || job.quotes?.find((q: any) => q.status === 'accepted')?.price || job.quotes?.[0]?.price)}
+                                                                <p className="text-[10px] font-normal text-gray-400">{isSpanish ? 'Después de comisiones' : isPortuguese ? 'Após taxas' : isFrench ? 'Après frais' : 'After fees'}</p>
                                                             </td>
 
                                                         </tr>
@@ -1416,6 +1420,7 @@ const ContractorDashboard = () => {
                                                             <p className="text-lg font-black text-green-700">
                                                                 {formatCurrency(job.contractor_payout || job.quotes?.find((q: any) => q.status === 'accepted')?.price || job.quotes?.[0]?.price)}
                                                             </p>
+                                                            <p className="text-[10px] font-normal text-gray-400">{isSpanish ? 'Después de comisiones' : isPortuguese ? 'Após taxas' : isFrench ? 'Après frais' : 'After fees'}</p>
                                                             <p className="text-[10px] font-extrabold text-orange-600 uppercase">
                                                                 {job.payment_status || (isSpanish ? 'Impagado' : isPortuguese ? 'Não pago' : isFrench ? 'Impayé' : 'Unpaid')}
                                                             </p>
@@ -2255,7 +2260,7 @@ const ContractorDashboard = () => {
                                                     />
                                                 </div>
                                                 <p className="text-sm text-center font-bold text-gray-600">
-                                                    {isSpanish ? 'Recibirás:' : isPortuguese ? 'Receberá:' : isFrench ? 'Vous recevrez :' : 'You will receive:'} {formatCurrency(quotePrice ? (parseInt(quotePrice) - assessorFee - vatSeaiFee - ((profile?.completed_jobs_count || 0) % 11 === 10 ? 0 : 0)) : 0)} {isSpanish ? '(directo del cliente)' : isPortuguese ? '(direto do cliente)' : isFrench ? '(directement du client)' : '(direct from customer)'}
+                                                    {isSpanish ? 'Recibirás:' : isPortuguese ? 'Receberá:' : isFrench ? 'Vous recevrez :' : 'You will receive:'} {formatCurrency(quotePrice ? (parseInt(quotePrice) - (selectedJob?.job_type === 'commercial' ? commercialAssessorFee : assessorFee)) : 0)} {isSpanish ? '(directo del cliente)' : isPortuguese ? '(direto do cliente)' : isFrench ? '(directement du client)' : '(direct from customer)'}
                                                 </p>
                                                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-1.5">
                                                     <p className="text-xs font-black text-blue-800 uppercase tracking-wider text-center mb-2">{isSpanish ? 'Desglose del Presupuesto' : isPortuguese ? 'Detalhes do Orçamento' : isFrench ? 'Détail du Devis' : 'Quote Breakdown'}</p>
@@ -2265,17 +2270,11 @@ const ContractorDashboard = () => {
                                                     </div>
                                                     <div className="flex justify-between text-xs">
                                                         <span className="text-blue-600">{isSpanish ? 'Tasa de plataforma' : isPortuguese ? 'Taxa de plataforma' : isFrench ? 'Frais de plateforme' : 'Platform fee'} (-)</span>
-                                                        <span className="text-blue-600 font-bold">-{formatCurrency(assessorFee)}</span>
+                                                        <span className="text-blue-600 font-bold">-{formatCurrency(selectedJob?.job_type === 'commercial' ? commercialAssessorFee : assessorFee)}</span>
                                                     </div>
-                                                    {vatSeaiFee > 0 && (
-                                                        <div className="flex justify-between text-xs">
-                                                            <span className="text-blue-600">{isSpanish ? 'IVA/SEAI' : isPortuguese ? 'IVA/SEAI' : isFrench ? 'TVA/SEAI' : 'VAT/SEAI fee'} (-)</span>
-                                                            <span className="text-blue-600 font-bold">-{formatCurrency(vatSeaiFee)}</span>
-                                                        </div>
-                                                    )}
                                                     <div className="border-t border-blue-200 pt-1.5 flex justify-between text-xs">
                                                         <span className="text-blue-700 font-bold">{isSpanish ? 'Recibirás' : isPortuguese ? 'Receberá' : isFrench ? 'Vous recevrez' : 'You receive'}</span>
-                                                        <span className="text-blue-800 font-black">{formatCurrency(quotePrice ? parseInt(quotePrice) - assessorFee - vatSeaiFee : 0)}</span>
+                                                        <span className="text-blue-800 font-black">{formatCurrency(quotePrice ? parseInt(quotePrice) - (selectedJob?.job_type === 'commercial' ? commercialAssessorFee : assessorFee) : 0)}</span>
                                                     </div>
                                                 </div>
                                                 <p className="text-xs text-gray-400 text-center">{isSpanish ? 'Ej. 85, sin símbolo de moneda ni céntimos.' : isPortuguese ? 'Ex. 85, sem símbolo de moeda nem cêntimos.' : isFrench ? 'Ex. 85, sans symbole monétaire ni centimes.' : 'Eg. 85, no currency symbol or cents.'}</p>

@@ -171,6 +171,7 @@ export interface AppSettings {
     booking_deposit_amount: number;
     platform_fee_amount: number;
     hidden_fee_amount: number;
+    commercial_platform_fee_amount: number;
     tenant?: string;
 }
 

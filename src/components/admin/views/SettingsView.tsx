@@ -180,14 +180,17 @@ interface Props {
 const HomeownerDepositFeesForm = ({ appSettings, selectedTenant, fetchAppSettings }: { appSettings: AppSettings | null; selectedTenant: string; fetchAppSettings: () => void }) => {
     const [platformFee, setPlatformFee] = useState<number | ''>(appSettings?.platform_fee_amount != null ? Number(appSettings.platform_fee_amount) : 25);
     const [hiddenFee, setHiddenFee] = useState<number | ''>(appSettings?.hidden_fee_amount != null ? Number(appSettings.hidden_fee_amount) : 10);
+    const [commercialFee, setCommercialFee] = useState<number | ''>(appSettings?.commercial_platform_fee_amount != null ? Number(appSettings.commercial_platform_fee_amount) : 50);
 
     useEffect(() => {
         setPlatformFee(appSettings?.platform_fee_amount != null ? Number(appSettings.platform_fee_amount) : 25);
         setHiddenFee(appSettings?.hidden_fee_amount != null ? Number(appSettings.hidden_fee_amount) : 10);
+        setCommercialFee(appSettings?.commercial_platform_fee_amount != null ? Number(appSettings.commercial_platform_fee_amount) : 50);
     }, [appSettings?.platform_fee_amount, appSettings?.hidden_fee_amount, selectedTenant]);
 
     const platformNum = typeof platformFee === 'number' ? platformFee : 0;
     const hiddenNum = typeof hiddenFee === 'number' ? hiddenFee : 0;
+    const commercialNum = typeof commercialFee === 'number' ? commercialFee : 0;
     const totalDeposit = platformNum + hiddenNum;
 
     return (
@@ -207,6 +210,7 @@ const HomeownerDepositFeesForm = ({ appSettings, selectedTenant, fetchAppSetting
                             tenant: selectedTenant,
                             platform_fee_amount: platformNum,
                             hidden_fee_amount: hiddenNum,
+                            commercial_platform_fee_amount: commercialNum,
                             booking_deposit_amount: platformNum + hiddenNum
                         }, { onConflict: 'tenant' });
                         if (error) throw error;
@@ -218,7 +222,7 @@ const HomeownerDepositFeesForm = ({ appSettings, selectedTenant, fetchAppSetting
                 }}
                 className="space-y-4"
             >
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Platform Fee ({selectedTenant === 'england' ? '£' : '€'})</label>
                         <input
@@ -229,7 +233,19 @@ const HomeownerDepositFeesForm = ({ appSettings, selectedTenant, fetchAppSetting
                             onChange={(e) => setPlatformFee(e.target.value === '' ? '' : Number(e.target.value))}
                             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
                         />
-                        <p className="text-xs text-gray-400 mt-1">Added to assessor quote (visible in total)</p>
+                        <p className="text-xs text-gray-400 mt-1">Domestic assessment fee</p>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Commercial Fee ({selectedTenant === 'england' ? '£' : '€'})</label>
+                        <input
+                            name="commercial_platform_fee_amount"
+                            type="number"
+                            step="1"
+                            value={commercialFee}
+                            onChange={(e) => setCommercialFee(e.target.value === '' ? '' : Number(e.target.value))}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                        />
+                        <p className="text-xs text-gray-400 mt-1">Commercial assessment fee</p>
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Hidden Fee ({selectedTenant === 'england' ? '£' : '€'})</label>

@@ -147,6 +147,7 @@ const UserDashboard = () => {
     const [bookingDepositAmount, setBookingDepositAmount] = useState<number>(35);
     const [hiddenFee, setHiddenFee] = useState<number>(5);
     const [platformFeeAmount, setPlatformFeeAmount] = useState<number>(30);
+    const [commercialPlatformFeeAmount, setCommercialPlatformFeeAmount] = useState<number>(50);
 
     useEffect(() => {
         fetchAssessments();
@@ -181,16 +182,18 @@ const UserDashboard = () => {
             const currentTenant = getTenantFromDomain();
             const { data, error } = await supabase
                 .from('app_settings')
-                .select('platform_fee_amount, hidden_fee_amount, vat_seai_fee_amount')
+                .select('platform_fee_amount, hidden_fee_amount, commercial_platform_fee_amount')
                 .eq('tenant', currentTenant)
                 .single();
             if (error) throw error;
             if (data) {
                 const platform = parseFloat(data.platform_fee_amount) || 25;
                 const hidden = parseFloat(data.hidden_fee_amount) || 10;
+                const commercialPlatform = parseFloat(data.commercial_platform_fee_amount) || 50;
                 setBookingDepositAmount(platform + hidden);
                 setHiddenFee(hidden);
                 setPlatformFeeAmount(platform);
+                setCommercialPlatformFeeAmount(commercialPlatform);
             }
         } catch (error) {
             console.error('Error fetching app settings:', error);
@@ -387,10 +390,10 @@ const UserDashboard = () => {
             }
 
             // 2. Finalize Quote Acceptance
-            // Fetch the quote to get the contractor_id
+            // Fetch the quote to get the contractor_id and price
             const { data: quote, error: fetchError } = await supabase
                 .from('quotes')
-                .select('created_by')
+                .select('created_by, price, assessment:assessments(job_type)')
                 .eq('id', paymentQuote.quoteId)
                 .single();
 
@@ -403,12 +406,16 @@ const UserDashboard = () => {
 
             if (quoteError) throw quoteError;
 
+            const isCommercial = (quote as any)?.assessment?.job_type === 'commercial';
+            const applicableFee = isCommercial ? commercialPlatformFeeAmount : platformFeeAmount;
+
             const { error: assessmentError } = await supabase
                 .from('assessments')
                 .update({
                     status: 'quote_accepted',
                     contractor_id: quote.created_by,
-                    payment_status: 'paid'
+                    payment_status: 'paid',
+                    contractor_payout: quote.price - applicableFee
                 })
                 .eq('id', paymentQuote.assessmentId);
 
