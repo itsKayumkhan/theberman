@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import { getTenantFromDomain } from '../lib/tenant';
 import SEOHead from '../components/SEOHead';
-import { getCountiesForTenant } from '../lib/tenantData';
+import { getCountiesForTenant, getNestedTownsForTenant } from '../lib/tenantData';
 
 type CatalogueViewType = 'businesses' | 'assessors';
 
@@ -295,6 +295,10 @@ const NewCatalogue = () => {
                 const coSearchStr = `co. ${searchStr}`;
 
                 filteredData = filteredData.filter(item => {
+                    const ownerProfile = ownerProfiles[item.owner_id];
+                    const preferredCounties = (ownerProfile?.preferred_counties || []).map((c: string) => c.toLowerCase());
+                    const preferredTowns = (ownerProfile?.preferred_towns || []).map((t: string) => t.toLowerCase());
+
                     const matchesLocation = (item.locations || []).some((l: any) => {
                         const locName = l.catalogue_locations?.name?.toLowerCase() || '';
                         return locName === searchStr || locName === coSearchStr || locName.includes(searchStr);
@@ -309,7 +313,10 @@ const NewCatalogue = () => {
                         addr.toLowerCase().includes(coSearchStr)
                     );
 
-                    return matchesLocation || matchesAddress || matchesAdditional;
+                    const matchesPreferredCounty = preferredCounties.some((c: string) => c === searchStr || c.includes(searchStr) || searchStr.includes(c));
+                    const matchesPreferredTown = preferredTowns.some((t: string) => t === searchStr || t.includes(searchStr) || searchStr.includes(t));
+
+                    return matchesLocation || matchesAddress || matchesAdditional || matchesPreferredCounty || matchesPreferredTown;
                 });
             }
 
@@ -483,9 +490,25 @@ const NewCatalogue = () => {
                                         className="w-full bg-transparent border-none focus:ring-0 font-black text-sm md:text-base text-gray-800 appearance-none cursor-pointer pr-10 pt-2"
                                     >
                                         <option value="">{t.allLocations}</option>
-                                        {getCountiesForTenant(tenant).map(county => (
-                                            <option key={county} value={county}>{county}</option>
-                                        ))}
+                                        {(() => {
+                                            const counties = getCountiesForTenant(tenant);
+                                            const nestedData = getNestedTownsForTenant(tenant);
+                                            if (nestedData) {
+                                                // For Spain: show communities with municipalities as optgroups
+                                                return counties.map(community => (
+                                                    <optgroup key={community} label={community}>
+                                                        <option value={community}>{community} ({isSpanish ? 'Toda la comunidad' : 'All'})</option>
+                                                        {Object.values(nestedData[community] || {}).flat().map(town => (
+                                                            <option key={town} value={town}>{town}</option>
+                                                        ))}
+                                                    </optgroup>
+                                                ));
+                                            }
+                                            // For other tenants: flat list
+                                            return counties.map(county => (
+                                                <option key={county} value={county}>{county}</option>
+                                            ));
+                                        })()}
                                     </select>
                                     <ChevronDown size={14} className="absolute right-2 bottom-3 text-gray-400 pointer-events-none" />
                                 </div>
