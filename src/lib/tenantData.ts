@@ -3,6 +3,7 @@ import { TOWNS_BY_COUNTY_SPAIN } from '../data/spainTowns';
 import { TOWNS_BY_COUNTY_ENGLAND } from '../data/englandTowns';
 import { TOWNS_BY_COUNTY_FRANCE } from '../data/franceTowns';
 import { TOWNS_BY_COUNTY_PORTUGAL } from '../data/portugalTowns';
+import { SPAIN_NESTED } from '../data/spainTownsNested';
 
 export const TOWNS_MAP: Record<string, Record<string, string[]>> = {
   ireland: TOWNS_BY_COUNTY,
@@ -18,4 +19,9 @@ export function getTownsForTenant(tenant: string): Record<string, string[]> {
 
 export function getCountiesForTenant(tenant: string): string[] {
   return Object.keys(getTownsForTenant(tenant)).sort();
+}
+
+export function getNestedTownsForTenant(tenant: string): Record<string, Record<string, string[]>> | null {
+  if (tenant === 'spain') return SPAIN_NESTED;
+  return null;
 }

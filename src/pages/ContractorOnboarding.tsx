@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import toast from 'react-hot-toast';
-import { Check, Plus, X } from 'lucide-react';
+import { Check, Plus, X, ChevronDown, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { getTownsForTenant, getCountiesForTenant } from '../lib/tenantData';
+import { getTownsForTenant, getCountiesForTenant, getNestedTownsForTenant } from '../lib/tenantData';
 import { geocodeAddress } from '../lib/geocoding';
 import { getTenantFromDomain } from '../lib/tenant';
 import { getPhonePlaceholder } from '../lib/phoneFormats';
@@ -179,7 +179,10 @@ const ContractorOnboarding = () => {
     const lbl = ONBOARDING_LABELS[isSpanish ? 'es' : tenant === 'portugal' ? 'pt' : tenant === 'france' ? 'fr' : 'en'];
     const COUNTIES = getCountiesForTenant(tenant);
     const TOWNS_DATA = getTownsForTenant(tenant);
+    const NESTED_DATA = getNestedTownsForTenant(tenant);
     const areaPrefix = isSpanish ? '' : '';
+    const [expandedCommunities, setExpandedCommunities] = useState<Set<string>>(new Set());
+    const [expandedProvinces, setExpandedProvinces] = useState<Set<string>>(new Set());
 
     // Form State
     const [formData, setFormData] = useState({
@@ -258,8 +261,12 @@ const ContractorOnboarding = () => {
         setFormData(prev => {
             const areas = [...prev.serviceAreas];
             if (areas.includes(county)) {
-                // Remove county and its towns
-                const townsToRemove = new Set(TOWNS_DATA[county] || []);
+                // Remove county and its towns (support nested data)
+                const townsToRemove = new Set(
+                    NESTED_DATA && NESTED_DATA[county]
+                        ? Object.values(NESTED_DATA[county]).flat()
+                        : (TOWNS_DATA[county] || [])
+                );
                 return {
                     ...prev,
                     serviceAreas: areas.filter(c => c !== county),
@@ -731,7 +738,124 @@ const ContractorOnboarding = () => {
                             </div>
                         </div>
 
-                        {/* Service Areas */}
+                        {/* Service Areas + Preferred Towns */}
+                        {NESTED_DATA ? (
+                            <div className="pt-8">
+                                <label className="block text-lg font-bold text-gray-900 mb-4">
+                                    {isSpanish ? 'Zonas de Servicio' : 'Service Areas'} <span className="text-red-500">*</span>
+                                </label>
+                                <p className="text-sm text-gray-500 mb-4">{isSpanish ? 'Selecciona tus comunidades autónomas y luego expande para elegir provincias y municipios.' : 'Select your autonomous communities, then expand to choose provinces and municipalities.'}</p>
+                                <div className="space-y-2">
+                                    {COUNTIES.map(community => {
+                                        const isSelected = formData.serviceAreas.includes(community);
+                                        const isExpanded = expandedCommunities.has(community);
+                                        const provinces = NESTED_DATA[community] || {};
+                                        const allTownsInCommunity = Object.values(provinces).flat();
+                                        const selectedTownsInCommunity = formData.preferredTowns.filter(t => allTownsInCommunity.includes(t));
+                                        return (
+                                            <div key={community} className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                                                <div className="flex items-center">
+                                                    <div
+                                                        onClick={() => handleServiceAreaToggle(community)}
+                                                        className={`flex-1 px-4 py-3 cursor-pointer text-left font-bold text-sm transition-all ${isSelected ? 'text-[#007F00]' : 'text-gray-600'}`}
+                                                    >
+                                                        <span className={`inline-flex items-center justify-center w-5 h-5 rounded border-2 mr-3 transition-all ${isSelected ? 'bg-[#007F00] border-[#007F00]' : 'border-gray-300'}`}>
+                                                            {isSelected && <Check size={12} className="text-white" />}
+                                                        </span>
+                                                        {community}
+                                                        {selectedTownsInCommunity.length > 0 && (
+                                                            <span className="ml-2 text-xs text-gray-400 font-normal">({selectedTownsInCommunity.length} {isSpanish ? 'municipios' : 'municipalities'})</span>
+                                                        )}
+                                                    </div>
+                                                    {isSelected && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setExpandedCommunities(prev => {
+                                                                    const next = new Set(prev);
+                                                                    if (next.has(community)) next.delete(community); else next.add(community);
+                                                                    return next;
+                                                                });
+                                                            }}
+                                                            className="px-3 py-3 text-gray-400 hover:text-gray-600"
+                                                        >
+                                                            {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                {isSelected && isExpanded && (
+                                                    <div className="border-t border-gray-100 bg-gray-50/50 p-3 space-y-2">
+                                                        {Object.entries(provinces).map(([province, towns]) => {
+                                                            const provinceKey = `${community}::${province}`;
+                                                            const isProvinceExpanded = expandedProvinces.has(provinceKey);
+                                                            const selectedInProvince = formData.preferredTowns.filter(t => towns.includes(t));
+                                                            const allProvinceSelected = selectedInProvince.length === towns.length;
+                                                            return (
+                                                                <div key={province} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+                                                                    <div className="flex items-center">
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => {
+                                                                                setFormData(prev => {
+                                                                                    if (allProvinceSelected) {
+                                                                                        return { ...prev, preferredTowns: prev.preferredTowns.filter(t => !towns.includes(t)) };
+                                                                                    } else {
+                                                                                        return { ...prev, preferredTowns: [...new Set([...prev.preferredTowns, ...towns])] };
+                                                                                    }
+                                                                                });
+                                                                            }}
+                                                                            className={`flex-1 px-3 py-2 text-left text-sm font-medium transition-all ${allProvinceSelected ? 'text-[#007F00]' : 'text-gray-600'}`}
+                                                                        >
+                                                                            <span className={`inline-flex items-center justify-center w-4 h-4 rounded border mr-2 transition-all ${allProvinceSelected ? 'bg-[#007F00] border-[#007F00]' : selectedInProvince.length > 0 ? 'border-[#007F00]' : 'border-gray-300'}`}>
+                                                                                {allProvinceSelected && <Check size={10} className="text-white" />}
+                                                                            </span>
+                                                                            {province}
+                                                                            {selectedInProvince.length > 0 && <span className="ml-2 text-xs text-gray-400 font-normal">({selectedInProvince.length})</span>}
+                                                                        </button>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => {
+                                                                                setExpandedProvinces(prev => {
+                                                                                    const next = new Set(prev);
+                                                                                    if (next.has(provinceKey)) next.delete(provinceKey); else next.add(provinceKey);
+                                                                                    return next;
+                                                                                });
+                                                                            }}
+                                                                            className="px-2 py-2 text-gray-400 hover:text-gray-600"
+                                                                        >
+                                                                            {isProvinceExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                                                                        </button>
+                                                                    </div>
+                                                                    {isProvinceExpanded && (
+                                                                        <div className="border-t border-gray-100 p-2 flex flex-wrap gap-1.5 bg-white">
+                                                                            {towns.map(town => {
+                                                                                const isTownSelected = formData.preferredTowns.includes(town);
+                                                                                return (
+                                                                                    <div
+                                                                                        key={town}
+                                                                                        onClick={() => handlePreferredTownToggle(town)}
+                                                                                        className={`cursor-pointer px-2.5 py-1 rounded-md border text-xs font-medium transition-all select-none ${isTownSelected ? 'bg-[#007F00] text-white border-[#007F00]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#007F00] hover:text-[#007F00]'}`}
+                                                                                    >
+                                                                                        {town}
+                                                                                    </div>
+                                                                                );
+                                                                            })}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <p className="text-xs text-gray-500 mt-2 text-right">{formData.serviceAreas.length} {isSpanish ? 'comunidades seleccionadas' : 'communities selected'} · {formData.preferredTowns.length} {isSpanish ? 'municipios' : 'municipalities'}</p>
+                            </div>
+                        ) : (
+                        <>
+                        {/* Service Areas (Non-Spain) */}
                         <div className="pt-8">
                             <label className="block text-lg font-bold text-gray-900 mb-4">
                                 {isSpanish ? 'Zonas de Servicio / Comunidades' : tenant === 'portugal' ? 'Áreas de Serviço / Regiões' : tenant === 'france' ? 'Zones d\'Intervention / Régions' : 'Service Areas / Counties'} <span className="text-red-500">*</span>
@@ -757,7 +881,7 @@ const ContractorOnboarding = () => {
                             <p className="text-xs text-gray-500 mt-2 text-right">{formData.serviceAreas.length} {isSpanish ? 'comunidades seleccionadas' : tenant === 'portugal' ? 'regiões selecionadas' : tenant === 'france' ? 'régions sélectionnées' : 'counties selected'}</p>
                         </div>
 
-                        {/* Preferred Towns (optional) */}
+                        {/* Preferred Towns (Non-Spain) */}
                         <div className="pt-6">
                             <label className="block text-lg font-bold text-gray-900 mb-4">
                                 {isSpanish ? 'Ciudades / Localidades Preferidas (Opcional)' : tenant === 'portugal' ? 'Cidades / Localidades Preferidas (Opcional)' : tenant === 'france' ? 'Villes / Localités Préférées (Optionnel)' : 'Preferred Towns / Localities (Optional)'}
@@ -812,6 +936,8 @@ const ContractorOnboarding = () => {
                                 })}
                                 <p className="text-xs text-gray-500 mt-2 text-right">{formData.preferredTowns.length} {isSpanish ? 'ciudades seleccionadas' : tenant === 'portugal' ? 'cidades selecionadas' : tenant === 'france' ? 'villes sélectionnées' : 'towns selected'}</p>
                             </div>
+                        </>
+                        )}
 
                         <div className="pt-8">
                             <button

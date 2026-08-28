@@ -15,11 +15,11 @@ const assessorLabel = isEngland ? 'Domestic Energy Assessor' : isSpanish ? 'Cert
 const regAuthority = isSpanish ? 'CEE CAT' : isEngland ? 'accredited' : isPortuguese ? 'ADENE' : isFrench ? 'DPE' : 'SEAI';
 const brandName = isEngland ? 'EPC Cert' : isSpanish ? 'Certificado Energético' : isPortuguese ? 'Certificado Energia' : isFrench ? 'DPE Cert France' : 'The Berman';
 const logoUrl = isPortuguese ? '/certificado-energia-logo.png' : tenant === 'france' ? '/dpecert-logo.png' : '/logo.svg';
-import { LogOut, HardHat, ClipboardList, Clock, X, TrendingUp, Briefcase, Calendar, MapPin, ArrowRight, ArrowLeft, AlertTriangle, AlertCircle, Settings, MessageCircle, User, Menu, Plus, Search } from 'lucide-react';
+import { LogOut, HardHat, ClipboardList, Clock, X, TrendingUp, Briefcase, Calendar, MapPin, ArrowRight, ArrowLeft, AlertTriangle, AlertCircle, Settings, MessageCircle, User, Menu, Plus, Search, ChevronDown, ChevronRight } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { DatePicker } from '../components/ui/DatePicker';
 import { geocodeAddress } from '../lib/geocoding';
-import { getCountiesForTenant, getTownsForTenant } from '../lib/tenantData';
+import { getCountiesForTenant, getTownsForTenant, getNestedTownsForTenant } from '../lib/tenantData';
 
 import toast from 'react-hot-toast';
 
@@ -113,6 +113,7 @@ interface Assessment {
 
 const COUNTIES = getCountiesForTenant(tenant);
 const TOWNS_DATA = getTownsForTenant(tenant);
+const NESTED_DATA = getNestedTownsForTenant(tenant);
 
 const ContractorDashboard = () => {
     const { t, isSpanish } = useTranslation();
@@ -233,6 +234,8 @@ const ContractorDashboard = () => {
     const [commercialAssessorFee, setCommercialAssessorFee] = useState<number>(50);
     const [vatSeaiFee, setVatSeaiFee] = useState<number>(0);
     const [hiddenFee, setHiddenFee] = useState<number>(5);
+    const [expandedCommunities, setExpandedCommunities] = useState<Set<string>>(new Set());
+    const [expandedProvinces, setExpandedProvinces] = useState<Set<string>>(new Set());
 
 
 
@@ -1547,7 +1550,149 @@ const ContractorDashboard = () => {
                                     </p>
                                 </div>
 
-                                {/* County Preferences */}
+                                {/* County Preferences + Preferred Towns (Nested for Spain) */}
+                                {NESTED_DATA ? (
+                                    <div className="py-12 px-4">
+                                        <h3 className="text-gray-600 font-medium mb-2 flex items-center justify-center gap-2 text-lg text-center">
+                                            {isSpanish ? 'Áreas de Servicio' : 'Service Areas'} <span className="text-red-500">*</span> <MapPin className="text-gray-700 fill-gray-700" size={24} />
+                                        </h3>
+                                        <p className="text-sm text-gray-500 mb-6 text-center">{isSpanish ? 'Selecciona tus comunidades autónomas y luego las provincias y municipios donde quieres recibir trabajos.' : 'Select your autonomous communities, then provinces and municipalities where you want to receive jobs.'}</p>
+                                        <div className="max-w-5xl mx-auto space-y-2 text-left">
+                                            {COUNTIES.map(community => {
+                                                const isSelected = profile?.preferred_counties?.includes(community);
+                                                const isExpanded = expandedCommunities.has(community);
+                                                const provinces = NESTED_DATA[community] || {};
+                                                const allTownsInCommunity = Object.values(provinces).flat();
+                                                const selectedTownsInCommunity = (profile?.preferred_towns || []).filter((t: string) => allTownsInCommunity.includes(t));
+                                                return (
+                                                    <div key={community} className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                                                        <div className="flex items-center">
+                                                            <button
+                                                                onClick={async () => {
+                                                                    const current = profile?.preferred_counties || [];
+                                                                    let newCounties;
+                                                                    if (current.includes(community)) {
+                                                                        if (current.length === 1) {
+                                                                            toast.error(isSpanish ? 'Debes seleccionar al menos una comunidad' : 'You must select at least one community');
+                                                                            return;
+                                                                        }
+                                                                        newCounties = current.filter((c: string) => c !== community);
+                                                                    } else {
+                                                                        newCounties = [...current, community];
+                                                                    }
+                                                                    const townsToKeep = newCounties.flatMap((c: string) => (NESTED_DATA[c] ? Object.values(NESTED_DATA[c]).flat() : TOWNS_DATA[c] || []));
+                                                                    const newTowns = (profile?.preferred_towns || []).filter((t: string) => townsToKeep.includes(t));
+                                                                    setProfile({ ...profile, preferred_counties: newCounties, preferred_towns: newTowns });
+                                                                    try {
+                                                                        const { error } = await supabase.from('profiles').update({ preferred_counties: newCounties, preferred_towns: newTowns }).eq('id', user?.id);
+                                                                        if (error) throw error;
+                                                                    } catch (err) { console.error('Auto-save error:', err); }
+                                                                }}
+                                                                className={`flex-1 px-4 py-3 text-left font-bold text-sm transition-all ${isSelected ? 'text-[#007F00]' : 'text-gray-600'}`}
+                                                            >
+                                                                <span className={`inline-flex items-center justify-center w-5 h-5 rounded border-2 mr-3 transition-all ${isSelected ? 'bg-[#007F00] border-[#007F00]' : 'border-gray-300'}`}>
+                                                                    {isSelected && <span className="text-white text-xs">✓</span>}
+                                                                </span>
+                                                                {community}
+                                                                {selectedTownsInCommunity.length > 0 && (
+                                                                    <span className="ml-2 text-xs text-gray-400 font-normal">({selectedTownsInCommunity.length} {isSpanish ? 'municipios' : 'municipalities'})</span>
+                                                                )}
+                                                            </button>
+                                                            {isSelected && (
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setExpandedCommunities(prev => {
+                                                                            const next = new Set(prev);
+                                                                            if (next.has(community)) next.delete(community); else next.add(community);
+                                                                            return next;
+                                                                        });
+                                                                    }}
+                                                                    className="px-3 py-3 text-gray-400 hover:text-gray-600"
+                                                                >
+                                                                    {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                        {isSelected && isExpanded && (
+                                                            <div className="border-t border-gray-100 bg-gray-50/50 p-3 space-y-2">
+                                                                {Object.entries(provinces).map(([province, towns]) => {
+                                                                    const provinceKey = `${community}::${province}`;
+                                                                    const isProvinceExpanded = expandedProvinces.has(provinceKey);
+                                                                    const selectedInProvince = (profile?.preferred_towns || []).filter((t: string) => towns.includes(t));
+                                                                    const allProvinceSelected = selectedInProvince.length === towns.length;
+                                                                    return (
+                                                                        <div key={province} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+                                                                            <div className="flex items-center">
+                                                                                <button
+                                                                                    onClick={async () => {
+                                                                                        const current = profile?.preferred_towns || [];
+                                                                                        const newTowns = allProvinceSelected
+                                                                                            ? current.filter((t: string) => !towns.includes(t))
+                                                                                            : [...new Set([...current, ...towns])];
+                                                                                        setProfile({ ...profile, preferred_towns: newTowns });
+                                                                                        try {
+                                                                                            const { error } = await supabase.from('profiles').update({ preferred_towns: newTowns }).eq('id', user?.id);
+                                                                                            if (error) throw error;
+                                                                                        } catch (err) { console.error('Save error:', err); }
+                                                                                    }}
+                                                                                    className={`flex-1 px-3 py-2 text-left text-sm font-medium transition-all ${allProvinceSelected ? 'text-[#007F00]' : 'text-gray-600'}`}
+                                                                                >
+                                                                                    <span className={`inline-flex items-center justify-center w-4 h-4 rounded border mr-2 transition-all ${allProvinceSelected ? 'bg-[#007F00] border-[#007F00]' : selectedInProvince.length > 0 ? 'border-[#007F00]' : 'border-gray-300'}`}>
+                                                                                        {allProvinceSelected && <span className="text-white text-[10px]">✓</span>}
+                                                                                    </span>
+                                                                                    {province}
+                                                                                    {selectedInProvince.length > 0 && <span className="ml-2 text-xs text-gray-400 font-normal">({selectedInProvince.length})</span>}
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        setExpandedProvinces(prev => {
+                                                                                            const next = new Set(prev);
+                                                                                            if (next.has(provinceKey)) next.delete(provinceKey); else next.add(provinceKey);
+                                                                                            return next;
+                                                                                        });
+                                                                                    }}
+                                                                                    className="px-2 py-2 text-gray-400 hover:text-gray-600"
+                                                                                >
+                                                                                    {isProvinceExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                                                                                </button>
+                                                                            </div>
+                                                                            {isProvinceExpanded && (
+                                                                                <div className="border-t border-gray-100 p-2 flex flex-wrap gap-1.5 bg-white">
+                                                                                    {towns.map(town => {
+                                                                                        const isTownSelected = profile?.preferred_towns?.includes(town) || false;
+                                                                                        return (
+                                                                                            <button
+                                                                                                key={town}
+                                                                                                onClick={async () => {
+                                                                                                    const current = profile?.preferred_towns || [];
+                                                                                                    const newTowns = current.includes(town) ? current.filter((t: string) => t !== town) : [...current, town];
+                                                                                                    setProfile({ ...profile, preferred_towns: newTowns });
+                                                                                                    try {
+                                                                                                        const { error } = await supabase.from('profiles').update({ preferred_towns: newTowns }).eq('id', user?.id);
+                                                                                                        if (error) throw error;
+                                                                                                    } catch (err) { console.error('Save error:', err); }
+                                                                                                }}
+                                                                                                className={`px-2.5 py-1 rounded-md border text-xs font-medium transition-all ${isTownSelected ? 'bg-[#007F00] text-white border-[#007F00]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#007F00] hover:text-[#007F00]'}`}
+                                                                                            >
+                                                                                                {town}
+                                                                                            </button>
+                                                                                        );
+                                                                                    })}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                {/* County Preferences (Non-Spain) */}
                                 <div className="py-12 px-4 text-center">
                                     <h3 className="text-gray-600 font-medium mb-8 flex items-center justify-center gap-2 text-lg">
                                         {isSpanish ? 'Áreas de Servicio / Provincias' : isPortuguese ? 'Áreas de Serviço / Distritos' : isFrench ? 'Zones d\'Intervention / Régions' : 'Service Areas / Counties'} <span className="text-red-500">*</span> <MapPin className="text-gray-700 fill-gray-700" size={24} />
@@ -1616,7 +1761,7 @@ const ContractorDashboard = () => {
                                     </div>
                                 </div>
 
-                                {/* Preferred Towns / Localities */}
+                                {/* Preferred Towns / Localities (Non-Spain) */}
                                 <div className="py-12 px-4 text-center bg-white/50">
                                     <h3 className="text-gray-600 font-medium mb-6 flex items-center justify-center gap-2 text-lg">
                                         {isSpanish ? 'Ciudades / Localidades Preferidas' : isPortuguese ? 'Cidades / Localidades Preferidas' : isFrench ? 'Villes / Localités Préférées' : 'Preferred Towns / Localities'} <span className="text-gray-300 text-sm">({isSpanish ? 'opcional' : isPortuguese ? 'opcional' : isFrench ? 'optionnel' : 'optional'})</span> <MapPin className="text-gray-700 fill-gray-700" size={22} />
@@ -1697,6 +1842,8 @@ const ContractorDashboard = () => {
                                             })}
                                         </div>
                                     </div>
+                                    </>
+                                )}
 
                                 {/* My Profile Separator */}
                                 <div className="border-t border-white mb-8"></div>
