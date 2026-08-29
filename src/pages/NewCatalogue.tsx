@@ -498,7 +498,7 @@ const NewCatalogue = () => {
                                                 return counties.map(community => (
                                                     <optgroup key={community} label={community}>
                                                         <option value={community}>{community} ({isSpanish ? 'Toda la comunidad' : 'All'})</option>
-                                                        {Object.values(nestedData[community] || {}).flat().map(town => (
+                                                        {Object.values(nestedData[community] || {}).flat().sort((a, b) => a.localeCompare(b, 'es')).map(town => (
                                                             <option key={town} value={town}>{town}</option>
                                                         ))}
                                                     </optgroup>

@@ -14,14 +14,30 @@ export const TOWNS_MAP: Record<string, Record<string, string[]>> = {
 };
 
 export function getTownsForTenant(tenant: string): Record<string, string[]> {
-  return TOWNS_MAP[tenant] || TOWNS_BY_COUNTY;
+  const data = TOWNS_MAP[tenant] || TOWNS_BY_COUNTY;
+  const sorted: Record<string, string[]> = {};
+  for (const county of Object.keys(data).sort()) {
+    sorted[county] = [...data[county]].sort((a, b) => a.localeCompare(b, 'es'));
+  }
+  return sorted;
 }
 
 export function getCountiesForTenant(tenant: string): string[] {
-  return Object.keys(getTownsForTenant(tenant)).sort();
+  return Object.keys(TOWNS_MAP[tenant] || TOWNS_BY_COUNTY).sort((a, b) => a.localeCompare(b, 'es'));
 }
 
 export function getNestedTownsForTenant(tenant: string): Record<string, Record<string, string[]>> | null {
-  if (tenant === 'spain') return SPAIN_NESTED;
+  if (tenant === 'spain') {
+    const sorted: Record<string, Record<string, string[]>> = {};
+    for (const community of Object.keys(SPAIN_NESTED).sort((a, b) => a.localeCompare(b, 'es'))) {
+      const provinces = SPAIN_NESTED[community];
+      const sortedProvinces: Record<string, string[]> = {};
+      for (const province of Object.keys(provinces).sort((a, b) => a.localeCompare(b, 'es'))) {
+        sortedProvinces[province] = [...provinces[province]].sort((a, b) => a.localeCompare(b, 'es'));
+      }
+      sorted[community] = sortedProvinces;
+    }
+    return sorted;
+  }
   return null;
 }
