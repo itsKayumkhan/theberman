@@ -255,7 +255,7 @@ const Services = () => {
 
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {tr.services.map((svc, i) => (
-                            <ServiceItem key={i} icon={serviceIcons[i]} title={svc.title} description={svc.description} link={svc.link} />
+                            <ServiceItem key={i} icon={serviceIcons[i]} title={svc.title} description={svc.description} link={(svc as any).link} />
                         ))}
                     </div>
                 </div>
@@ -271,7 +271,7 @@ const Services = () => {
 
                     <div className="grid md:grid-cols-3 gap-12 max-w-5xl mx-auto">
                         {tr.steps.map((step, i) => (
-                            <ProcessStep key={i} number={`0${i + 1}`} title={step.title} description={step.description} link={step.link} />
+                            <ProcessStep key={i} number={`0${i + 1}`} title={step.title} description={step.description} link={(step as any).link} />
                         ))}
                     </div>
                 </div>
