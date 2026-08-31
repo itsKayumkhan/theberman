@@ -11,6 +11,7 @@ import {
 import toast from 'react-hot-toast';
 import { getTownsForTenant } from '../lib/tenantData';
 import SEOHead from '../components/SEOHead';
+import InternalLinks from '../components/InternalLinks';
 import { getTenantFromDomain, getTenantEmail, getTenantDomain } from '../lib/tenant';
 import { getPhonePlaceholder } from '../lib/phoneFormats';
 
@@ -736,6 +737,7 @@ const HireAgent = () => {
                     </div>
                 </div>
             </section>
+            <InternalLinks page="hireAgent" />
         </div>
     );
 };

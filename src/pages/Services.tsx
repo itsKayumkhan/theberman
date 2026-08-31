@@ -2,6 +2,7 @@
 import { Truck, BarChart3, Cpu, Globe2, AlertTriangle, ArrowRight, Zap, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import SEOHead from '../components/SEOHead';
+import InternalLinks from '../components/InternalLinks';
 import { getTenantFromDomain } from '../lib/tenant';
 
 const Services = () => {
@@ -286,6 +287,7 @@ const Services = () => {
                     </div>
                 </div>
             </section>
+            <InternalLinks page="services" />
         </div>
     );
 };

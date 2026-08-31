@@ -2,6 +2,7 @@
 import { ArrowRight, X, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import SEOHead from '../components/SEOHead';
+import InternalLinks from '../components/InternalLinks';
 
 import { useAuth } from '../hooks/useAuth';
 import { getTenantFromDomain } from '../lib/tenant';
@@ -215,9 +216,12 @@ const Pricing = () => {
                     </div>
                 </div>
             </section>
+            <InternalLinks page="pricing" />
         </div>
     );
 };
+
+
 
 // --- SUBCOMPONENTS ---
 

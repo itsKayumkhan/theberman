@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import { getTenantFromDomain } from '../lib/tenant';
 import SEOHead from '../components/SEOHead';
+import InternalLinks from '../components/InternalLinks';
 import { getCountiesForTenant, getNestedTownsForTenant } from '../lib/tenantData';
 
 type CatalogueViewType = 'businesses' | 'assessors';
@@ -742,6 +743,7 @@ const NewCatalogue = () => {
                 </div>
                 {t.hireAgent}
             </Link>
+            <InternalLinks page="catalogue" />
         </div>
     );
 };

@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, MapPin, BookOpen, HelpCircle, Info, Mail, Search } from 'lucide-react';
+import { ArrowRight, MapPin, BookOpen, HelpCircle, Info, Mail, Search, Zap, Tag, UserCheck } from 'lucide-react';
 import { getTenantFromDomain } from '../lib/tenant';
 
 interface Props {
-    page: 'about' | 'locations' | 'blog' | 'blogDetail' | 'faq' | 'contact' | 'home' | 'catalogue';
+    page: 'about' | 'locations' | 'blog' | 'blogDetail' | 'faq' | 'contact' | 'home' | 'catalogue' | 'services' | 'pricing' | 'hireAgent';
 }
 
 const InternalLinks = ({ page }: Props) => {
@@ -17,63 +17,82 @@ const InternalLinks = ({ page }: Props) => {
         heading: 'Enlaces Útiles',
         home: 'Inicio',
         about: 'Sobre Nosotros',
+        services: 'Servicios',
+        pricing: 'Precios',
         locations: 'Ubicaciones',
         blog: 'Blog',
         faq: 'Preguntas Frecuentes',
         contact: 'Contacto',
         catalogue: 'Directorio',
+        hireAgent: 'Asesor Energético',
         getQuote: 'Solicitar Presupuesto',
     } : isPortugal ? {
         heading: 'Links Úteis',
         home: 'Início',
         about: 'Sobre Nós',
+        services: 'Serviços',
+        pricing: 'Preços',
         locations: 'Localizações',
         blog: 'Blog',
         faq: 'FAQ',
         contact: 'Contacto',
         catalogue: 'Catálogo',
+        hireAgent: 'Consultor Energético',
         getQuote: 'Pedir Orçamento',
     } : isFrance ? {
         heading: 'Liens Utiles',
         home: 'Accueil',
         about: 'À Propos',
+        services: 'Services',
+        pricing: 'Tarifs',
         locations: 'Localisation',
         blog: 'Blog',
         faq: 'FAQ',
         contact: 'Contact',
         catalogue: 'Annuaire',
+        hireAgent: 'Conseiller Énergétique',
         getQuote: 'Demander un Devis',
     } : isEngland ? {
         heading: 'Useful Links',
         home: 'Home',
         about: 'About Us',
+        services: 'Services',
+        pricing: 'Pricing',
         locations: 'Locations',
         blog: 'Blog',
         faq: 'FAQ',
         contact: 'Contact',
         catalogue: 'Find Assessors',
+        hireAgent: 'Energy Advisor',
         getQuote: 'Get a Free Quote',
     } : {
         heading: 'Useful Links',
         home: 'Home',
         about: 'About Us',
+        services: 'Services',
+        pricing: 'Pricing',
         locations: 'Locations',
         blog: 'Blog',
         faq: 'FAQ',
         contact: 'Contact',
         catalogue: 'Find Assessors',
+        hireAgent: 'Energy Advisor',
         getQuote: 'Get a Free Quote',
     };
 
     const faqPath = isEngland ? '/epc-faq' : '/ber-faqs/';
     const aboutPath = '/about-us';
-    const contactPath = isSpanish ? '/contact-us' : '/contact-us';
+    const contactPath = '/contact-us';
     const cataloguePath = '/catalogue';
+    const hireAgentPath = '/hire-agent';
 
     const allLinks = [
         { label: labels.home, path: '/', icon: <Info size={16} /> },
         { label: labels.about, path: aboutPath, icon: <Info size={16} /> },
+        { label: labels.services, path: '/services', icon: <Zap size={16} /> },
+        { label: labels.pricing, path: '/pricing', icon: <Tag size={16} /> },
         { label: labels.catalogue, path: cataloguePath, icon: <Search size={16} /> },
+        { label: labels.hireAgent, path: hireAgentPath, icon: <UserCheck size={16} /> },
         { label: labels.locations, path: '/locations', icon: <MapPin size={16} /> },
         { label: labels.blog, path: '/blog', icon: <BookOpen size={16} /> },
         { label: labels.faq, path: faqPath, icon: <HelpCircle size={16} /> },
@@ -81,7 +100,22 @@ const InternalLinks = ({ page }: Props) => {
         { label: labels.getQuote, path: '/get-quote', icon: <ArrowRight size={16} /> },
     ];
 
-    const links = allLinks.filter(l => l.path !== page && !(page === 'home' && l.path === '/'));
+    const pageToPath: Record<string, string> = {
+        home: '/',
+        about: aboutPath,
+        services: '/services',
+        pricing: '/pricing',
+        catalogue: cataloguePath,
+        hireAgent: hireAgentPath,
+        locations: '/locations',
+        blog: '/blog',
+        blogDetail: '/blog',
+        faq: faqPath,
+        contact: contactPath,
+    };
+
+    const currentPath = pageToPath[page] || page;
+    const links = allLinks.filter(l => l.path !== currentPath);
 
     return (
         <nav className="border-t border-gray-100 bg-gray-50/50 py-8 mt-8" aria-label="Internal navigation">
