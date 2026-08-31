@@ -41,23 +41,23 @@ const Services = () => {
     const tr = isEngland ? {
         badge: 'What We Do', heroTitle1: 'Precision Energy', heroTitle2: 'Solutions.',
         heroDesc: 'Comprehensive assessments and expert advice to help you meet regulations and improve efficiency.',
-        complianceTitle: 'Do I need a BER Certificate?',
+        complianceTitle: 'Do I need an EPC Certificate?',
         complianceDesc: 'Required by law for selling, renting, or grant applications. We provide the certification you need with fast turnaround and expert accuracy.',
         complianceCta: 'Book Now',
         servicesTitle: 'Our Core Offerings', servicesSubtitle: 'Expertise Across All Sectors',
         services: [
-            { title: 'Domestic BER', description: 'Full registered assessments for homeowners and landlords. Required for all sales, rentals, and grant applications.' },
-            { title: 'Commercial BER', description: 'Non-Domestic energy ratings for businesses and retail units. Ensure compliance and optimize operational costs.' },
-            { title: 'Energy Audits', description: 'Detailed analysis of energy usage with actionable insights on where to save and how to modernize your property.' },
-            { title: 'Grant Advisory', description: 'Navigate the grant system with expert guidance. We help you qualify for the maximum funding available.' },
-            { title: 'Technical Analysis', description: 'Specialized surveys for heat pump suitability, insulation upgrades, and solar PV potential calculations.' },
-            { title: 'Support Services', description: 'Continuous advisory for property portfolios, new build provisional ratings, and final compliance checks.' },
+            { title: 'Domestic EPC', description: 'Full registered assessments for homeowners and landlords. Required for all sales, rentals, and grant applications.', link: '/get-quote' },
+            { title: 'Commercial EPC', description: 'Non-Domestic energy ratings for businesses and retail units. Ensure compliance and optimize operational costs.', link: '/get-quote' },
+            { title: 'Energy Audits', description: 'Detailed analysis of energy usage with actionable insights on where to save and how to modernize your property.', link: '/catalogue' },
+            { title: 'Grant Advisory', description: 'Navigate the grant system with expert guidance. We help you qualify for the maximum funding available.', link: '/energy-advisor' },
+            { title: 'Technical Analysis', description: 'Specialized surveys for heat pump suitability, insulation upgrades, and solar PV potential calculations.', link: '/catalogue' },
+            { title: 'Support Services', description: 'Continuous advisory for property portfolios, new build provisional ratings, and final compliance checks.', link: '/energy-advisor' },
         ],
         howTitle: 'How It Works', howSubtitle: 'A simple 3-step process',
         steps: [
-            { title: 'Schedule', description: 'Contact us to book your on-site assessment at a time that suits you.' },
-            { title: 'Survey', description: 'Our registered assessor visits your property for a comprehensive technical survey.' },
-            { title: 'Finalize', description: 'Receive your BER certificate and detailed advisory report within 48 hours.' },
+            { title: 'Schedule', description: 'Contact us to book your on-site assessment at a time that suits you.', link: '/get-quote' },
+            { title: 'Survey', description: 'Our registered assessor visits your property for a comprehensive technical survey.', link: '/locations' },
+            { title: 'Finalize', description: 'Receive your EPC certificate and detailed advisory report within 48 hours.', link: '/get-quote' },
         ],
         ctaTitle: 'Need expert energy advice?', ctaDesc: 'Our team is ready to help you optimize your property and ensure full regulatory compliance.', ctaButton: 'Get Started'
     } : isSpanish ? {
