@@ -1,6 +1,6 @@
 
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { supabase } from '../lib/supabase';
@@ -238,7 +238,9 @@ const Contact = () => {
                         {isEngland ? tr.title1 : c('hero', 'heading_line1', tr.title1)} <br className="md:hidden" /> <span className="text-[#007F00]">{isEngland ? tr.title2 : c('hero', 'heading_line2', tr.title2)}</span>
                     </h1>
                     <p className="text-base md:text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">
-                        {isEngland ? tr.subtitle : c('hero', 'subtitle', tr.subtitle)}
+                        {isSpanish ? (
+                            <>¿Tienes alguna pregunta sobre <Link to="/services" className="text-[#007F00] font-bold hover:underline">certificaciones energéticas</Link>? Nuestro equipo está aquí para <Link to="/energy-advisor" className="text-[#007F00] font-bold hover:underline">ayudarte</Link>.</>
+                        ) : (isEngland ? tr.subtitle : c('hero', 'subtitle', tr.subtitle))}
                     </p>
                     {!isSpanish && !isEngland && tr.trustStrip && (
                         <p className="mt-4 text-sm font-bold text-[#007F00] uppercase tracking-widest">

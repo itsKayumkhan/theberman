@@ -1,4 +1,5 @@
 
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -505,7 +506,9 @@ const HireAgent = () => {
                         {tr.title1} <span className="text-[#007F00]">{tr.titleHighlight}</span>{tr.title2}
                     </h1>
                     <p className="text-base md:text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">
-                        {tr.subtitle}
+                        {isSpanish ? (
+                            <>Obtén orientación imparcial, análisis técnico verificado y acceso a <Link to="/pricing" className="text-[#007F00] font-bold hover:underline">precios competitivos</Link> para mejorar la <Link to="/services" className="text-[#007F00] font-bold hover:underline">eficiencia energética de tu hogar</Link>.</>
+                        ) : tr.subtitle}
                     </p>
                 </div>
             </section>
@@ -514,10 +517,12 @@ const HireAgent = () => {
             <section className="pb-12">
                 <div className="container mx-auto px-6 max-w-4xl">
                     <div className="bg-green-50/50 border-2 border-green-100 rounded-[2rem] p-8 md:p-12 text-left shadow-sm">
-                        <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-6 uppercase tracking-tight">{tr.speakH1} <span className="text-[#007F00]">{tr.speakH2}</span></h2>
+                        <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-6 uppercase tracking-tight">{isSpanish ? <Link to="/energy-advisor" className="hover:underline">{tr.speakH1}</Link> : tr.speakH1} <span className="text-[#007F00]">{isSpanish ? <Link to="/energy-advisor" className="hover:underline">{tr.speakH2}</Link> : tr.speakH2}</span></h2>
                         <div className="space-y-6 text-gray-700 leading-relaxed font-medium">
                             <p>
-                                {tr.speakP}
+                                {isSpanish ? (
+                                    <>Tu asesor energético coordinará y trabajará directamente con un <Link to="/services" className="text-[#007F00] font-bold hover:underline">certificador</Link> para que las recomendaciones sean técnicamente precisas y se basen en tu <Link to="/catalogue" className="text-[#007F00] font-bold hover:underline">certificado energético actual</Link> y su informe de recomendaciones.</>
+                                ) : tr.speakP}
                             </p>
 
                             <div className="space-y-4">
@@ -533,7 +538,9 @@ const HireAgent = () => {
                             </div>
 
                             <p className="text-gray-600 italic text-sm">
-                                {tr.speakClose}
+                                {isSpanish ? (
+                                    <>El objetivo es ofrecer una guía clara e imparcial, un criterio técnico verificado y acceso a <Link to="/pricing" className="text-[#007F00] font-bold hover:underline">precios competitivos</Link>, para que las mejoras se realicen de la forma más <Link to="/services" className="text-[#007F00] font-bold hover:underline">inteligente y económica posible</Link>.</>
+                                ) : tr.speakClose}
                             </p>
 
                             <div className="pt-6 border-t border-green-100 flex flex-col md:flex-row gap-6 items-center text-xs font-black uppercase tracking-widest text-gray-500">

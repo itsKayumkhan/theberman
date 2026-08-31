@@ -136,7 +136,9 @@ const Pricing = () => {
                         <span className="text-[#007F00]">{tr.heroTitle2}</span>
                     </h1>
                     <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
-                        {isManualActive ? tr.manual : tr.heroDesc}
+                        {isManualActive ? tr.manual : (isSpanish ? (
+                            <>Elija el plan que se ajusta a su tipo de propiedad. Sin tarifas ocultas, todas las valoraciones son realizadas por <Link to="/services" className="text-[#007F00] font-bold hover:underline">técnicos acreditados</Link>.</>
+                        ) : tr.heroDesc)}
                     </p>
                 </div>
             </section>
@@ -150,6 +152,7 @@ const Pricing = () => {
                             price={`${currencySymbol}150-${currencySymbol}250`}
                             description={tr.apartmentDesc}
                             features={tr.apartmentFeatures}
+                            ctaLink={isSpanish ? '/get-quote' : '/contact-us'}
                         />
                         <PricingCard
                             title={tr.houseTitle}
@@ -158,6 +161,7 @@ const Pricing = () => {
                             description={tr.houseDesc}
                             features={tr.houseFeatures}
                             popularLabel={tr.mostPopular}
+                            ctaLink={isSpanish ? '/get-quote' : '/contact-us'}
                         />
                         <PricingCard
                             title={tr.commercialTitle}
@@ -165,7 +169,7 @@ const Pricing = () => {
                             description={tr.commercialDesc}
                             features={tr.commercialFeatures}
                             ctaText={tr.requestQuote}
-                            ctaLink="/contact-us"
+                            ctaLink={isSpanish ? '/contact-us' : '/contact-us'}
                         />
                     </div>
                 </div>
@@ -175,7 +179,7 @@ const Pricing = () => {
             <section className="py-24 bg-gray-50 border-y border-gray-100">
                 <div className="container mx-auto px-6 max-w-4xl">
                     <div className="text-center mb-16">
-                        <h2 className="text-3xl font-black text-gray-900 mb-2 uppercase tracking-tight">{tr.compareTitle}</h2>
+                        <h2 className="text-3xl font-black text-gray-900 mb-2 uppercase tracking-tight">{isSpanish ? <Link to="/services" className="hover:underline">{tr.compareTitle}</Link> : tr.compareTitle}</h2>
                         <p className="text-gray-400 text-xs font-black uppercase tracking-widest">{tr.compareSubtitle}</p>
                     </div>
 
@@ -203,11 +207,11 @@ const Pricing = () => {
                 <div className="container max-w-full">
                     <div className="bg-gray-50 p-12 md:p-20 text-center relative overflow-hidden border border-gray-100">
                         <div className="relative z-10">
-                            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 uppercase tracking-tight">{tr.ctaTitle}</h2>
+                            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 uppercase tracking-tight">{isSpanish ? <Link to="/energy-advisor" className="hover:underline">{tr.ctaTitle}</Link> : tr.ctaTitle}</h2>
                             <p className="text-gray-500 text-lg mb-10 max-w-xl mx-auto font-medium">
                                 {tr.ctaDesc}
                             </p>
-                            <Link to="/contact-us">
+                            <Link to={isSpanish ? '/energy-advisor' : '/contact-us'}>
                                 <button className="bg-[#007F00] text-white font-black px-12 py-5 rounded-2xl hover:bg-[#006400] transition-all shadow-xl flex items-center gap-3 mx-auto transform hover:-translate-y-1 active:translate-y-0 cursor-pointer">
                                     {tr.ctaButton} <ArrowRight size={20} />
                                 </button>

@@ -68,18 +68,18 @@ const Services = () => {
         complianceCta: 'Reservar',
         servicesTitle: 'Nuestros servicios principales', servicesSubtitle: 'Experiencia en todos los sectores',
         services: [
-            { title: 'Certificado Energético Vivienda', description: 'Valoraciones registradas completas para propietarios e inquilinos. Requerido para ventas, alquileres y solicitudes de subvenciones.' },
-            { title: 'Certificado Comercial', description: 'Calificaciones energéticas no domésticas para empresas y locales comerciales. Garantice el cumplimiento y optimice los costes operativos.' },
-            { title: 'Auditorías Energéticas', description: 'Análisis detallado del consumo energético con recomendaciones prácticas para ahorrar y modernizar su propiedad.' },
-            { title: 'Asesoría de Subvenciones', description: 'Navegue por el sistema de subvenciones con orientación experta. Le ayudamos a calificar para la máxima financiación disponible.' },
-            { title: 'Análisis Técnico', description: 'Estudios especializados de idoneidad de aerotermia, mejoras de aislamiento y cálculo de potencial fotovoltaico.' },
-            { title: 'Servicios de Soporte', description: 'Asesoramiento continuo para carteras inmobiliarias, calificaciones provisionales de obra nueva y comprobaciones finales de cumplimiento.' },
+            { title: 'Certificado Energético Vivienda', description: 'Valoraciones registradas completas para propietarios e inquilinos. Requerido para ventas, alquileres y solicitudes de subvenciones.', link: '/get-quote' },
+            { title: 'Certificado Comercial', description: 'Calificaciones energéticas no domésticas para empresas y locales comerciales. Garantice el cumplimiento y optimice los costes operativos.', link: '/get-quote' },
+            { title: 'Auditorías Energéticas', description: 'Análisis detallado del consumo energético con recomendaciones prácticas para ahorrar y modernizar su propiedad.', link: '/catalogue' },
+            { title: 'Asesoría de Subvenciones', description: 'Navegue por el sistema de subvenciones con orientación experta. Le ayudamos a calificar para la máxima financiación disponible.', link: '/energy-advisor' },
+            { title: 'Análisis Técnico', description: 'Estudios especializados de idoneidad de aerotermia, mejoras de aislamiento y cálculo de potencial fotovoltaico.', link: '/catalogue' },
+            { title: 'Servicios de Soporte', description: 'Asesoramiento continuo para carteras inmobiliarias, calificaciones provisionales de obra nueva y comprobaciones finales de cumplimiento.', link: '/energy-advisor' },
         ],
         howTitle: 'Cómo funciona', howSubtitle: 'Un proceso sencillo en 3 pasos',
         steps: [
-            { title: 'Programar', description: 'Contacte con nosotros para reservar su valoración presencial en el momento que le convenga.' },
-            { title: 'Inspección', description: 'Nuestro evaluador registrado visita su propiedad para realizar un estudio técnico exhaustivo.' },
-            { title: 'Finalizar', description: 'Reciba su certificado energético y el informe asesor detallado en un plazo de 48 horas.' },
+            { title: 'Cronograma', description: 'Contacte con nosotros para reservar su valoración presencial en el momento que le convenga.', link: '/get-quote' },
+            { title: 'Inspección', description: 'Nuestro evaluador registrado visita su propiedad para realizar un estudio técnico exhaustivo.', link: '/locations' },
+            { title: 'Finalizar', description: 'Reciba su certificado energético y el informe asesor detallado en un plazo de 48 horas.', link: '/get-quote' },
         ],
         ctaTitle: '¿Necesita asesoramiento energético experto?', ctaDesc: 'Nuestro equipo está listo para ayudarle a optimizar su propiedad y garantizar el cumplimiento normativo.', ctaButton: 'Empezar'
     } : isFrance ? {
@@ -208,7 +208,9 @@ const Services = () => {
                         <span className="text-[#007F00]">{tr.heroTitle2}</span>
                     </h1>
                     <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
-                        {tr.heroDesc}
+                        {isSpanish ? (
+                            <><Link to="/energy-advisor" className="text-[#007F00] font-bold hover:underline">Valoraciones integrales y asesoramiento experto</Link> para ayudarle a cumplir con la <Link to="/catalogue" className="text-[#007F00] font-bold hover:underline">normativa y mejorar la eficiencia</Link>.</>
+                        ) : tr.heroDesc}
                     </p>
                 </div>
             </section>
@@ -223,7 +225,9 @@ const Services = () => {
                         <div className="flex-1">
                             <h3 className="text-lg md:text-xl font-black text-gray-900 mb-2 uppercase tracking-tight">{tr.complianceTitle}</h3>
                             <p className="text-gray-500 font-bold text-sm leading-relaxed max-w-2xl">
-                                {tr.complianceDesc}
+                                {isSpanish ? (
+                                    <>Obligatorio por ley para la venta, alquiler o solicitud de subvenciones. <Link to="/get-quote" className="text-[#007F00] font-bold hover:underline">Le proporcionamos el certificado que necesita</Link> con entrega rápida y precisión técnica.</>
+                                ) : tr.complianceDesc}
                             </p>
                         </div>
                         <div className="w-full md:w-auto mt-4 md:mt-0">
@@ -247,7 +251,7 @@ const Services = () => {
 
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {tr.services.map((svc, i) => (
-                            <ServiceItem key={i} icon={serviceIcons[i]} title={svc.title} description={svc.description} />
+                            <ServiceItem key={i} icon={serviceIcons[i]} title={svc.title} description={svc.description} link={svc.link} />
                         ))}
                     </div>
                 </div>
@@ -263,7 +267,7 @@ const Services = () => {
 
                     <div className="grid md:grid-cols-3 gap-12 max-w-5xl mx-auto">
                         {tr.steps.map((step, i) => (
-                            <ProcessStep key={i} number={`0${i + 1}`} title={step.title} description={step.description} />
+                            <ProcessStep key={i} number={`0${i + 1}`} title={step.title} description={step.description} link={step.link} />
                         ))}
                     </div>
                 </div>
@@ -274,11 +278,11 @@ const Services = () => {
                 <div className="container max-w-full">
                     <div className="bg-gray-50 p-12 md:p-20 text-center relative overflow-hidden border border-gray-100">
                         <div className="relative z-10">
-                            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 uppercase tracking-tight">{tr.ctaTitle}</h2>
+                            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 uppercase tracking-tight">{isSpanish ? <Link to="/energy-advisor" className="hover:underline">¿Necesita asesoramiento energético experto?</Link> : tr.ctaTitle}</h2>
                             <p className="text-gray-500 text-lg mb-10 max-w-xl mx-auto font-medium">
                                 {tr.ctaDesc}
                             </p>
-                            <Link to="/contact-us">
+                            <Link to={isSpanish ? '/energy-advisor' : '/contact-us'}>
                                 <button className="bg-[#007F00] text-white font-black px-12 py-5 rounded-2xl hover:bg-[#006400] transition-all shadow-xl flex items-center gap-3 mx-auto transform hover:-translate-y-1 active:translate-y-0 cursor-pointer">
                                     {tr.ctaButton} <ArrowRight size={20} />
                                 </button>
@@ -301,8 +305,8 @@ const serviceIcons = [
     <Truck size={24} />,
 ];
 
-const ServiceItem = ({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) => (
-    <div className="p-10 bg-white rounded-[2.5rem] border border-gray-100 hover:border-green-100 transition-all hover:shadow-lg group cursor-pointer">
+const ServiceItem = ({ icon, title, description, link }: { icon: React.ReactNode, title: string, description: string, link?: string }) => (
+    <Link to={link || '#'} className="p-10 bg-white rounded-[2.5rem] border border-gray-100 hover:border-green-100 transition-all hover:shadow-lg group cursor-pointer block">
         <div className="w-14 h-14 rounded-2xl bg-green-50 text-[#007F00] flex items-center justify-center group-hover:bg-[#007F00] group-hover:text-white transition-all transform group-hover:scale-110 mb-8 shadow-sm">
             {icon}
         </div>
@@ -310,11 +314,11 @@ const ServiceItem = ({ icon, title, description }: { icon: React.ReactNode, titl
         <p className="text-gray-500 leading-relaxed font-bold text-sm">
             {description}
         </p>
-    </div>
+    </Link>
 );
 
-const ProcessStep = ({ number, title, description }: { number: string, title: string, description: string }) => (
-    <div className="text-center group cursor-pointer">
+const ProcessStep = ({ number, title, description, link }: { number: string, title: string, description: string, link?: string }) => (
+    <Link to={link || '#'} className="text-center group cursor-pointer block">
         <div className="w-20 h-20 bg-white border border-gray-100 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-sm group-hover:border-[#007F00] transition-all group-hover:shadow-lg transform group-hover:-translate-y-1">
             <span className="text-2xl font-black text-[#007F00]">{number}</span>
         </div>
@@ -322,7 +326,7 @@ const ProcessStep = ({ number, title, description }: { number: string, title: st
         <p className="text-gray-500 font-bold text-sm leading-relaxed">
             {description}
         </p>
-    </div>
+    </Link>
 );
 
 export default Services;

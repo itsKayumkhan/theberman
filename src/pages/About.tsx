@@ -278,7 +278,9 @@ const About = () => {
                         <span className="text-[#007F00]">{isEngland ? tr.title2 : c('hero', 'heading_line2', tr.title2)}</span>
                     </h1>
                     <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
-                        {isEngland ? tr.heroP : c('hero', 'description', tr.heroP)}
+                        {isSpanish ? (
+                            <>le ayudamos a entender, mejorar y ahorrar dinero con una <Link to="/services" className="text-[#007F00] font-bold hover:underline">certificación de eficiencia energética</Link> que le será explicada por los mejores <Link to="/energy-advisor" className="text-[#007F00] font-bold hover:underline">profesionales del sector</Link>.</>
+                        ) : (isEngland ? tr.heroP : c('hero', 'description', tr.heroP))}
                     </p>
                 </div>
             </section>
@@ -290,12 +292,12 @@ const About = () => {
                         {/* Left Side: Story Text */}
                         <div className="lg:col-span-8 space-y-8 text-gray-600 leading-relaxed font-sans text-lg text-left">
                             <div className="mb-8">
-                                <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight">{c('story', 'heading', tr.storyH)}</h2>
+                                <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight">{isSpanish ? <Link to="/about-us" className="hover:underline">{c('story', 'heading', tr.storyH)}</Link> : c('story', 'heading', tr.storyH)}</h2>
                             </div>
-                            <p>{isEngland ? tr.story[0] : c('story', 'paragraph1', tr.story[0])}</p>
-                            <p>{isEngland ? tr.story[1] : c('story', 'paragraph2', tr.story[1])}</p>
-                            <p>{isEngland ? tr.story[2] : c('story', 'paragraph3', tr.story[2])}</p>
-                            <p>{isEngland ? tr.story[3] : c('story', 'paragraph4', tr.story[3])}</p>
+                            <p>{isSpanish ? <>{brand} se fundó con un objetivo claro: aportar claridad profesional y rigor técnico al sector de la <Link to="/services" className="text-[#007F00] font-bold hover:underline">certificación energética en España</Link>. Detectamos que los propietarios y las empresas no solo buscaban un certificado; buscaban una hoja de ruta hacia un futuro más sostenible y rentable.</> : (isEngland ? tr.story[0] : c('story', 'paragraph1', tr.story[0]))}</p>
+                            <p>{isSpanish ? <>Lo que comenzó como un equipo especializado en Madrid se ha convertido en una <Link to="/locations" className="text-[#007F00] font-bold hover:underline">red nacional de certificadores acreditados</Link>. Nuestro crecimiento se apoya en la precisión, la integridad y un profundo conocimiento del parque edificado español. No solo medimos el rendimiento energético: lo interpretamos y ofrecemos recomendaciones prácticas que generan ahorros reales.</> : (isEngland ? tr.story[1] : c('story', 'paragraph2', tr.story[1]))}</p>
+                            <p>{isSpanish ? <>Hoy, {brand} es una referencia en <Link to="/services" className="text-[#007F00] font-bold hover:underline">consultoría energética en España</Link>. Hemos realizado con éxito más de 10.000 certificaciones, ayudando a familias y empresas a gestionar la complejidad de los certificados energéticos y las <Link to="/catalogue" className="text-[#007F00] font-bold hover:underline">subvenciones de rehabilitación</Link>. Nuestra misión sigue siendo la misma: dar a nuestros clientes el conocimiento necesario para tomar decisiones informadas sobre la eficiencia energética de su propiedad.</> : (isEngland ? tr.story[2] : c('story', 'paragraph3', tr.story[2]))}</p>
+                            <p>{isSpanish ? <>Mirando al futuro, nos centramos en la innovación y la excelencia. Mejoramos continuamente nuestros procesos y nos mantenemos a la vanguardia de la <Link to="/energy-advisor" className="text-[#007F00] font-bold hover:underline">tecnología energética</Link> para ofrecer el máximo nivel de servicio. En {brand} creemos que una propiedad eficiente es la base de una España moderna y sostenible.</> : (isEngland ? tr.story[3] : c('story', 'paragraph4', tr.story[3]))}</p>
                         </div>
 
                         {/* Right Side: Stats / Impact */}
@@ -356,6 +358,45 @@ const About = () => {
                 </section>
             )}
 
+            {/* 3b. WHY CHOOSE - Spain only */}
+            {isSpanish && (
+                <section className="py-24 bg-white">
+                    <div className="container mx-auto px-6 max-w-7xl">
+                        <div className="text-center mb-16">
+                            <h2 className="text-3xl md:text-5xl font-black text-[#007F00] mb-6 uppercase tracking-tight">
+                                <Link to="/services" className="hover:underline">¿Por qué elegir Certificado Energético?</Link>
+                            </h2>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+                            {[
+                                { icon: <Euro size={28} />, title: 'Mejores Precios', link: '/pricing' },
+                                { icon: <Zap size={28} />, title: 'Resultados Rápidos', link: '/services' },
+                                { icon: <ShieldCheck size={28} />, title: 'Certificadores Acreditados', link: '/energy-advisor' },
+                                { icon: <CheckCircle size={28} />, title: 'Proceso Sencillo', link: '/get-quote' },
+                                { icon: <Shield size={28} />, title: 'Satisfacción Garantizada', link: '/contact-us' },
+                                { icon: <Clock size={28} />, title: 'Elige tu Horario', link: '/get-quote' },
+                            ].map((item, i) => (
+                                <Link key={i} to={item.link} className="p-8 bg-white rounded-3xl border border-gray-100 hover:border-green-200 transition-all hover:shadow-lg text-center group cursor-pointer block">
+                                    <div className="w-16 h-16 mx-auto rounded-2xl bg-green-50 text-[#007F00] flex items-center justify-center group-hover:bg-[#007F00] group-hover:text-white transition-all transform group-hover:scale-110 mb-6 shadow-sm">
+                                        {item.icon}
+                                    </div>
+                                    <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">{item.title}</h3>
+                                </Link>
+                            ))}
+                        </div>
+
+                        <div className="text-center">
+                            <Link to="/get-quote">
+                                <button className="px-12 py-5 bg-[#007F00] text-white font-black text-sm uppercase tracking-widest rounded-full hover:bg-[#006400] transition-all shadow-xl shadow-green-100 transform hover:-translate-y-1 active:translate-y-0 cursor-pointer">
+                                    Solicitar Presupuesto
+                                </button>
+                            </Link>
+                        </div>
+                    </div>
+                </section>
+            )}
+
             {/* 4. CORE VALUES GRID */}
             <section className="py-24 bg-gray-50">
                 <div className="container mx-auto px-6 max-w-7xl">
@@ -377,11 +418,11 @@ const About = () => {
                 <div className="container max-w-full">
                     <div className="bg-gray-50 p-12 md:p-20 text-center relative overflow-hidden border border-gray-100">
                         <div className="relative z-10">
-                            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 uppercase tracking-tight">{isEngland ? tr.joinH : c('cta', 'heading', tr.joinH)} <br />{isEngland ? tr.joinH2 : c('cta', 'heading_highlight', tr.joinH2)}</h2>
+                            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 uppercase tracking-tight">{isSpanish ? <Link to="/get-quote" className="hover:underline">{c('cta', 'heading', tr.joinH)}</Link> : (isEngland ? tr.joinH : c('cta', 'heading', tr.joinH))} <br />{isSpanish ? <Link to="/get-quote" className="hover:underline">{c('cta', 'heading_highlight', tr.joinH2)}</Link> : (isEngland ? tr.joinH2 : c('cta', 'heading_highlight', tr.joinH2))}</h2>
                             <p className="text-gray-500 text-lg mb-10 max-w-xl mx-auto font-medium">
                                 {isEngland ? tr.joinP : c('cta', 'description', tr.joinP)}
                             </p>
-                            <Link to="/contact-us">
+                            <Link to={isSpanish ? '/get-quote' : '/contact-us'}>
                                 <button className="bg-[#007F00] text-white font-black px-12 py-5 rounded-2xl hover:bg-[#006400] transition-all shadow-xl flex items-center gap-3 mx-auto transform hover:-translate-y-1 active:translate-y-0">
                                     {isEngland ? 'Get a Free Quote' : c('cta', 'button_text', tr.cta)} <ArrowRight size={20} />
                                 </button>
