@@ -274,13 +274,15 @@ const About = () => {
                         {c('hero', 'tag', tr.missionTag)}
                     </span>
                     <h1 className="text-4xl md:text-6xl font-black text-gray-900 mb-6 leading-tight">
-                        {isEngland ? tr.title1 : c('hero', 'heading_line1', tr.title1)} <br className="hidden md:block" />
-                        <span className="text-[#007F00]">{isEngland ? tr.title2 : c('hero', 'heading_line2', tr.title2)}</span>
+                        {isEngland ? <Link to="/services" className="hover:underline">{tr.title1}</Link> : c('hero', 'heading_line1', tr.title1)} <br className="hidden md:block" />
+                        <span className="text-[#007F00]">{isEngland ? <Link to="/services" className="hover:underline">{tr.title2}</Link> : c('hero', 'heading_line2', tr.title2)}</span>
                     </h1>
                     <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
                         {isSpanish ? (
                             <>le ayudamos a entender, mejorar y ahorrar dinero con una <Link to="/services" className="text-[#007F00] font-bold hover:underline">certificación de eficiencia energética</Link> que le será explicada por los mejores <Link to="/energy-advisor" className="text-[#007F00] font-bold hover:underline">profesionales del sector</Link>.</>
-                        ) : (isEngland ? tr.heroP : c('hero', 'description', tr.heroP))}
+                        ) : (isEngland ? (
+                            <>Expand to homeowners, landlords and businesses</>
+                        ) : c('hero', 'description', tr.heroP))}
                     </p>
                 </div>
             </section>
@@ -294,9 +296,9 @@ const About = () => {
                             <div className="mb-8">
                                 <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight">{isSpanish ? <Link to="/about-us" className="hover:underline">{c('story', 'heading', tr.storyH)}</Link> : c('story', 'heading', tr.storyH)}</h2>
                             </div>
-                            <p>{isSpanish ? <>{brand} se fundó con un objetivo claro: aportar claridad profesional y rigor técnico al sector de la <Link to="/services" className="text-[#007F00] font-bold hover:underline">certificación energética en España</Link>. Detectamos que los propietarios y las empresas no solo buscaban un certificado; buscaban una hoja de ruta hacia un futuro más sostenible y rentable.</> : (isEngland ? tr.story[0] : c('story', 'paragraph1', tr.story[0]))}</p>
-                            <p>{isSpanish ? <>Lo que comenzó como un equipo especializado en Madrid se ha convertido en una <Link to="/locations" className="text-[#007F00] font-bold hover:underline">red nacional de certificadores acreditados</Link>. Nuestro crecimiento se apoya en la precisión, la integridad y un profundo conocimiento del parque edificado español. No solo medimos el rendimiento energético: lo interpretamos y ofrecemos recomendaciones prácticas que generan ahorros reales.</> : (isEngland ? tr.story[1] : c('story', 'paragraph2', tr.story[1]))}</p>
-                            <p>{isSpanish ? <>Hoy, {brand} es una referencia en <Link to="/services" className="text-[#007F00] font-bold hover:underline">consultoría energética en España</Link>. Hemos realizado con éxito más de 10.000 certificaciones, ayudando a familias y empresas a gestionar la complejidad de los certificados energéticos y las <Link to="/catalogue" className="text-[#007F00] font-bold hover:underline">subvenciones de rehabilitación</Link>. Nuestra misión sigue siendo la misma: dar a nuestros clientes el conocimiento necesario para tomar decisiones informadas sobre la eficiencia energética de su propiedad.</> : (isEngland ? tr.story[2] : c('story', 'paragraph3', tr.story[2]))}</p>
+                            <p>{isSpanish ? <>{brand} se fundó con un objetivo claro: aportar claridad profesional y rigor técnico al sector de la <Link to="/services" className="text-[#007F00] font-bold hover:underline">certificación energética en España</Link>. Detectamos que los propietarios y las empresas no solo buscaban un certificado; buscaban una hoja de ruta hacia un futuro más sostenible y rentable.</> : (isEngland ? <><Link to="/" className="text-[#007F00] font-bold hover:underline">EPC Cert</Link> was established to receive Energy Performance Certificate (EPC) assessments easier for property owners, landlords, estate agents and businesses across England.</> : c('story', 'paragraph1', tr.story[0]))}</p>
+                            <p>{isSpanish ? <>Lo que comenzó como un equipo especializado en Madrid se ha convertido en una <Link to="/locations" className="text-[#007F00] font-bold hover:underline">red nacional de certificadores acreditados</Link>. Nuestro crecimiento se apoya en la precisión, la integridad y un profundo conocimiento del parque edificado español. No solo medimos el rendimiento energético: lo interpretamos y ofrecemos recomendaciones prácticas que generan ahorros reales.</> : (isEngland ? <>We understand that obtaining an EPC is often a necessary part of <Link to="/contact-us" className="text-[#007F00] font-bold hover:underline">selling, renting or managing a property</Link>, yet finding a qualified assessor and arranging an appointment can be time-consuming. Our platform was created to simplify the process by connecting customers with accredited EPC assessors through a trusted nationwide network.</> : c('story', 'paragraph2', tr.story[1]))}</p>
+                            <p>{isSpanish ? <>Hoy, {brand} es una referencia en <Link to="/services" className="text-[#007F00] font-bold hover:underline">consultoría energética en España</Link>. Hemos realizado con éxito más de 10.000 certificaciones, ayudando a familias y empresas a gestionar la complejidad de los certificados energéticos y las <Link to="/catalogue" className="text-[#007F00] font-bold hover:underline">subvenciones de rehabilitación</Link>. Nuestra misión sigue siendo la misma: dar a nuestros clientes el conocimiento necesario para tomar decisiones informadas sobre la eficiencia energética de su propiedad.</> : (isEngland ? <>From residential homes and rental properties to commercial buildings, <Link to="/energy-advisor" className="text-[#007F00] font-bold hover:underline">EPC Cert helps customers</Link> access professional <Link to="/services" className="text-[#007F00] font-bold hover:underline">EPC assessment services</Link> with greater convenience and confidence. We focus on providing a straightforward booking experience, flexible appointment availability and access to qualified assessors who operate in accordance with current EPC regulations and industry standards.</> : c('story', 'paragraph3', tr.story[2]))}</p>
                             <p>{isSpanish ? <>Mirando al futuro, nos centramos en la innovación y la excelencia. Mejoramos continuamente nuestros procesos y nos mantenemos a la vanguardia de la <Link to="/energy-advisor" className="text-[#007F00] font-bold hover:underline">tecnología energética</Link> para ofrecer el máximo nivel de servicio. En {brand} creemos que una propiedad eficiente es la base de una España moderna y sostenible.</> : (isEngland ? tr.story[3] : c('story', 'paragraph4', tr.story[3]))}</p>
                         </div>
 
@@ -358,7 +360,46 @@ const About = () => {
                 </section>
             )}
 
-            {/* 3b. WHY CHOOSE - Spain only */}
+            {/* 3b. WHY CHOOSE - England only */}
+            {isEngland && (
+                <section className="py-24 bg-white">
+                    <div className="container mx-auto px-6 max-w-7xl">
+                        <div className="text-center mb-16">
+                            <h2 className="text-3xl md:text-5xl font-black text-[#007F00] mb-6 uppercase tracking-tight">
+                                Why Choose EPC Cert?
+                            </h2>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+                            {[
+                                { icon: <Euro size={28} />, title: 'Best Value Rates', link: '/pricing' },
+                                { icon: <Zap size={28} />, title: 'Quick Results', link: '/get-quote' },
+                                { icon: <ShieldCheck size={28} />, title: 'Accreditation Experts', link: '/services' },
+                                { icon: <CheckCircle size={28} />, title: 'Smooth & Stress Free', link: '/catalogue' },
+                                { icon: <Shield size={28} />, title: 'Satisfaction Guaranteed', link: '/contact-us' },
+                                { icon: <Clock size={28} />, title: 'Pick Your Schedule', link: '/get-quote' },
+                            ].map((item, i) => (
+                                <Link key={i} to={item.link} className="p-8 bg-white rounded-3xl border border-gray-100 hover:border-green-200 transition-all hover:shadow-lg text-center group cursor-pointer block">
+                                    <div className="w-16 h-16 mx-auto rounded-2xl bg-green-50 text-[#007F00] flex items-center justify-center group-hover:bg-[#007F00] group-hover:text-white transition-all transform group-hover:scale-110 mb-6 shadow-sm">
+                                        {item.icon}
+                                    </div>
+                                    <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">{item.title}</h3>
+                                </Link>
+                            ))}
+                        </div>
+
+                        <div className="text-center">
+                            <Link to="/get-quote">
+                                <button className="px-12 py-5 bg-[#007F00] text-white font-black text-sm uppercase tracking-widest rounded-full hover:bg-[#006400] transition-all shadow-xl shadow-green-100 transform hover:-translate-y-1 active:translate-y-0 cursor-pointer">
+                                    Contact Now
+                                </button>
+                            </Link>
+                        </div>
+                    </div>
+                </section>
+            )}
+
+            {/* 3c. WHY CHOOSE - Spain only */}
             {isSpanish && (
                 <section className="py-24 bg-white">
                     <div className="container mx-auto px-6 max-w-7xl">
@@ -406,9 +447,10 @@ const About = () => {
                     </div>
 
                     <div className="grid md:grid-cols-3 gap-8">
-                        {tr.values.map((v, i) => (
-                            <ValueItem key={i} icon={v.icon} title={isEngland ? v.title : c('values', `value${i}_title`, v.title)} description={isEngland ? v.desc : c('values', `value${i}_desc`, v.desc)} />
-                        ))}
+                        {tr.values.map((v, i) => {
+                            const englandLinks = ['/services', '/get-quote', '/energy-advisor'];
+                            return <ValueItem key={i} icon={v.icon} title={isEngland ? v.title : c('values', `value${i}_title`, v.title)} description={isEngland ? v.desc : c('values', `value${i}_desc`, v.desc)} link={isEngland ? englandLinks[i] : undefined} />;
+                        })}
                     </div>
                 </div>
             </section>
@@ -438,8 +480,8 @@ const About = () => {
     );
 };
 
-const ValueItem = ({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) => (
-    <div className="p-10 bg-white rounded-[2.5rem] border border-gray-100 hover:border-green-100 transition-all hover:shadow-lg group cursor-pointer">
+const ValueItem = ({ icon, title, description, link }: { icon: React.ReactNode, title: string, description: string, link?: string }) => (
+    <Link to={link || '#'} className="p-10 bg-white rounded-[2.5rem] border border-gray-100 hover:border-green-100 transition-all hover:shadow-lg group cursor-pointer block">
         <div className="w-14 h-14 rounded-2xl bg-green-50 text-[#007F00] flex items-center justify-center group-hover:bg-[#007F00] group-hover:text-white transition-all transform group-hover:scale-110 mb-8 shadow-sm">
             {icon}
         </div>
@@ -447,7 +489,7 @@ const ValueItem = ({ icon, title, description }: { icon: React.ReactNode, title:
         <p className="text-gray-500 leading-relaxed font-bold text-sm">
             {description}
         </p>
-    </div>
+    </Link>
 );
 
 export default About;

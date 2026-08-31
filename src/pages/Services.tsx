@@ -128,24 +128,24 @@ const Services = () => {
         ctaTitle: 'Precisa de aconselhamento energético especializado?', ctaDesc: 'A nossa equipa está pronta para o ajudar a otimizar a sua propriedade e garantir o cumprimento da legislação.', ctaButton: 'Começar'
     } : {
         badge: 'What We Do', heroTitle1: 'Precision Energy', heroTitle2: 'Solutions.',
-        heroDesc: 'Comprehensive assessments and expert advice to help you meet regulations and improve efficiency.',
-        complianceTitle: 'Do I need a BER Certificate?',
+        heroDesc: '',
+        complianceTitle: 'Do I need an EPC Certificate?',
         complianceDesc: 'Required by law for selling, renting, or grant applications. We provide the certification you need with fast turnaround and expert accuracy.',
         complianceCta: 'Book Now',
         servicesTitle: 'Our Core Offerings', servicesSubtitle: 'Expertise Across All Sectors',
         services: [
-            { title: 'Domestic BER', description: 'Full registered assessments for homeowners and landlords. Required for all sales, rentals, and grant applications.' },
-            { title: 'Commercial BER', description: 'Non-Domestic energy ratings for businesses and retail units. Ensure compliance and optimize operational costs.' },
-            { title: 'Energy Audits', description: 'Detailed analysis of energy usage with actionable insights on where to save and how to modernize your property.' },
-            { title: 'Grant Advisory', description: 'Navigate the grant system with expert guidance. We help you qualify for the maximum funding available.' },
-            { title: 'Technical Analysis', description: 'Specialized surveys for heat pump suitability, insulation upgrades, and solar PV potential calculations.' },
-            { title: 'Support Services', description: 'Continuous advisory for property portfolios, new build provisional ratings, and final compliance checks.' },
+            { title: 'Domestic EPC', description: 'Full registered assessments for homeowners and landlords. Required for all sales, rentals, and grant applications.', link: '/get-quote' },
+            { title: 'Commercial EPC', description: 'Non-Domestic energy ratings for businesses and retail units. Ensure compliance and optimize operational costs.', link: '/get-quote' },
+            { title: 'Energy Audits', description: 'Detailed analysis of energy usage with actionable insights on where to save and how to modernize your property.', link: '/catalogue' },
+            { title: 'Grant Advisory', description: 'Navigate the grant system with expert guidance. We help you qualify for the maximum funding available.', link: '/energy-advisor' },
+            { title: 'Technical Analysis', description: 'Specialized surveys for heat pump suitability, insulation upgrades, and solar PV potential calculations.', link: '/catalogue' },
+            { title: 'Support Services', description: 'Continuous advisory for property portfolios, new build provisional ratings, and final compliance checks.', link: '/energy-advisor' },
         ],
         howTitle: 'How It Works', howSubtitle: 'A simple 3-step process',
         steps: [
-            { title: 'Schedule', description: 'Contact us to book your on-site assessment at a time that suits you.' },
-            { title: 'Survey', description: 'Our registered assessor visits your property for a comprehensive technical survey.' },
-            { title: 'Finalize', description: 'Receive your BER certificate and detailed advisory report within 48 hours.' },
+            { title: 'Schedule', description: 'Contact us to book your on-site assessment at a time that suits you.', link: '/get-quote' },
+            { title: 'Survey', description: 'Our registered assessor visits your property for a comprehensive technical survey.', link: '/locations' },
+            { title: 'Finalize', description: 'Receive your EPC certificate and detailed advisory report within 48 hours.', link: '/get-quote' },
         ],
         ctaTitle: 'Need expert energy advice?', ctaDesc: 'Our team is ready to help you optimize your property and ensure full regulatory compliance.', ctaButton: 'Get Started'
     };
@@ -210,6 +210,8 @@ const Services = () => {
                     <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
                         {isSpanish ? (
                             <><Link to="/energy-advisor" className="text-[#007F00] font-bold hover:underline">Valoraciones integrales y asesoramiento experto</Link> para ayudarle a cumplir con la <Link to="/catalogue" className="text-[#007F00] font-bold hover:underline">normativa y mejorar la eficiencia</Link>.</>
+                        ) : isEngland ? (
+                            <><Link to="/energy-advisor" className="text-[#007F00] font-bold hover:underline">Comprehensive assessments and expert advice</Link> to help you meet <Link to="/catalogue" className="text-[#007F00] font-bold hover:underline">regulations and improve efficiency</Link>.</>
                         ) : tr.heroDesc}
                     </p>
                 </div>
@@ -227,6 +229,8 @@ const Services = () => {
                             <p className="text-gray-500 font-bold text-sm leading-relaxed max-w-2xl">
                                 {isSpanish ? (
                                     <>Obligatorio por ley para la venta, alquiler o solicitud de subvenciones. <Link to="/get-quote" className="text-[#007F00] font-bold hover:underline">Le proporcionamos el certificado que necesita</Link> con entrega rápida y precisión técnica.</>
+                                ) : isEngland ? (
+                                    <>Required by law for selling, renting, or grant applications. <Link to="/get-quote" className="text-[#007F00] font-bold hover:underline">We provide the certification you need</Link> with fast turnaround and expert accuracy.</>
                                 ) : tr.complianceDesc}
                             </p>
                         </div>
@@ -278,11 +282,11 @@ const Services = () => {
                 <div className="container max-w-full">
                     <div className="bg-gray-50 p-12 md:p-20 text-center relative overflow-hidden border border-gray-100">
                         <div className="relative z-10">
-                            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 uppercase tracking-tight">{isSpanish ? <Link to="/energy-advisor" className="hover:underline">¿Necesita asesoramiento energético experto?</Link> : tr.ctaTitle}</h2>
+                            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 uppercase tracking-tight">{isSpanish ? <Link to="/energy-advisor" className="hover:underline">¿Necesita asesoramiento energético experto?</Link> : (isEngland ? <Link to="/energy-advisor" className="hover:underline">{tr.ctaTitle}</Link> : tr.ctaTitle)}</h2>
                             <p className="text-gray-500 text-lg mb-10 max-w-xl mx-auto font-medium">
                                 {tr.ctaDesc}
                             </p>
-                            <Link to={isSpanish ? '/energy-advisor' : '/contact-us'}>
+                            <Link to={isSpanish ? '/energy-advisor' : (isEngland ? '/energy-advisor' : '/contact-us')}>
                                 <button className="bg-[#007F00] text-white font-black px-12 py-5 rounded-2xl hover:bg-[#006400] transition-all shadow-xl flex items-center gap-3 mx-auto transform hover:-translate-y-1 active:translate-y-0 cursor-pointer">
                                     {tr.ctaButton} <ArrowRight size={20} />
                                 </button>

@@ -240,7 +240,9 @@ const Contact = () => {
                     <p className="text-base md:text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">
                         {isSpanish ? (
                             <>¿Tienes alguna pregunta sobre <Link to="/services" className="text-[#007F00] font-bold hover:underline">certificaciones energéticas</Link>? Nuestro equipo está aquí para <Link to="/energy-advisor" className="text-[#007F00] font-bold hover:underline">ayudarte</Link>.</>
-                        ) : (isEngland ? tr.subtitle : c('hero', 'subtitle', tr.subtitle))}
+                        ) : (isEngland ? (
+                            <>Compare quotes from <Link to="/services" className="text-[#007F00] font-bold hover:underline">accredited EPC assessors</Link> across England and arrange your <Link to="/get-quote" className="text-[#007F00] font-bold hover:underline">EPC assessment</Link> with confidence.</>
+                        ) : c('hero', 'subtitle', tr.subtitle))}
                     </p>
                     {!isSpanish && !isEngland && tr.trustStrip && (
                         <p className="mt-4 text-sm font-bold text-[#007F00] uppercase tracking-widest">

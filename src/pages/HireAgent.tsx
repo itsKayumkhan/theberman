@@ -508,6 +508,8 @@ const HireAgent = () => {
                     <p className="text-base md:text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">
                         {isSpanish ? (
                             <>Obtén orientación imparcial, análisis técnico verificado y acceso a <Link to="/pricing" className="text-[#007F00] font-bold hover:underline">precios competitivos</Link> para mejorar la <Link to="/services" className="text-[#007F00] font-bold hover:underline">eficiencia energética de tu hogar</Link>.</>
+                        ) : isEngland ? (
+                            <>Make informed <Link to="/services" className="text-[#007F00] font-bold hover:underline">home energy upgrades</Link> with EPC expert advice, technical insights, and support tailored to your property&apos;s needs. Compare <Link to="/pricing" className="text-[#007F00] font-bold hover:underline">EPC assessment pricing</Link> and plan improvements with confidence.</>
                         ) : tr.subtitle}
                     </p>
                 </div>
@@ -517,11 +519,13 @@ const HireAgent = () => {
             <section className="pb-12">
                 <div className="container mx-auto px-6 max-w-4xl">
                     <div className="bg-green-50/50 border-2 border-green-100 rounded-[2rem] p-8 md:p-12 text-left shadow-sm">
-                        <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-6 uppercase tracking-tight">{isSpanish ? <Link to="/energy-advisor" className="hover:underline">{tr.speakH1}</Link> : tr.speakH1} <span className="text-[#007F00]">{isSpanish ? <Link to="/energy-advisor" className="hover:underline">{tr.speakH2}</Link> : tr.speakH2}</span></h2>
+                        <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-6 uppercase tracking-tight">{isSpanish ? <Link to="/energy-advisor" className="hover:underline">{tr.speakH1}</Link> : (isEngland ? <Link to="/energy-advisor" className="hover:underline">{tr.speakH1}</Link> : tr.speakH1)} <span className="text-[#007F00]">{isSpanish ? <Link to="/energy-advisor" className="hover:underline">{tr.speakH2}</Link> : (isEngland ? <Link to="/energy-advisor" className="hover:underline">{tr.speakH2}</Link> : tr.speakH2)}</span></h2>
                         <div className="space-y-6 text-gray-700 leading-relaxed font-medium">
                             <p>
                                 {isSpanish ? (
                                     <>Tu asesor energético coordinará y trabajará directamente con un <Link to="/services" className="text-[#007F00] font-bold hover:underline">certificador</Link> para que las recomendaciones sean técnicamente precisas y se basen en tu <Link to="/catalogue" className="text-[#007F00] font-bold hover:underline">certificado energético actual</Link> y su informe de recomendaciones.</>
+                                ) : isEngland ? (
+                                    <>Your Energy Advisor works alongside <Link to="/services" className="text-[#007F00] font-bold hover:underline">accredited EPC assessors</Link> to help you understand upgrade options, <Link to="/get-quote" className="text-[#007F00] font-bold hover:underline">compare quotes</Link> and make informed decisions for your property.</>
                                 ) : tr.speakP}
                             </p>
 
@@ -540,6 +544,8 @@ const HireAgent = () => {
                             <p className="text-gray-600 italic text-sm">
                                 {isSpanish ? (
                                     <>El objetivo es ofrecer una guía clara e imparcial, un criterio técnico verificado y acceso a <Link to="/pricing" className="text-[#007F00] font-bold hover:underline">precios competitivos</Link>, para que las mejoras se realicen de la forma más <Link to="/services" className="text-[#007F00] font-bold hover:underline">inteligente y económica posible</Link>.</>
+                                ) : isEngland ? (
+                                    <>The goal is to provide clear guidance, verified technical input, and access to <Link to="/pricing" className="text-[#007F00] font-bold hover:underline">competitive pricing</Link>, ensuring upgrades are completed as <Link to="/services" className="text-[#007F00] font-bold hover:underline">smartly and economically</Link> as possible.</>
                                 ) : tr.speakClose}
                             </p>
 
