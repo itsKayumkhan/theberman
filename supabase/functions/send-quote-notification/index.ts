@@ -79,7 +79,7 @@ Deno.serve(async (req: Request) => {
             const emailHtml = generateHomeownerQuoteEmail(assessment.contact_name, websiteUrl, promoHtml, tenant, config.display_name, logoUrl);
 
             // 4. Send Email to homeowner
-            await client.send(smtpFrom, assessment.contact_email, isSpanish ? 'Has recibido un presupuesto.' : isPortuguese ? 'Recebeu um orçamento.' : isFrench ? 'Vous avez reçu un devis.' : 'BER quote received.', emailHtml);
+            await client.send(smtpFrom, assessment.contact_email, isSpanish ? 'Has recibido un presupuesto.' : isPortuguese ? 'Recebeu um orçamento.' : isFrench ? 'Vous avez reçu un devis.' : tenant === 'england' ? 'EPC quote received.' : 'BER quote received.', emailHtml);
 
             // 4b. Send email to job poster (business or admin) if not posted by homeowner
             if (assessment.posted_by && assessment.posted_by !== 'homeowner') {
@@ -118,14 +118,17 @@ Deno.serve(async (req: Request) => {
                 }
             }
 
-            // SMS to homeowner
+            // SMS to homeowner — link directly to their quotes dashboard
+            const dashboardLink = `${websiteUrl}/dashboard/user`;
             await trySendSms(assessment.contact_phone, isSpanish
-                ? `Hola ${assessment.contact_name}, ¡buenas noticias! Has recibido un nuevo presupuesto en ${websiteUrl.replace('https://', '')}. Inicia sesión para revisarlo y comparar precios: ${websiteUrl}`
+                ? `Hola ${assessment.contact_name}, ¡buenas noticias! Has recibido un nuevo presupuesto en ${websiteUrl.replace('https://', '')}. Inicia sesión para revisarlo y comparar precios: ${dashboardLink}`
                 : isPortuguese
-                    ? `Olá ${assessment.contact_name}, boas notícias! Recebeu um novo orçamento em ${websiteUrl.replace('https://', '')}. Inicie sessão para rever e comparar preços: ${websiteUrl}`
+                    ? `Olá ${assessment.contact_name}, boas notícias! Recebeu um novo orçamento em ${websiteUrl.replace('https://', '')}. Inicie sessão para rever e comparar preços: ${dashboardLink}`
                     : isFrench
-                        ? `Bonjour ${assessment.contact_name}, bonnes nouvelles ! Vous avez reçu un nouveau devis sur ${websiteUrl.replace('https://', '')}. Connectez-vous pour le consulter et comparer les prix : ${websiteUrl}`
-                        : `Hi ${assessment.contact_name}, great news! You've received a new BER quote on ${websiteUrl.replace('https://', '')}. Log in to review and compare prices: ${websiteUrl}`, config.phone_country_code, config.twilio_account_sid, config.twilio_auth_token, config.twilio_messaging_service_sid);
+                        ? `Bonjour ${assessment.contact_name}, bonnes nouvelles ! Vous avez reçu un nouveau devis sur ${websiteUrl.replace('https://', '')}. Connectez-vous pour le consulter et comparer les prix : ${dashboardLink}`
+                        : tenant === 'england'
+                            ? `Hi ${assessment.contact_name}, great news! You've received a new EPC quote on ${websiteUrl.replace('https://', '')}. Log in to review and compare prices: ${dashboardLink}`
+                            : `Hi ${assessment.contact_name}, great news! You've received a new BER quote on ${websiteUrl.replace('https://', '')}. Log in to review and compare prices: ${dashboardLink}`, config.phone_country_code, config.twilio_account_sid, config.twilio_auth_token, config.twilio_messaging_service_sid);
 
             await client.close();
 

@@ -539,7 +539,7 @@ const UserDashboard = () => {
                             </div>
                             <h2 className="text-3xl font-bold text-gray-900 mb-3">{isSpanish ? '¡Bienvenido de Nuevo!' : isPortuguese ? 'Bem-vindo de Volta!' : isFrench ? 'Bon Retour !' : 'Welcome Back!'}</h2>
                             <p className="text-gray-500 text-lg mb-10 max-w-lg mx-auto leading-relaxed">
-                                {isSpanish ? 'Este es tu panel personal. El seguimiento de tus certificaciones energéticas aparecerá aquí pronto.' : isPortuguese ? 'Este é o seu painel pessoal. O acompanhamento dos seus certificados energéticos aparecerá aqui em breve.' : isFrench ? 'Ceci est votre tableau de bord personnel. Le suivi de vos diagnostics apparaîtra ici prochainement.' : 'This is your personal dashboard. Tracking of your BER assessments will appear here soon.'}
+                                {isSpanish ? 'Este es tu panel personal. El seguimiento de tus certificaciones energéticas aparecerá aquí pronto.' : isPortuguese ? 'Este é o seu painel pessoal. O acompanhamento dos seus certificados energéticos aparecerá aqui em breve.' : isFrench ? 'Ceci est votre tableau de bord personnel. Le suivi de vos diagnostics apparaîtra ici prochainement.' : isEngland ? 'This is your personal dashboard. Tracking of your EPC assessments will appear here soon.' : 'This is your personal dashboard. Tracking of your BER assessments will appear here soon.'}
                             </p>
 
                             <div className="bg-[#F8FAFC] border border-gray-100 rounded-2xl p-8 text-left flex flex-col md:flex-row gap-6 items-center">
@@ -549,7 +549,7 @@ const UserDashboard = () => {
                                 <div className="flex-1 text-center md:text-left">
                                     <h4 className="text-xl font-bold text-gray-900 mb-2">{isSpanish ? 'No Hay Certificaciones Activas' : isPortuguese ? 'Sem Certificados Ativos' : isFrench ? 'Aucun Diagnostic Actif' : 'No Active Assessments'}</h4>
                                     <p className="text-gray-500 leading-relaxed">
-                                        {isSpanish ? 'No tienes certificaciones energéticas pendientes. Contáctanos para solicitar una y mejorar la eficiencia energética de tu hogar.' : isPortuguese ? 'Não tem certificados energéticos pendentes. Contacte-nos para solicitar um e melhorar a eficiência energética da sua casa.' : isFrench ? "Vous n'avez aucun diagnostic en attente. Contactez-nous pour en planifier un et améliorer l'efficacité énergétique de votre maison." : "You don't have any pending BER assessments. Contact us to schedule one and improve your home's energy efficiency."}
+                                        {isSpanish ? 'No tienes certificaciones energéticas pendientes. Contáctanos para solicitar una y mejorar la eficiencia energética de tu hogar.' : isPortuguese ? 'Não tem certificados energéticos pendentes. Contacte-nos para solicitar um e melhorar a eficiência energética da sua casa.' : isFrench ? "Vous n'avez aucun diagnostic en attente. Contactez-nous pour en planifier un et améliorer l'efficacité énergétique de votre maison." : isEngland ? "You don't have any pending EPC assessments. Contact us to schedule one and improve your home's energy efficiency." : "You don't have any pending BER assessments. Contact us to schedule one and improve your home's energy efficiency."}
                                     </p>
                                 </div>
                             </div>
@@ -626,7 +626,7 @@ const UserDashboard = () => {
                                 }).length > 0 && (
                                         <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
                                             <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-                                                <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">All BER Assessments</h3>
+                                                <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">{isEngland ? 'All EPC Assessments' : isSpanish ? 'Todas las Certificaciones' : isPortuguese ? 'Todos os Certificados' : isFrench ? 'Tous les Diagnostics' : 'All BER Assessments'}</h3>
                                                 <span className="ml-auto text-xs font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-full">{assessments.length}</span>
                                             </div>
                                             {/* Desktop Table View */}
@@ -878,7 +878,7 @@ const UserDashboard = () => {
                                                     <FileText size={32} />
                                                 </div>
                                                 <h3 className="text-xl font-bold text-gray-900 mb-2">{isSpanish ? 'Aún no hay presupuestos' : 'No quotes received yet'}</h3>
-                                                <p className="text-gray-500 max-w-sm mx-auto">{isSpanish ? 'Cuando los certificadores revisen tus solicitudes, sus presupuestos aparecerán aquí.' : 'Once BER Assessors review your submitted assessments, their quotes will appear here.'}</p>
+                                                <p className="text-gray-500 max-w-sm mx-auto">{isSpanish ? 'Cuando los certificadores revisen tus solicitudes, sus presupuestos aparecerán aquí.' : isEngland ? 'Once EPC Assessors review your submitted assessments, their quotes will appear here.' : 'Once BER Assessors review your submitted assessments, their quotes will appear here.'}</p>
                                             </div>
                                         );
                                     }
@@ -912,7 +912,7 @@ const UserDashboard = () => {
                                             {/* BER Cert style banner */}
                                             <div className="bg-green-50 border border-green-100 rounded-2xl p-5 text-center">
                                                 <p className="text-sm font-bold text-green-800">
-                                                    {isSpanish ? 'Todos los presupuestos incluyen tasas y IVA (si aplica)' : isPortuguese ? 'Todos os orçamentos incluem taxas e IVA (se aplicável)' : isFrench ? 'Tous les devis incluent les frais et la TVA (le cas échéant)' : 'All quotes incl. SEAI fees & VAT (if applicable)'}
+                                                    {isSpanish ? 'Todos los presupuestos incluyen tasas y IVA (si aplica)' : isPortuguese ? 'Todos os orçamentos incluem taxas e IVA (se aplicável)' : isFrench ? 'Tous les devis incluent les frais et la TVA (le cas échéant)' : isEngland ? 'All quotes incl. fees & VAT (if applicable)' : 'All quotes incl. SEAI fees & VAT (if applicable)'}
                                                 </p>
                                                 <p className="text-sm font-medium text-green-700 mt-1">
                                                     {isSpanish ? 'Confirma tu reserva al instante abajo.' : isPortuguese ? 'Confirme a sua reserva instantaneamente abaixo.' : isFrench ? 'Confirmez instantanément votre réservation ci-dessous.' : 'Instantly confirm your booking below.'}
@@ -1027,13 +1027,15 @@ const UserDashboard = () => {
                                                                                                 ? quote.contractor.full_name
                                                                                                 : `Ref-${quote.id.slice(0, 4).toUpperCase()}`}
                                                                                         </span>
-                                                                                        <Link
-                                                                                            to={`/profiles/${quote.created_by}`}
-                                                                                            className="text-[10px] text-green-600 hover:text-green-700 font-bold hover:underline flex items-center gap-1"
-                                                                                        >
-                                                                                            <User size={10} />
-                                                                                            {isSpanish ? 'Ver Perfil' : isPortuguese ? 'Ver Perfil' : isFrench ? 'Voir le Profil' : 'View Profile'}
-                                                                                        </Link>
+                                                                                        {quote.status === 'accepted' && (
+                                                                                            <Link
+                                                                                                to={`/profiles/${quote.created_by}`}
+                                                                                                className="text-[10px] text-green-600 hover:text-green-700 font-bold hover:underline flex items-center gap-1"
+                                                                                            >
+                                                                                                <User size={10} />
+                                                                                                {isSpanish ? 'Ver Perfil' : isPortuguese ? 'Ver Perfil' : isFrench ? 'Voir le Profil' : 'View Profile'}
+                                                                                            </Link>
+                                                                                        )}
                                                                                     </div>
                                                                                 ) : <span className="text-gray-400">-</span>}
                                                                             </div>
@@ -1114,13 +1116,15 @@ const UserDashboard = () => {
                                                                                                 ? quote.contractor.full_name
                                                                                                 : `Ref-${quote.id.slice(0, 4).toUpperCase()}`}
                                                                                         </p>
-                                                                                        <Link
-                                                                                            to={`/profiles/${quote.created_by}`}
-                                                                                            className="text-[9px] text-green-600 hover:text-green-700 font-bold hover:underline flex items-center gap-1"
-                                                                                        >
-                                                                                            <User size={9} />
-                                                                                            {isSpanish ? 'Ver Perfil' : isPortuguese ? 'Ver Perfil' : isFrench ? 'Voir le Profil' : 'View Profile'}
-                                                                                        </Link>
+                                                                                        {quote.status === 'accepted' && (
+                                                                                            <Link
+                                                                                                to={`/profiles/${quote.created_by}`}
+                                                                                                className="text-[9px] text-green-600 hover:text-green-700 font-bold hover:underline flex items-center gap-1"
+                                                                                            >
+                                                                                                <User size={9} />
+                                                                                                {isSpanish ? 'Ver Perfil' : isPortuguese ? 'Ver Perfil' : isFrench ? 'Voir le Profil' : 'View Profile'}
+                                                                                            </Link>
+                                                                                        )}
                                                                                     </div>
                                                                                 </div>
                                                                             )}
@@ -1249,7 +1253,7 @@ const UserDashboard = () => {
                         {/* Header */}
                         <div className="mb-8">
                             <h3 className="text-xl font-bold mb-1">
-                                {selectedDetailsQuote.contractor?.full_name || (isSpanish ? 'Certificador' : isPortuguese ? 'Perito' : isFrench ? 'Diagnostiqueur' : 'Assessor')}
+                                {`Ref-${selectedDetailsQuote.id.slice(0, 4).toUpperCase()}`}
                             </h3>
                         </div>
 

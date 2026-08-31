@@ -16,19 +16,19 @@ export const generateHomeownerQuoteEmail = (customerName: string, websiteUrl: st
     <div style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
         <div style="background-color: #007F00; color: white; padding: 40px 20px; text-align: center;">
             <img src="${logoUrl || `${websiteUrl}/logo.svg`}" alt="${brandName}" style="height: 35px; margin-bottom: 15px; filter: brightness(0) invert(1);">
-            <h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">${isSpanish ? 'Has Recibido un Nuevo Presupuesto' : isPortuguese ? 'Recebeu um Novo Orçamento' : isFrench ? 'Vous Avez Reçu un Nouveau Devis' : 'New BER Quote Received'}</h1>
+            <h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">${isSpanish ? 'Has Recibido un Nuevo Presupuesto' : isPortuguese ? 'Recebeu um Novo Orçamento' : isFrench ? 'Vous Avez Reçu un Nouveau Devis' : tenant === 'england' ? 'New EPC Quote Received' : 'New BER Quote Received'}</h1>
         </div>
 
         <div style="padding: 40px 30px;">
             <p style="font-size: 18px; font-weight: 600; margin-bottom: 20px; color: #1a1a1a;">${isSpanish ? 'Hola' : isPortuguese ? 'Olá' : isFrench ? 'Bonjour' : 'Hi'} ${customerName},</p>
 
             <p style="font-size: 16px; color: #444; margin-bottom: 25px;">
-                ${isSpanish ? '¡Buenas noticias! Un certificador energético local ha enviado un presupuesto profesional para tu propiedad.' : isPortuguese ? 'Boas notícias! Um perito certificador local enviou um orçamento profissional para o seu imóvel.' : isFrench ? 'Excellentes nouvelles ! Un diagnostiqueur local a soumis un devis professionnel pour votre propriété.' : 'Great news! A local BER Assessor has submitted a professional quote for your property assessment.'}
+                ${isSpanish ? '¡Buenas noticias! Un certificador energético local ha enviado un presupuesto profesional para tu propiedad.' : isPortuguese ? 'Boas notícias! Um perito certificador local enviou um orçamento profissional para o seu imóvel.' : isFrench ? 'Excellentes nouvelles ! Un diagnostiqueur local a soumis un devis professionnel pour votre propriété.' : tenant === 'england' ? 'Great news! An accredited EPC Assessor has submitted a professional quote for your property assessment.' : 'Great news! A local BER Assessor has submitted a professional quote for your property assessment.'}
             </p>
 
             <div style="background-color: #f9fff9; border: 1px solid #d4edda; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
                 <p style="margin: 0; font-size: 15px; color: #155724; line-height: 1.5;">
-                    <strong>${isSpanish ? 'Precio Transparente:' : isPortuguese ? 'Preço Transparente:' : isFrench ? 'Prix Transparent :' : 'Transparent Pricing:'}</strong> ${isSpanish ? 'Este presupuesto incluye todos los honorarios aplicables. El precio que ves es el precio final, sin extras ocultos.' : isPortuguese ? 'Este orçamento inclui todas as taxas aplicáveis. O preço que vê é o preço final — sem extras ocultos.' : isFrench ? 'Ce devis inclut tous les frais applicables. Le prix que vous voyez est le prix final — sans frais cachés.' : 'This quote includes all applicable SEAI fees. The price you see is the final price you pay—no hidden extras.'}
+                    <strong>${isSpanish ? 'Precio Transparente:' : isPortuguese ? 'Preço Transparente:' : isFrench ? 'Prix Transparent :' : 'Transparent Pricing:'}</strong> ${isSpanish ? 'Este presupuesto incluye todos los honorarios aplicables. El precio que ves es el precio final, sin extras ocultos.' : isPortuguese ? 'Este orçamento inclui todas as taxas aplicáveis. O preço que vê é o preço final — sem extras ocultos.' : isFrench ? 'Ce devis inclut tous les frais applicables. Le prix que vous voyez est le prix final — sans frais cachés.' : tenant === 'england' ? 'This quote includes all applicable fees and VAT. The price you see is the final price you pay—no hidden extras.' : 'This quote includes all applicable SEAI fees. The price you see is the final price you pay—no hidden extras.'}
                 </p>
             </div>
 
@@ -51,7 +51,7 @@ export const generateHomeownerQuoteEmail = (customerName: string, websiteUrl: st
             ${promoHtml}
             <div style="margin-top: 25px; text-align: center; font-size: 12px; color: #999;">
                 &copy; ${new Date().getFullYear()} ${brandName}. ${isSpanish ? 'Todos los derechos reservados.' : isPortuguese ? 'Todos os direitos reservados.' : isFrench ? 'Tous droits réservés.' : 'All rights reserved.'}<br>
-                ${isSpanish ? 'Conectando propietarios con certificadores energéticos certificados en España.' : isPortuguese ? 'A ligar proprietários a peritos certificadores de energia em Portugal.' : isFrench ? 'Connectant les propriétaires à des diagnostiqueurs certifiés en France.' : 'Connecting homeowners with certified energy assessors across Ireland.'}
+                ${isSpanish ? 'Conectando propietarios con certificadores energéticos certificados en España.' : isPortuguese ? 'A ligar proprietários a peritos certificadores de energia em Portugal.' : isFrench ? 'Connectant les propriétaires à des diagnostiqueurs certifiés en France.' : tenant === 'england' ? 'Connecting property owners with accredited EPC assessors across England.' : 'Connecting homeowners with certified energy assessors across Ireland.'}
             </div>
         </div>
     </div>

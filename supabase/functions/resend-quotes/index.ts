@@ -28,18 +28,17 @@ function generateQuotesSummaryEmail(
     const currency = tenant === 'england' ? '£' : '€';
 
     const quotesHtml = quotes.map((q, i) => {
-        const contractorName = q.contractor?.full_name || 'Assessor';
-        const companyName = q.contractor?.company_name || '';
-        const seaiNumber = q.contractor?.seai_number || '';
+        // Only show anonymous ref — assessor identity is revealed after acceptance
+        const refLabel = `Ref-${q.id.slice(0, 4).toUpperCase()}`;
         const dateLocale = isSpanish ? 'es-ES' : isPortuguese ? 'pt-PT' : isFrench ? 'fr-FR' : 'en-GB';
         const date = new Date(q.created_at).toLocaleDateString(dateLocale);
+        const seaiRegistered = isSpanish ? 'Todos los certificadores están registrados' : isPortuguese ? 'Todos os peritos estão registados' : isFrench ? 'Tous les diagnostiqueurs sont certifiés' : tenant === 'england' ? 'Accredited EPC Assessor' : 'SEAI Registered Assessor';
         return `
         <div style="background-color: #f9fff9; border: 1px solid #d4edda; border-radius: 8px; padding: 20px; margin-bottom: 15px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <div>
-                    <strong style="font-size: 16px; color: #1a1a1a;">${contractorName}</strong>
-                    ${companyName ? `<br><span style="font-size: 13px; color: #666;">${companyName}</span>` : ''}
-                    ${seaiNumber ? `<br><span style="font-size: 12px; color: #999;">${isSpanish ? 'Registro' : isPortuguese ? 'Reg' : isFrench ? 'N°' : 'Reg'}: ${seaiNumber}</span>` : ''}
+                    <strong style="font-size: 16px; color: #1a1a1a;">${refLabel}</strong>
+                    <br><span style="font-size: 12px; color: #999;">✅ ${seaiRegistered}</span>
                 </div>
                 <div style="text-align: right;">
                     <span style="font-size: 24px; font-weight: 800; color: #007F00;">${currency}${q.price}</span>
@@ -61,7 +60,7 @@ function generateQuotesSummaryEmail(
         <div style="background-color: #007F00; color: white; padding: 40px 20px; text-align: center;">
             <img src="${logoUrl}" alt="${brandName}" style="height: 35px; margin-bottom: 15px; filter: brightness(0) invert(1);">
             <h1 style="margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">
-                ${isSpanish ? 'Tus Presupuestos' : isPortuguese ? 'Os Seus Orçamentos' : isFrench ? 'Vos Devis DPE' : 'Your BER Quotes'}
+                ${isSpanish ? 'Tus Presupuestos' : isPortuguese ? 'Os Seus Orçamentos' : isFrench ? 'Vos Devis DPE' : tenant === 'england' ? 'Your EPC Quotes' : 'Your BER Quotes'}
             </h1>
             <p style="margin: 10px 0 0 0; font-size: 14px; opacity: 0.9;">${propertyAddress}</p>
         </div>
@@ -195,7 +194,7 @@ Deno.serve(async (req: Request) => {
                     ? `Os seus ${quotes.length} orçamentos para ${propertyAddress}`
                     : isFrench
                         ? `Vos ${quotes.length} devis pour ${propertyAddress}`
-                        : `Your ${quotes.length} BER quotes for ${propertyAddress}`;
+                        : tenant === 'england' ? `Your ${quotes.length} EPC quotes for ${propertyAddress}` : `Your ${quotes.length} BER quotes for ${propertyAddress}`;
 
             await client.send(smtpFrom, assessment.contact_email, subject, emailHtml);
             await client.close();
