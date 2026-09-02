@@ -33,7 +33,7 @@ const Login = () => {
     const { signIn, user, role, profile, loading } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
-    const [activeTab, setActiveTab] = useState<'homeowner' | 'assessor' | 'business'>('homeowner');
+    const [activeTab, setActiveTab] = useState<'homeowner' | 'assessor' | 'business'>(isSpanish ? 'assessor' : 'homeowner');
     const [showPassword, setShowPassword] = useState(false);
     const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null);
     const [resending, setResending] = useState(false);
@@ -215,16 +215,6 @@ const Login = () => {
                 <div className="flex border-b border-gray-200 mb-8">
                     <button
                         type="button"
-                        onClick={() => setActiveTab('homeowner')}
-                        className={`py-3 px-6 text-sm font-medium transition-all border-b-2 -mb-px ${activeTab === 'homeowner'
-                            ? 'border-gray-400 text-gray-700'
-                            : 'border-transparent text-gray-400 hover:text-gray-600'
-                            }`}
-                    >
-                        {isSpanish ? 'Zona Cliente' : isPortuguese ? 'Área Cliente' : isFrench ? 'Propriétaire' : 'Homeowner'}
-                    </button>
-                    <button
-                        type="button"
                         onClick={() => setActiveTab('assessor')}
                         className={`py-3 px-4 text-sm font-medium transition-all border-b-2 -mb-px ${activeTab === 'assessor'
                             ? 'border-gray-400 text-gray-700'
@@ -232,6 +222,16 @@ const Login = () => {
                             }`}
                     >
                         {assessorLabel}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab('homeowner')}
+                        className={`py-3 px-6 text-sm font-medium transition-all border-b-2 -mb-px ${activeTab === 'homeowner'
+                            ? 'border-gray-400 text-gray-700'
+                            : 'border-transparent text-gray-400 hover:text-gray-600'
+                            }`}
+                    >
+                        {isSpanish ? 'Zona Cliente' : isPortuguese ? 'Área Cliente' : isFrench ? 'Propriétaire' : 'Homeowner'}
                     </button>
                     <button
                         type="button"

@@ -18,10 +18,10 @@ const REGISTRATION_NUMBER_LABELS: Record<string, { label: string; placeholder: s
         validationError: 'SEAI registration number is required'
     },
     spain: {
-        label: 'CEE CAT Registration #',
-        placeholder: 'e.g. 123456',
+        label: 'Número de Colegiado/a',
+        placeholder: 'ej. 123456',
         sinceLabel: 'Certificado desde',
-        validationError: 'Número de registro CEE CAT es obligatorio'
+        validationError: 'El número de colegiado/a es obligatorio'
     },
     england: {
         label: 'Assessor ID',
