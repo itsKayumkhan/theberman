@@ -22,10 +22,10 @@ const TermsOfService = () => {
         lastUpdatedLabel: 'Última actualización',
         hero: 'Por favor, lee estos términos detenidamente antes de utilizar nuestra plataforma o reservar una certificación energética.',
         agreementH: '1. TITULAR DEL SITIO WEB',
-        agreementP: `El presente sitio web, ${tenantDomain}, es operado por: [NOMBRE DE TU EMPRESA] Domicilio social: [Dirección] Correo electrónico: [Email] En adelante, "la Plataforma".`,
+        agreementP: `El presente sitio web, certificadosenergeticos.eu, es operado por SM Facilities Management LTD, cuyo nombre comercial es certificadosenergeticos. Domicilio social: [Dirección del domicilio social en España] Correo electrónico: [Email de contacto] En adelante, "la Plataforma".`,
         servicesH: '2. OBJETO DEL SITIO WEB',
-        servicesP1: 'La Plataforma tiene como finalidad: Poner en contacto a usuarios que necesitan un certificado energético u otros servicios relacionados Con profesionales cualificados que ofrecen dichos servicios La Plataforma actúa exclusivamente como intermediario digital.',
-        servicesP2: '3. NATURALEZA DEL SERVICIO certificadoenergético.eu: No presta servicios técnicos ni realiza certificados energéticos No interviene en acuerdos entre usuarios y profesionales No es parte contractual en ningún caso 👉 Cualquier acuerdo se realiza directamente entre: Usuario (cliente) Profesional',
+        servicesP1: 'La Plataforma tiene como finalidad poner en contacto a usuarios que necesitan un certificado de eficiencia energética (CEE) u otros servicios relacionados con profesionales cualificados que ofrecen dichos servicios. La Plataforma actúa exclusivamente como intermediario digital y no es parte contractual en ningún caso.',
+        servicesP2: '3. NATURALEZA DEL SERVICIO certificadosenergeticos: No presta servicios técnicos ni realiza certificados energéticos. No interviene en acuerdos entre usuarios y profesionales. Cualquier acuerdo se realiza directamente entre el Usuario (cliente) y el Profesional. La Plataforma tampoco cobra honorarios al usuario por el servicio de intermediación básico.'
         bookingH: '4. EXCLUSIÓN DE RESPONSABILIDAD',
         bookingItems: [
             'La Plataforma: No garantiza la calidad, legalidad o resultado de los servicios',
