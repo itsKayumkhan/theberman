@@ -52,13 +52,20 @@ export const generateCredentialsHtml = (fullName: string, email: string, passwor
         <div class="container">
             <div class="header">
                 <h1>Bienvenido a ${brandName}</h1>
-                <p>Registro de ${roleName}</p>
             </div>
             <div class="content">
                 <p class="greeting">Hola ${fullName},</p>
 
                 <p class="body-text">
-                    Muchas gracias por atendernos al teléfono recientemente, si deseas recibir solicitudes de presupuestos para realizar Certificados en Eficiencia Energética a través de nuestra plataforma por favor sigue los pasos indicados abajo para tu registro.
+                    Debido a unos problemas técnicos no pudimos registrar tus datos correctamente.
+                </p>
+
+                <p class="body-text">
+                    Reenvíanos este link para que por favor te registres e incluyas las zonas donde prefieres que te solicitemos presupuestos para realizar los CEE.
+                </p>
+
+                <p class="body-text">
+                    Ante cualquier duda poneros en contacto con nosotros por favor, muchas gracias.
                 </p>
 
                 <div class="credentials-box">
@@ -75,27 +82,12 @@ export const generateCredentialsHtml = (fullName: string, email: string, passwor
                     </table>
                 </div>
 
-                <div class="steps-box">
-                    <h3>📋 Próximos Pasos</h3>
-                    <ol>
-                        <li><strong>Inicia sesión</strong> usando las credenciales de arriba</li>
-                        <li><strong>Completa tu registro</strong> llenando tus detalles de certificador</li>
-                        <li>¡Comienza a recibir trabajos de certificación energética!</li>
-                    </ol>
-                </div>
-
                 <div class="button-container">
-                    <a href="${loginUrl}" class="button">Iniciar Sesión Ahora</a>
+                    <a href="${loginUrl}" class="button">Registrarse Ahora</a>
                 </div>
-
-                <p class="warning">
-                    Por favor cambia tu contraseña después de tu primer inicio de sesión por seguridad.
-                </p>
 
                 <p class="body-text">
-                    Muchas gracias,<br>
-                    <strong>el equipo de certificados energéticos.eu</strong><br>
-                    <span style="font-size:13px; color:#888;">Powered by the BERman.</span>
+                    El equipo de certificadosenergeticos.eu
                 </p>
             </div>
             <div class="footer">
