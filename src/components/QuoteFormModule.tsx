@@ -8,7 +8,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import EmailVerification from './EmailVerification';
 import IdentityAuth from './IdentityAuth';
 import JobConfirmation from './JobConfirmation';
-import { getTownsForTenant, getCountiesForTenant } from '../lib/tenantData';
+import { getTownsForTenant, getCountiesForTenant, getNestedTownsForTenant } from '../lib/tenantData';
 
 const ROUTING_KEYS: Record<string, string> = {
     'Carlow': 'R93', 'Cavan': 'H12', 'Clare': 'V95', 'Cork': 'T12', 'Donegal': 'F92',
@@ -734,20 +734,38 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
 
     const postcodeLabel = isSpanish ? 'Código Postal' : (tenant === 'england' ? 'Postcode' : tenant === 'portugal' ? 'Código Postal' : tenant === 'france' ? 'Code Postal' : 'Eircode');
 
+    const renderTownButton = (town: string) => (
+        <button
+            key={town}
+            onClick={() => updateFieldAndAdvance('town', town)}
+            className={`p-4 rounded-xl border-2 transition-all font-bold text-lg ${formData.town === town ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 hover:border-green-300 bg-white text-gray-600'}`}
+        >
+            {town}
+        </button>
+    );
+
+    const nestedTowns = getNestedTownsForTenant(tenant);
+    const provincesForCounty = nestedTowns ? nestedTowns[formData.county] : null;
+
     const renderTownStep = () => (
         <div className="space-y-6">
             <h2 className="text-3xl md:text-4xl font-light text-gray-800 text-center">{isSpanish ? 'Municipio' : (tenant === 'england' ? 'Area / Town' : tenant === 'portugal' ? 'Concelho' : tenant === 'france' ? 'Ville' : 'Town')} / {postcodeLabel}?</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-w-4xl mx-auto max-h-[60vh] overflow-y-auto p-2 custom-scrollbar">
-                {(getTownsForTenant(tenant)[formData.county] || []).map((town) => (
-                    <button
-                        key={town}
-                        onClick={() => updateFieldAndAdvance('town', town)}
-                        className={`p-4 rounded-xl border-2 transition-all font-bold text-lg ${formData.town === town ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 hover:border-green-300 bg-white text-gray-600'}`}
-                    >
-                        {town}
-                    </button>
-                ))}
-            </div>
+            {provincesForCounty ? (
+                <div className="max-w-4xl mx-auto max-h-[60vh] overflow-y-auto p-2 custom-scrollbar space-y-6">
+                    {Object.entries(provincesForCounty).map(([province, towns]) => (
+                        <div key={province}>
+                            <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-2 px-1">{province}</p>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                {towns.map(renderTownButton)}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-w-4xl mx-auto max-h-[60vh] overflow-y-auto p-2 custom-scrollbar">
+                    {(getTownsForTenant(tenant)[formData.county] || []).map(renderTownButton)}
+                </div>
+            )}
             <p className="text-center text-gray-400 text-sm mt-4">{t('scroll_towns', isSpanish ? 'Desplaza para ver más municipios' : tenant === 'portugal' ? 'Deslize para ver mais concelhos' : tenant === 'france' ? 'Faites défiler pour voir plus de villes' : 'Scroll to see more towns')}</p>
         </div>
     );
