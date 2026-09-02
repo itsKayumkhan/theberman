@@ -25,7 +25,7 @@ const TermsOfService = () => {
         agreementP: `El presente sitio web, certificadosenergeticos.eu, es operado por SM Facilities Management LTD, cuyo nombre comercial es certificadosenergeticos. Domicilio social: [Dirección del domicilio social en España] Correo electrónico: [Email de contacto] En adelante, "la Plataforma".`,
         servicesH: '2. OBJETO DEL SITIO WEB',
         servicesP1: 'La Plataforma tiene como finalidad poner en contacto a usuarios que necesitan un certificado de eficiencia energética (CEE) u otros servicios relacionados con profesionales cualificados que ofrecen dichos servicios. La Plataforma actúa exclusivamente como intermediario digital y no es parte contractual en ningún caso.',
-        servicesP2: '3. NATURALEZA DEL SERVICIO certificadosenergeticos: No presta servicios técnicos ni realiza certificados energéticos. No interviene en acuerdos entre usuarios y profesionales. Cualquier acuerdo se realiza directamente entre el Usuario (cliente) y el Profesional. La Plataforma tampoco cobra honorarios al usuario por el servicio de intermediación básico.'
+        servicesP2: '3. NATURALEZA DEL SERVICIO certificadosenergeticos: No presta servicios técnicos ni realiza certificados energéticos. No interviene en acuerdos entre usuarios y profesionales. Cualquier acuerdo se realiza directamente entre el Usuario (cliente) y el Profesional. La Plataforma tampoco cobra honorarios al usuario por el servicio de intermediación básico.',
         bookingH: '4. EXCLUSIÓN DE RESPONSABILIDAD',
         bookingItems: [
             'La Plataforma: No garantiza la calidad, legalidad o resultado de los servicios',
