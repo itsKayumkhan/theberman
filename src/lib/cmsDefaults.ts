@@ -995,6 +995,33 @@ export const CMS_PAGES: PageDefinition[] = [
             },
         ],
     },
+    {
+        id: 'site',
+        label: 'Site',
+        labels: { spain: 'Sitio', france: 'Site', portugal: 'Site' },
+        path: '/',
+        sections: [
+            {
+                id: 'brand',
+                label: 'Brand',
+                labels: { spain: 'Marca', france: 'Marque', portugal: 'Marca' },
+                description: 'Site-wide brand assets including the logo',
+                descriptions: { spain: 'Activos de marca para todo el sitio, incluido el logo', france: 'Éléments de marque du site, y compris le logo', portugal: 'Recursos de marca para todo o site, incluindo o logótipo' },
+                icon: '🎨',
+                fields: [
+                    { key: 'logo_url', label: 'Logo', type: 'image', group: 'Assets', placeholder: 'Please remove the image background and upload a PNG file. The logo will be displayed at the same height as the original.' },
+                    { key: 'logo_alt', label: 'Logo Alt Text', type: 'text', group: 'Assets' },
+                ],
+                defaults: {
+                    ireland: { logo_url: '/logo.svg', logo_alt: 'The BER Man - BER Cert Ireland Specialists' },
+                    spain: { logo_url: '/certificado-logo-trimmed.png', logo_alt: 'Certificado Energético Logo' },
+                    england: { logo_url: '/epc-logo-trimmed.png', logo_alt: 'EPC Certificate England which provides a rating from A to G' },
+                    france: { logo_url: '/dpecert-logo.png', logo_alt: 'DPE Cert France Logo' },
+                    portugal: { logo_url: '/certificado-energia-logo.png', logo_alt: 'Certificado Energia Logo' },
+                },
+            },
+        ],
+    },
 ];
 
 export function getDefaultsForTenant(pageId: string, sectionId: string, tenant: string): Record<string, any> {

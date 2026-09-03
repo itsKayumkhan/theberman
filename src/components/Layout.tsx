@@ -3,6 +3,7 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X, Mail, Facebook, Instagram, Linkedin, ChevronRight, Globe, MapPin, Phone, MessageCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useTranslation } from '../hooks/useTranslation';
+import { usePageContent, cmsValue } from '../hooks/usePageContent';
 import { getTenantDisplayName, getTenantWebsiteUrl, getTenantEmail, getTenantDomain } from '../lib/tenant';
 import { supabase } from '../lib/supabase';
 import QuoteModal from './QuoteModal';
@@ -192,6 +193,10 @@ const Layout = () => {
     const [isLocationsHover, setIsLocationsHover] = useState(false);
     const [hoveredProvince, setHoveredProvince] = useState<string | null>(null);
     const locationsHoverRef = useRef<HTMLDivElement>(null);
+
+    const { content: siteCms } = usePageContent('site');
+    const logoUrl = cmsValue(siteCms, 'brand', 'logo_url', isSpanish ? '/certificado-logo-trimmed.png' : tenant === 'england' ? '/epc-logo-trimmed.png' : tenant === 'portugal' ? '/certificado-energia-logo.png' : tenant === 'france' ? '/dpecert-logo.png' : '/logo.svg');
+    const logoAlt = cmsValue(siteCms, 'brand', 'logo_alt', isSpanish ? 'Certificado Energético Logo' : tenant === 'england' ? 'EPC Certificate England which provides a rating from A to G' : tenant === 'portugal' ? 'Certificado Energia Logo' : tenant === 'france' ? 'DPE Cert France Logo' : tenant === 'ireland' ? 'The BER Man - BER Cert Ireland Specialists' : `${tenantDisplayName} Logo`);
     const locationsRef = useRef<HTMLButtonElement>(null);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -270,15 +275,15 @@ const Layout = () => {
                     {/* Logo */}
                     <Link to="/" onClick={() => { closeMenu(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
                         {isSpanish ? (
-                            <img src="/certificado-logo-trimmed.png" alt="Certificado Energético Logo" style={{ height: '4rem', width: 'auto' }} className="relative z-10" />
+                            <img src={logoUrl} alt={logoAlt} style={{ height: '4rem', width: 'auto' }} className="relative z-10" />
                         ) : tenant === 'england' ? (
-                            <img src="/epc-logo-trimmed.png" alt="EPC Certificate England which provides a rating from A to G" style={{ height: '4rem', width: 'auto' }} className="relative z-10" />
+                            <img src={logoUrl} alt={logoAlt} style={{ height: '4rem', width: 'auto' }} className="relative z-10" />
                         ) : tenant === 'portugal' ? (
-                            <img src="/certificado-energia-logo.png" alt="Certificado Energia Logo" style={{ height: '7.5rem', width: 'auto', marginTop: '-1.5rem' }} className="relative z-10" />
+                            <img src={logoUrl} alt={logoAlt} style={{ height: '7.5rem', width: 'auto', marginTop: '-1.5rem' }} className="relative z-10" />
                         ) : tenant === 'france' ? (
-                            <img src="/dpecert-logo.png" alt="DPE Cert France Logo" style={{ height: '8rem', width: 'auto', marginTop: '1.5rem' }} className="relative z-10" />
+                            <img src={logoUrl} alt={logoAlt} style={{ height: '8rem', width: 'auto', marginTop: '1.5rem' }} className="relative z-10" />
                         ) : (
-                            <img src="/logo.svg" alt={tenant === 'ireland' ? 'The BER Man - BER Cert Ireland Specialists' : `${tenantDisplayName} Logo`} style={{ height: '4.5rem', width: 'auto' }} className="relative z-10" />
+                            <img src={logoUrl} alt={logoAlt} style={{ height: '4.5rem', width: 'auto' }} className="relative z-10" />
                         )}
                     </Link>
 
@@ -569,12 +574,12 @@ const Layout = () => {
                                         EPC Cert
                                     </span>
                                 ) : tenant === 'portugal' ? (
-                                    <img src="/certificado-energia-logo.png" alt={tenantDisplayName} className="h-28 -mt-4" />
+                                    <img src={logoUrl} alt={logoAlt} className="h-28 -mt-4" />
                                 ) : tenant === 'france' ? (
-                                    <img src="/dpecert-logo.png" alt={tenantDisplayName} className="h-16" />
+                                    <img src={logoUrl} alt={logoAlt} className="h-16" />
                                 ) : (
                                     <>
-                                        <img src="/logo.svg" alt={tenantDisplayName} className="h-16" />
+                                        <img src={logoUrl} alt={logoAlt} className="h-16" />
                                         <span className="text-xl font-serif font-bold">{tenantDisplayName}</span>
                                     </>
                                 )}

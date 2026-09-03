@@ -646,10 +646,13 @@ const FieldEditor = ({ field, value, onChange, onImageUpload, isUploading }: Fie
             return (
                 <div>
                     {labelEl}
+                    {field.placeholder && (
+                        <p className="text-[10px] text-amber-600 font-medium mb-1.5 leading-relaxed">{field.placeholder}</p>
+                    )}
                     <input
                         ref={fileInputRef}
                         type="file"
-                        accept="image/*"
+                        accept={field.key === 'logo_url' ? 'image/png' : 'image/*'}
                         className="hidden"
                         onChange={(e) => {
                             const file = e.target.files?.[0];
@@ -662,7 +665,7 @@ const FieldEditor = ({ field, value, onChange, onImageUpload, isUploading }: Fie
                             <img
                                 src={value}
                                 alt={field.label}
-                                className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                                className="w-full h-24 object-contain rounded-lg border border-gray-200 bg-white"
                             />
                             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
                                 <button
