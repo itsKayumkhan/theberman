@@ -3,6 +3,7 @@ import { ArrowRight, X, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import SEOHead from '../components/SEOHead';
 import InternalLinks from '../components/InternalLinks';
+import { usePageContent, cmsValue } from '../hooks/usePageContent';
 
 import { useAuth } from '../hooks/useAuth';
 import { getTenantFromDomain } from '../lib/tenant';
@@ -15,7 +16,6 @@ const Pricing = () => {
     const isSpanish = tenant === 'spain';
     const isFrance = tenant === 'france';
     const isPortugal = tenant === 'portugal';
-    const currencySymbol = isEngland ? '£' : '€';
     const baseUrl = tenant === 'england' ? 'https://www.epccert.com' : isSpanish ? 'https://www.xn--certificadoenergtico-q2b.eu' : tenant === 'france' ? 'https://www.dpecert.fr' : tenant === 'portugal' ? 'https://www.certificadoenergia.com' : 'https://www.theberman.eu';
     const brand = isSpanish ? 'Certificado Energético' : isEngland ? 'EPC Cert' : isFrance ? 'DPE Cert France' : isPortugal ? 'Certificado Energético' : 'The Berman';
 
@@ -96,6 +96,11 @@ const Pricing = () => {
         ctaTitle: 'Need a custom quote?', ctaDesc: 'For large portfolios or specialized industrial units, our team can provide a tailored proposal.', ctaButton: 'Contact Sales'
     };
 
+    const { content: cms } = usePageContent('pricing');
+    const c = (section: string, key: string, fallback: string = '') => cmsValue(cms, section, key, fallback);
+
+    const splitFeatures = (val: string) => val.split('\n').map(s => s.trim()).filter(Boolean);
+
     return (
         <div className="font-sans text-gray-900 bg-white min-h-screen">
             <SEOHead
@@ -148,30 +153,30 @@ const Pricing = () => {
                 <div className="container mx-auto px-6 max-w-7xl">
                     <div className="grid md:grid-cols-3 gap-8">
                         <PricingCard
-                            title={tr.apartmentTitle}
-                            price={`${currencySymbol}150-${currencySymbol}250`}
-                            description={tr.apartmentDesc}
-                            features={tr.apartmentFeatures}
-                            ctaText={tr.bookNow}
-                            ctaLink={isSpanish || isEngland || tenant === 'ireland' || isPortugal ? '/get-quote' : '/contact-us'}
+                            title={c('pricing_cards', 'apartment_title', tr.apartmentTitle)}
+                            price={c('pricing_cards', 'apartment_price', isEngland ? '£150-£250' : '€150-€250')}
+                            description={c('pricing_cards', 'apartment_description', tr.apartmentDesc)}
+                            features={splitFeatures(c('pricing_cards', 'apartment_features', tr.apartmentFeatures.join('\n')))}
+                            ctaText={c('pricing_cards', 'apartment_cta', tr.bookNow)}
+                            ctaLink={c('pricing_cards', 'apartment_cta_link', isSpanish || isEngland || tenant === 'ireland' || isPortugal ? '/get-quote' : '/contact-us')}
                         />
                         <PricingCard
-                            title={tr.houseTitle}
-                            price={`${currencySymbol}200-${currencySymbol}400`}
-                            isPopular={true}
-                            description={tr.houseDesc}
-                            features={tr.houseFeatures}
-                            popularLabel={tr.mostPopular}
-                            ctaText={tr.bookNow}
-                            ctaLink={isSpanish || isEngland || tenant === 'ireland' || isPortugal ? '/get-quote' : '/contact-us'}
+                            title={c('pricing_cards', 'house_title', tr.houseTitle)}
+                            price={c('pricing_cards', 'house_price', isEngland ? '£200-£400' : '€200-€400')}
+                            isPopular={c('pricing_cards', 'house_is_popular', 'true') === 'true'}
+                            description={c('pricing_cards', 'house_description', tr.houseDesc)}
+                            features={splitFeatures(c('pricing_cards', 'house_features', tr.houseFeatures.join('\n')))}
+                            popularLabel={c('pricing_cards', 'most_popular_label', tr.mostPopular)}
+                            ctaText={c('pricing_cards', 'house_cta', tr.bookNow)}
+                            ctaLink={c('pricing_cards', 'house_cta_link', isSpanish || isEngland || tenant === 'ireland' || isPortugal ? '/get-quote' : '/contact-us')}
                         />
                         <PricingCard
-                            title={tr.commercialTitle}
-                            price={tr.custom}
-                            description={tr.commercialDesc}
-                            features={tr.commercialFeatures}
-                            ctaText={tr.requestQuote}
-                            ctaLink={isSpanish ? '/contact-us' : (isEngland || tenant === 'ireland' || isPortugal ? '/get-quote' : '/contact-us')}
+                            title={c('pricing_cards', 'commercial_title', tr.commercialTitle)}
+                            price={c('pricing_cards', 'commercial_price', tr.custom)}
+                            description={c('pricing_cards', 'commercial_description', tr.commercialDesc)}
+                            features={splitFeatures(c('pricing_cards', 'commercial_features', tr.commercialFeatures.join('\n')))}
+                            ctaText={c('pricing_cards', 'commercial_cta', tr.requestQuote)}
+                            ctaLink={c('pricing_cards', 'commercial_cta_link', isSpanish ? '/contact-us' : (isEngland || tenant === 'ireland' || isPortugal ? '/get-quote' : '/contact-us'))}
                         />
                     </div>
                 </div>
