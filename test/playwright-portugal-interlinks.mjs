@@ -65,7 +65,6 @@ try {
 
     // Services
     await checkLink(page, '/services', 'legislação', '/catalogue');
-    await checkLink(page, '/services', 'perito certificador', '/contact-us');
     await checkLink(page, '/services', 'Certificado Residencial', '/get-quote');
 
     // Pricing
@@ -79,6 +78,8 @@ try {
 
     // Energy Advisor
     await checkLink(page, '/energy-advisor', 'Consultor Energético Grátis', '/contact-us');
+    await checkLink(page, '/energy-advisor', 'perito certificador', '/contact-us');
+    await checkLink(page, '/energy-advisor', 'certificado energético', '/services');
 } catch (err) {
     failures.push(`Unexpected error: ${err.message}`);
 } finally {

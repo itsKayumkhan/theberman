@@ -24,7 +24,7 @@ const INTERNAL_LINKS: Record<string, { label: string; to: string }[]> = {
     ],
     default: [
         { label: 'About Us', to: '/about-us' },
-        { label: 'Energy FAQ', to: '/ber-faqs/' },
+        { label: 'Energy FAQ', to: '/faq/' },
         { label: 'Get a Quote', to: '/get-quote' },
         { label: 'Energy Blog', to: '/blog' },
         { label: 'Assessor Locations', to: '/locations' },

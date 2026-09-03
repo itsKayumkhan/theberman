@@ -791,7 +791,7 @@ export const CMS_PAGES: PageDefinition[] = [
         id: 'faq',
         label: 'FAQ',
         labels: { spain: 'FAQ', france: 'FAQ', portugal: 'FAQ' },
-        path: '/ber-faqs',
+        path: '/faq',
         sections: [
             {
                 id: 'hero',

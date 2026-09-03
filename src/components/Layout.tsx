@@ -18,7 +18,7 @@ const NAV_LINKS = [
     { label: 'Book Ber Assessors', path: '/contact-us', hideForEngland: true },
     { label: 'Our News', path: '/news' },
     { label: 'Blog', path: '/blog' },
-    { label: 'FAQ', path: '/ber-faqs/', englandPath: '/epc-faq' },
+    { label: 'FAQ', path: '/faq/', englandPath: '/epc-faq' },
     { label: 'Location', path: '/locations' },
     { label: 'Contact', path: '/contact-us' },
 ];
@@ -646,7 +646,7 @@ const Layout = () => {
                                         ? [{ label: 'Business Registration', path: '/signup?role=business' }]
                                         : []
                                     ),
-                                    { label: 'FAQ', path: tenant === 'portugal' ? '/faq' : '/ber-faqs/' }
+                                    { label: 'FAQ', path: tenant === 'portugal' ? '/faq' : '/faq/' }
                                 ].map(link => (
                                     <li key={link.path}>
                                         <Link to={link.path} className="text-gray-400 hover:text-white transition text-sm flex items-center gap-2">{link.label}</Link>

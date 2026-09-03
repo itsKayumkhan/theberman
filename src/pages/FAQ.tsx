@@ -190,7 +190,7 @@ const FAQ = () => {
                 <SEOHead
                     title={tr.seoTitle}
                     description={tr.seoDesc}
-                    canonical={isEngland ? '/epc-faq' : isSpanish ? '/preguntas-frecuentes' : isPortugal ? '/faq' : '/ber-faqs/'}
+                    canonical={isEngland ? '/epc-faq' : isSpanish ? '/preguntas-frecuentes' : '/faq'}
                     skipSiteNameSuffix={isEngland || (!isSpanish && !isFrance && !isPortugal)}
                     ogTitle={tr.ogTitle}
                     ogDescription={tr.ogDescription}
@@ -211,7 +211,7 @@ const FAQ = () => {
             <SEOHead
                 title={tr.seoTitle}
                 description={tr.seoDesc}
-                canonical={isEngland ? '/epc-faq' : isSpanish ? '/preguntas-frecuentes' : isPortugal ? '/faq' : '/ber-faqs/'}
+                canonical={isEngland ? '/epc-faq' : isSpanish ? '/preguntas-frecuentes' : '/faq'}
                 skipSiteNameSuffix={isEngland || (!isSpanish && !isFrance && !isPortugal)}
             />
                 <h1 className="text-4xl font-black text-gray-900 mb-4 uppercase tracking-tight">{tr.comingSoonH}</h1>
@@ -229,7 +229,7 @@ const FAQ = () => {
             <SEOHead
                 title={tr.seoTitle}
                 description={tr.seoDesc}
-                canonical={isEngland ? '/epc-faq' : isSpanish ? '/preguntas-frecuentes' : isPortugal ? '/faq' : '/ber-faqs/'}
+                canonical={isEngland ? '/epc-faq' : isSpanish ? '/preguntas-frecuentes' : '/faq'}
                 skipSiteNameSuffix={isEngland || (!isSpanish && !isFrance && !isPortugal)}
                 ogTitle={tr.ogTitle}
                 ogDescription={tr.ogDescription}
@@ -241,7 +241,7 @@ const FAQ = () => {
                         '@type': 'BreadcrumbList',
                         itemListElement: [
                             { '@type': 'ListItem', position: 1, name: 'Home', item: `${baseUrl}/` },
-                            { '@type': 'ListItem', position: 2, name: isEngland ? 'EPC Certificate FAQs' : isSpanish ? 'Preguntas Frecuentes' : isPortugal ? 'Perguntas Frequentes' : 'BER Certificate FAQs', item: `${baseUrl}${isEngland ? '/epc-faq' : isSpanish || isPortugal ? '/faq' : '/ber-faqs/'}` },
+                            { '@type': 'ListItem', position: 2, name: isEngland ? 'EPC Certificate FAQs' : isSpanish ? 'Preguntas Frecuentes' : isPortugal ? 'Perguntas Frequentes' : 'BER Certificate FAQs', item: `${baseUrl}${isEngland ? '/epc-faq' : '/faq'}` },
                         ],
                     },
                     {

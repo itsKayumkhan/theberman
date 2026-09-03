@@ -80,7 +80,7 @@ const InternalLinks = ({ page }: Props) => {
         getQuote: 'Get a Free Quote',
     };
 
-    const faqPath = isEngland ? '/epc-faq' : '/ber-faqs/';
+    const faqPath = isEngland ? '/epc-faq' : '/faq/';
     const aboutPath = '/about-us';
     const contactPath = '/contact-us';
     const cataloguePath = '/catalogue';

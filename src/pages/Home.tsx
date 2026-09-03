@@ -546,7 +546,7 @@ const HomePage = () => {
                                 </div>
                             ))}
                         </div>
-                        <Link to={isSpanish ? '/faq' : (tenant === 'england' ? '/epc-faq' : tenant === 'ireland' ? '/ber-faqs' : '/faq')}>
+                        <Link to={isSpanish ? '/faq' : (tenant === 'england' ? '/epc-faq' : '/faq')}>
                             <button className="mt-12 text-[#007F00] font-black border-b-2 border-[#007F00] pb-1 hover:text-[#006400] transition-all flex items-center gap-2 group cursor-pointer">
                                 {isSpanish ? 'Ver todas las preguntas frecuentes' : tenant === 'france' ? 'Voir toutes les questions' : tenant === 'portugal' ? 'Ver todas as perguntas' : 'View All FAQs'}
                                 <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />

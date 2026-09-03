@@ -56,9 +56,6 @@ const FaqRedirect = () => {
     if (tenant === 'england') {
         return <Navigate to={{ pathname: '/epc-faq', search: window.location.search }} replace />;
     }
-    if (tenant === 'portugal') {
-        return <Navigate to={{ pathname: '/faqs', search: window.location.search }} replace />;
-    }
     return <FAQ />;
 };
 
@@ -210,8 +207,6 @@ function App() {
                         <Route path="secure-admin-login" element={<AdminLogin />} />
                         <Route path="signup" element={<SignUp />} />
                         <Route path="faq" element={<FaqRedirect />} />
-                        <Route path="ber-faqs" element={<FAQ />} />
-                        <Route path="ber-faqs/*" element={<FAQ />} />
                         <Route path="epc-faq" element={<FAQ />} />
                         <Route path="epc-faq/*" element={<FAQ />} />
                         <Route path="news" element={<News />} />
