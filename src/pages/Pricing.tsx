@@ -74,7 +74,7 @@ const Pricing = () => {
         houseFeatures: ['Avaliação completa acreditada', 'Relatório de aconselhamento incluído', 'Certificado publicado em 48h', 'Verificação de subsídios', 'IVA incluído'],
         commercialTitle: 'Comercial', commercialDesc: 'Para escritórios, lojas e edifícios industriais.',
         commercialFeatures: ['Avaliação não residencial', 'Estudo técnico detalhado', 'Certificação de conformidade', 'Gestão de carteiras', 'IVA incluído'],
-        custom: 'Personalizado', mostPopular: 'Mais popular', perUnit: '/unidade', bookNow: 'Reservar', requestQuote: 'Pedir orçamento',
+        custom: 'Personalizado', mostPopular: 'Mais popular', perUnit: '/unidade', bookNow: 'Obtenha um orçamento gratuito', requestQuote: 'Obtenha um orçamento gratuito',
         compareTitle: 'Comparar funcionalidades', compareSubtitle: 'Serviços detalhados',
         feature: 'Funcionalidade', standard: 'Standard', premium: 'Premium',
         tableFeatures: ['Certificado oficial', 'Relatório de aconselhamento', 'Aconselhamento de subsídios', 'Estudo de perdas de calor', 'Cálculo de retorno do investimento', 'Simulação fotovoltaica'],
@@ -152,7 +152,8 @@ const Pricing = () => {
                             price={`${currencySymbol}150-${currencySymbol}250`}
                             description={tr.apartmentDesc}
                             features={tr.apartmentFeatures}
-                            ctaLink={isSpanish ? '/get-quote' : (isEngland ? '/get-quote' : '/contact-us')}
+                            ctaText={tr.bookNow}
+                            ctaLink={isSpanish || isEngland || tenant === 'ireland' || isPortugal ? '/get-quote' : '/contact-us'}
                         />
                         <PricingCard
                             title={tr.houseTitle}
@@ -161,7 +162,8 @@ const Pricing = () => {
                             description={tr.houseDesc}
                             features={tr.houseFeatures}
                             popularLabel={tr.mostPopular}
-                            ctaLink={isSpanish ? '/get-quote' : (isEngland ? '/get-quote' : '/contact-us')}
+                            ctaText={tr.bookNow}
+                            ctaLink={isSpanish || isEngland || tenant === 'ireland' || isPortugal ? '/get-quote' : '/contact-us'}
                         />
                         <PricingCard
                             title={tr.commercialTitle}
@@ -169,7 +171,7 @@ const Pricing = () => {
                             description={tr.commercialDesc}
                             features={tr.commercialFeatures}
                             ctaText={tr.requestQuote}
-                            ctaLink={isSpanish ? '/contact-us' : (isEngland ? '/get-quote' : '/contact-us')}
+                            ctaLink={isSpanish ? '/contact-us' : (isEngland || tenant === 'ireland' || isPortugal ? '/get-quote' : '/contact-us')}
                         />
                     </div>
                 </div>
@@ -195,7 +197,9 @@ const Pricing = () => {
                             <tbody className="divide-y divide-gray-100 font-bold text-xs md:text-sm">
                                 {tr.tableFeatures.map((label, i) => {
                                     const englandLinks = ['/services', '/services', '/services', '/services', '/catalogue', '/catalogue'];
-                                    return <TableRow key={i} label={label} standard={i < 3} premium={true} link={isEngland ? englandLinks[i] : undefined} />;
+                                    const irelandLinks = ['/services', '/services', '/services', '/services', '/catalogue', '/catalogue'];
+                                    const portugalLinks = ['/services', '/services', '/services', '/services', '/catalogue', '/catalogue'];
+                                    return <TableRow key={i} label={label} standard={i < 3} premium={true} link={isEngland ? englandLinks[i] : tenant === 'ireland' ? irelandLinks[i] : isPortugal ? portugalLinks[i] : undefined} />;
                                 })}
                             </tbody>
                         </table>
@@ -208,11 +212,11 @@ const Pricing = () => {
                 <div className="container max-w-full">
                     <div className="bg-gray-50 p-12 md:p-20 text-center relative overflow-hidden border border-gray-100">
                         <div className="relative z-10">
-                            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 uppercase tracking-tight">{isSpanish ? <Link to="/energy-advisor" className="hover:underline">{tr.ctaTitle}</Link> : (isEngland ? <Link to="/contact-us" className="hover:underline">{tr.ctaTitle}</Link> : tr.ctaTitle)}</h2>
+                            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 uppercase tracking-tight">{isSpanish ? <Link to="/energy-advisor" className="hover:underline">{tr.ctaTitle}</Link> : (isEngland ? <Link to="/contact-us" className="hover:underline">{tr.ctaTitle}</Link> : (isPortugal ? <Link to="/contact-us" className="hover:underline">{tr.ctaTitle}</Link> : tr.ctaTitle))}</h2>
                             <p className="text-gray-500 text-lg mb-10 max-w-xl mx-auto font-medium">
                                 {tr.ctaDesc}
                             </p>
-                            <Link to={isSpanish ? '/energy-advisor' : (isEngland ? '/contact-us' : '/contact-us')}>
+                            <Link to={isSpanish || tenant === 'ireland' ? '/energy-advisor' : (isEngland || isPortugal ? '/contact-us' : '/contact-us')}>
                                 <button className="bg-[#007F00] text-white font-black px-12 py-5 rounded-2xl hover:bg-[#006400] transition-all shadow-xl flex items-center gap-3 mx-auto transform hover:-translate-y-1 active:translate-y-0 cursor-pointer">
                                     {tr.ctaButton} <ArrowRight size={20} />
                                 </button>

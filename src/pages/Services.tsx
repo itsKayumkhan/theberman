@@ -106,48 +106,48 @@ const Services = () => {
         ctaTitle: 'Besoin de conseils énergétiques ?', ctaDesc: 'Notre équipe est prête à vous aider à optimiser votre bien et assurer la conformité réglementaire.', ctaButton: 'Commencer'
     } : isPortugal ? {
         badge: 'O que fazemos', heroTitle1: 'Soluções de', heroTitle2: 'Energia Precisas.',
-        heroDesc: 'Avaliações abrangentes e aconselhamento especializado para o ajudar a cumprir a legislação e melhorar a eficiência energética.',
+        heroDesc: <>Avaliações abrangentes e aconselhamento especializado para o ajudar a cumprir a <Link to="/catalogue" className="text-[#007F00] font-bold hover:underline">legislação</Link> e melhorar a <Link to="/energy-advisor" className="text-[#007F00] font-bold hover:underline">eficiência energética</Link>.</>,
         complianceTitle: 'Preciso de um certificado energético?',
-        complianceDesc: 'Obrigatório por lei para venda, arrendamento ou candidaturas a subsídios. Fornecemos o certificado de que precisa com entrega rápida e precisão técnica.',
+        complianceDesc: <><Link to="/energy-advisor" className="text-[#007F00] font-bold hover:underline">Aconselhamento especializado</Link> para venda, arrendamento ou candidaturas a subsídios. Fornecemos o <Link to="/get-quote" className="text-[#007F00] font-bold hover:underline">certificado de que precisa</Link> com entrega rápida e precisão técnica.</>,
         complianceCta: 'Reservar',
         servicesTitle: 'Os nossos serviços principais', servicesSubtitle: 'Experiência em todos os setores',
         services: [
-            { title: 'Certificado Residencial', description: 'Avaliações completas acreditadas para proprietários e senhorios. Obrigatório para vendas, arrendamentos e candidaturas a subsídios.' },
-            { title: 'Certificado Comercial', description: 'Avaliações energéticas não residenciais para empresas e lojas. Garanta a conformidade e otimize os custos operacionais.' },
-            { title: 'Auditorias Energéticas', description: 'Análise detalhada do consumo energético com recomendações práticas para poupar e modernizar a sua propriedade.' },
-            { title: 'Aconselhamento de Subsídios', description: 'Orientação especializada no sistema de subsídios. Ajudamos a qualificar para o máximo de financiamento disponível.' },
-            { title: 'Análise Técnica', description: 'Estudos especializados sobre idoneidade de bomba de calor, melhorias de isolamento e cálculo do potencial fotovoltaico.' },
-            { title: 'Serviços de Suporte', description: 'Aconselhamento contínuo para carteiras imobiliárias, certificados provisórios para imóveis novos e verificações finais de conformidade.' },
+            { title: 'Certificado Residencial', description: 'Avaliações completas acreditadas para proprietários e senhorios. Obrigatório para vendas, arrendamentos e candidaturas a subsídios.', link: '/get-quote' },
+            { title: 'Certificado Comercial', description: 'Avaliações energéticas não residenciais para empresas e lojas. Garanta a conformidade e otimize os custos operacionais.', link: '/get-quote' },
+            { title: 'Auditorias Energéticas', description: 'Análise detalhada do consumo energético com recomendações práticas para poupar e modernizar a sua propriedade.', link: '/catalogue' },
+            { title: 'Aconselhamento de Subsídios', description: 'Orientação especializada no sistema de subsídios. Ajudamos a qualificar para o máximo de financiamento disponível.', link: '/energy-advisor' },
+            { title: 'Análise Técnica', description: 'Estudos especializados sobre idoneidade de bomba de calor, melhorias de isolamento e cálculo do potencial fotovoltaico.', link: '/catalogue' },
+            { title: 'Serviços de Suporte', description: 'Aconselhamento contínuo para carteiras imobiliárias, certificados provisórios para imóveis novos e verificações finais de conformidade.', link: '/energy-advisor' },
         ],
         howTitle: 'Como funciona', howSubtitle: 'Um processo simples em 3 passos',
         steps: [
-            { title: 'Agendar', description: 'Contacte-nos para agendar a sua avaliação presencial numa altura que lhe seja conveniente.' },
-            { title: 'Vistoria', description: 'O nosso perito acreditado visita a sua propriedade para realizar um estudo técnico completo.' },
-            { title: 'Finalizar', description: 'Receba o seu certificado energético e o relatório de aconselhamento detalhado num prazo de 48 horas.' },
+            { title: 'Agendar', description: 'Contacte-nos para agendar a sua avaliação presencial numa altura que lhe seja conveniente.', link: '/get-quote' },
+            { title: 'Vistoria', description: 'O nosso perito acreditado visita a sua propriedade para realizar um estudo técnico completo.', link: '/locations' },
+            { title: 'Finalizar', description: 'Receba o seu certificado energético e o relatório de aconselhamento detalhado num prazo de 48 horas.', link: '/get-quote' },
         ],
-        ctaTitle: 'Precisa de aconselhamento energético especializado?', ctaDesc: 'A nossa equipa está pronta para o ajudar a otimizar a sua propriedade e garantir o cumprimento da legislação.', ctaButton: 'Começar'
+        ctaTitle: <>Precisa de <Link to="/energy-advisor" className="text-[#007F00] font-bold hover:underline">aconselhamento energético especializado</Link>?</>, ctaDesc: 'A nossa equipa está pronta para o ajudar a otimizar a sua propriedade e garantir o cumprimento da legislação.', ctaButton: 'Começar'
     } : {
         badge: 'What We Do', heroTitle1: 'Precision Energy', heroTitle2: 'Solutions.',
-        heroDesc: '',
-        complianceTitle: 'Do I need an EPC Certificate?',
-        complianceDesc: 'Required by law for selling, renting, or grant applications. We provide the certification you need with fast turnaround and expert accuracy.',
+        heroDesc: <>Comprehensive assessments and <Link to="/energy-advisor" className="text-[#007F00] font-bold hover:underline">expert advice</Link> to help you meet regulations and improve efficiency.</>,
+        complianceTitle: 'Do I need a BER Certificate?',
+        complianceDesc: <><Link to="/get-quote" className="text-[#007F00] font-bold hover:underline">Required by law for selling, renting, or grant applications</Link>. We provide the certification you need with fast turnaround and expert accuracy.</>,
         complianceCta: 'Book Now',
         servicesTitle: 'Our Core Offerings', servicesSubtitle: 'Expertise Across All Sectors',
         services: [
-            { title: 'Domestic EPC', description: 'Full registered assessments for homeowners and landlords. Required for all sales, rentals, and grant applications.', link: '/get-quote' },
-            { title: 'Commercial EPC', description: 'Non-Domestic energy ratings for businesses and retail units. Ensure compliance and optimize operational costs.', link: '/get-quote' },
+            { title: 'Domestic BER', description: 'Full registered assessments for homeowners and landlords. Required for all sales, rentals, and grant applications.', link: '/get-quote' },
+            { title: 'Commercial BER', description: 'Non-Domestic energy ratings for businesses and retail units. Ensure compliance and optimize operational costs.', link: '/get-quote' },
             { title: 'Energy Audits', description: 'Detailed analysis of energy usage with actionable insights on where to save and how to modernize your property.', link: '/catalogue' },
-            { title: 'Grant Advisory', description: 'Navigate the grant system with expert guidance. We help you qualify for the maximum funding available.', link: '/energy-advisor' },
+            { title: 'Grant Advisory', description: <>Navigate the grant system with expert guidance. We help you qualify for the <Link to="/news" className="text-[#007F00] font-bold hover:underline">maximum funding available</Link>.</>, link: '/energy-advisor' },
             { title: 'Technical Analysis', description: 'Specialized surveys for heat pump suitability, insulation upgrades, and solar PV potential calculations.', link: '/catalogue' },
             { title: 'Support Services', description: 'Continuous advisory for property portfolios, new build provisional ratings, and final compliance checks.', link: '/energy-advisor' },
         ],
         howTitle: 'How It Works', howSubtitle: 'A simple 3-step process',
         steps: [
-            { title: 'Schedule', description: 'Contact us to book your on-site assessment at a time that suits you.', link: '/get-quote' },
-            { title: 'Survey', description: 'Our registered assessor visits your property for a comprehensive technical survey.', link: '/locations' },
-            { title: 'Finalize', description: 'Receive your EPC certificate and detailed advisory report within 48 hours.', link: '/get-quote' },
+            { title: 'Schedule', description: <>Contact us to <Link to="/get-quote" className="text-[#007F00] font-bold hover:underline">book your on-site assessment</Link> at a time that suits you.</>, link: '/get-quote' },
+            { title: 'Survey', description: <>Our <Link to="/locations" className="text-[#007F00] font-bold hover:underline">registered assessor</Link> visits your property for a comprehensive technical survey.</>, link: '/locations' },
+            { title: 'Finalize', description: <>Receive your <Link to="/get-quote" className="text-[#007F00] font-bold hover:underline">BER certificate</Link> and detailed advisory report within 48 hours.</>, link: '/get-quote' },
         ],
-        ctaTitle: 'Need expert energy advice?', ctaDesc: 'Our team is ready to help you optimize your property and ensure full regulatory compliance.', ctaButton: 'Get Started'
+        ctaTitle: <>Need <Link to="/energy-advisor" className="text-[#007F00] font-bold hover:underline">expert energy advice</Link>?</>, ctaDesc: 'Our team is ready to help you optimize your property and ensure full regulatory compliance.', ctaButton: 'Get Started'
     };
 
     const serviceSchema = {
@@ -286,7 +286,7 @@ const Services = () => {
                             <p className="text-gray-500 text-lg mb-10 max-w-xl mx-auto font-medium">
                                 {tr.ctaDesc}
                             </p>
-                            <Link to={isSpanish ? '/energy-advisor' : (isEngland ? '/energy-advisor' : '/contact-us')}>
+                            <Link to={!isFrance ? '/energy-advisor' : '/contact-us'}>
                                 <button className="bg-[#007F00] text-white font-black px-12 py-5 rounded-2xl hover:bg-[#006400] transition-all shadow-xl flex items-center gap-3 mx-auto transform hover:-translate-y-1 active:translate-y-0 cursor-pointer">
                                     {tr.ctaButton} <ArrowRight size={20} />
                                 </button>
@@ -309,7 +309,7 @@ const serviceIcons = [
     <Truck size={24} />,
 ];
 
-const ServiceItem = ({ icon, title, description, link }: { icon: React.ReactNode, title: string, description: string, link?: string }) => (
+const ServiceItem = ({ icon, title, description, link }: { icon: React.ReactNode, title: string, description: React.ReactNode, link?: string }) => (
     <Link to={link || '#'} className="p-10 bg-white rounded-[2.5rem] border border-gray-100 hover:border-green-100 transition-all hover:shadow-lg group cursor-pointer block">
         <div className="w-14 h-14 rounded-2xl bg-green-50 text-[#007F00] flex items-center justify-center group-hover:bg-[#007F00] group-hover:text-white transition-all transform group-hover:scale-110 mb-8 shadow-sm">
             {icon}
@@ -321,7 +321,7 @@ const ServiceItem = ({ icon, title, description, link }: { icon: React.ReactNode
     </Link>
 );
 
-const ProcessStep = ({ number, title, description, link }: { number: string, title: string, description: string, link?: string }) => (
+const ProcessStep = ({ number, title, description, link }: { number: string, title: string, description: React.ReactNode, link?: string }) => (
     <Link to={link || '#'} className="text-center group cursor-pointer block">
         <div className="w-20 h-20 bg-white border border-gray-100 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-sm group-hover:border-[#007F00] transition-all group-hover:shadow-lg transform group-hover:-translate-y-1">
             <span className="text-2xl font-black text-[#007F00]">{number}</span>

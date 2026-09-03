@@ -175,12 +175,12 @@ const HireAgent = () => {
         subtitle: 'Obtenha orientação imparcial, análise técnica verificada e acesso a preços competitivos para melhorar a eficiência energética da sua habitação.',
         speakH1: 'Fale com um',
         speakH2: 'Consultor Energético',
-        speakP: 'O seu consultor energético coordenará e trabalhará diretamente com um perito certificador para que as recomendações sejam tecnicamente precisas e baseadas no seu certificado energético atual e no respetivo relatório de recomendações.',
+        speakP: <>O seu consultor energético coordenará e trabalhará diretamente com um <Link to="/contact-us" className="text-[#007F00] font-bold hover:underline">perito certificador</Link> para que as recomendações sejam tecnicamente precisas e baseadas no seu <Link to="/services" className="text-[#007F00] font-bold hover:underline">certificado energético</Link> atual e no respetivo relatório de recomendações.</>,
         agentWillLabel: 'O consultor encarregar-se-á de:',
         benefits: [
-            'Identificar opções de melhoria custo-eficazes',
+            <Link to="/pricing" className="text-[#007F00] font-bold hover:underline">Identificar opções de melhoria custo-eficazes</Link>,
             'Aconselhar as melhores melhorias de eficiência',
-            'Procurar e comparar orçamentos de profissionais',
+            <Link to="/get-quote" className="text-[#007F00] font-bold hover:underline">Procurar e comparar orçamentos de profissionais</Link>,
             'Negociar as melhores opções qualidade/preço',
             'Ajudar com a documentação de subsídios',
             'Evitar obras desnecessárias ou sobrevalorizadas',
@@ -503,7 +503,7 @@ const HireAgent = () => {
                         {tr.badge}
                     </span>
                     <h1 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 leading-tight">
-                        {tr.title1} <span className="text-[#007F00]">{tr.titleHighlight}</span>{tr.title2}
+                        {isPortuguese ? <>{tr.title1} <span className="text-[#007F00]"><Link to="/contact-us" className="hover:underline">{tr.titleHighlight}{tr.title2}</Link></span></> : (!isSpanish && !isEngland && !isFrench && !isPortuguese ? <>Speak to an <span className="text-[#007F00]"><Link to="/contact-us" className="hover:underline">Independent Energy Advisor</Link></span> in Ireland</> : <>{tr.title1} <span className="text-[#007F00]">{tr.titleHighlight}</span>{tr.title2}</>)}
                     </h1>
                     <p className="text-base md:text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">
                         {isSpanish ? (
@@ -526,7 +526,7 @@ const HireAgent = () => {
                                     <>Tu asesor energético coordinará y trabajará directamente con un <Link to="/services" className="text-[#007F00] font-bold hover:underline">certificador</Link> para que las recomendaciones sean técnicamente precisas y se basen en tu <Link to="/catalogue" className="text-[#007F00] font-bold hover:underline">certificado energético actual</Link> y su informe de recomendaciones.</>
                                 ) : isEngland ? (
                                     <>Your Energy Advisor works alongside <Link to="/services" className="text-[#007F00] font-bold hover:underline">accredited EPC assessors</Link> to help you understand upgrade options, <Link to="/get-quote" className="text-[#007F00] font-bold hover:underline">compare quotes</Link> and make informed decisions for your property.</>
-                                ) : tr.speakP}
+                                ) : (!isSpanish && !isEngland && !isFrench && !isPortuguese ? <>Your energy advisor will work alongside <Link to="/services" className="text-[#007F00] font-bold hover:underline">BER assessors</Link> to help evaluate <Link to="/catalogue" className="text-[#007F00] font-bold hover:underline">upgrade opportunities</Link>, prioritise improvements, and provide recommendations based on your <Link to="/services" className="text-[#007F00] font-bold hover:underline">BER certificate</Link> and advisory report.</> : tr.speakP)}
                             </p>
 
                             <div className="space-y-4">
@@ -546,7 +546,7 @@ const HireAgent = () => {
                                     <>El objetivo es ofrecer una guía clara e imparcial, un criterio técnico verificado y acceso a <Link to="/pricing" className="text-[#007F00] font-bold hover:underline">precios competitivos</Link>, para que las mejoras se realicen de la forma más <Link to="/services" className="text-[#007F00] font-bold hover:underline">inteligente y económica posible</Link>.</>
                                 ) : isEngland ? (
                                     <>The goal is to provide clear guidance, verified technical input, and access to <Link to="/pricing" className="text-[#007F00] font-bold hover:underline">competitive pricing</Link>, ensuring upgrades are completed as <Link to="/services" className="text-[#007F00] font-bold hover:underline">smartly and economically</Link> as possible.</>
-                                ) : tr.speakClose}
+                                ) : (!isSpanish && !isEngland && !isFrench && !isPortuguese ? <>Our goal is to help you make informed energy upgrade decisions through expert advice, technical insights, and practical recommendations tailored to your property. If you need to find a BER assessor, compare providers in our <Link to="/locations" className="text-[#007F00] font-bold hover:underline">home energy business directory</Link>, or discuss your project further, you can also <Link to="/locations" className="text-[#007F00] font-bold hover:underline">contact The BER Man</Link>.</> : tr.speakClose)}
                             </p>
 
                             <div className="pt-6 border-t border-green-100 flex flex-col md:flex-row gap-6 items-center text-xs font-black uppercase tracking-widest text-gray-500">
@@ -593,7 +593,8 @@ const HireAgent = () => {
                                     <InfoItem
                                         icon={<Globe size={20} />}
                                         title={tr.website}
-                                        value={tenantDomain}
+                                        value={isPortuguese ? 'certificadoenergia.com' : tenantDomain}
+                                        href={isPortuguese ? tenantDomain : undefined}
                                     />
                                 </div>
 

@@ -87,7 +87,7 @@ const Contact = () => {
                     : isFrench
                         ? 'Une question sur les diagnostics de performance énergétique ? Notre équipe est là pour vous aider.'
                         : 'Contact The BER Man to book a BER assessment, connect with qualified BER assessors, or get support with your enquiry.',
-        trustStrip: isEngland ? '' : isPortuguese ? '1.000+ Avaliações Concluídas • 100+ Peritos Qualificados • Cobertura Nacional' : isFrench ? '1 000+ Diagnostics Réalisés • 100+ Diagnostiqueurs Qualifiés • Couverture Nationale' : '1,000+ Assessments Completed • 100+ Qualified Assessors • Nationwide Coverage',
+        trustStrip: isEngland ? '' : isPortuguese ? '1,000+ Avaliações concluídas • 100+ Avaliadores Qualificados • Cobertura nacional' : isFrench ? '1 000+ Diagnostics Réalisés • 100+ Diagnostiqueurs Qualifiés • Couverture Nationale' : '1,000+ Assessments Completed • 100+ Qualified Assessors • Nationwide Coverage',
         ourDetails: isSpanish ? 'Nuestros Datos' : isEngland ? 'Our details' : isPortuguese ? 'Os Nossos Detalhes' : isFrench ? 'Nos Coordonnées' : 'Contact Information',
         emailUs: isSpanish ? 'Escríbenos' : isPortuguese ? 'Email' : isFrench ? 'E-mail' : 'Email Us',
         website: isSpanish ? 'Sitio Web' : isPortuguese ? 'Website' : isFrench ? 'Site Web' : 'Website',
@@ -235,14 +235,14 @@ const Contact = () => {
                         {c('hero', 'badge', tr.badge)}
                     </span>
                     <h1 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 leading-tight">
-                        {isEngland ? tr.title1 : c('hero', 'heading_line1', tr.title1)} <br className="md:hidden" /> <span className="text-[#007F00]">{isEngland ? tr.title2 : c('hero', 'heading_line2', tr.title2)}</span>
+                        {isEngland ? tr.title1 : (tenant === 'ireland' ? <>Book a <Link to="/services" className="hover:underline">BER Assessment</Link> in Ireland</> : c('hero', 'heading_line1', tr.title1))} <br className="md:hidden" /> <span className="text-[#007F00]">{isEngland ? tr.title2 : c('hero', 'heading_line2', tr.title2)}</span>
                     </h1>
                     <p className="text-base md:text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">
                         {isSpanish ? (
                             <>¿Tienes alguna pregunta sobre <Link to="/services" className="text-[#007F00] font-bold hover:underline">certificaciones energéticas</Link>? Nuestro equipo está aquí para <Link to="/energy-advisor" className="text-[#007F00] font-bold hover:underline">ayudarte</Link>.</>
                         ) : (isEngland ? (
                             <>Compare quotes from <Link to="/services" className="text-[#007F00] font-bold hover:underline">accredited EPC assessors</Link> across England and arrange your <Link to="/get-quote" className="text-[#007F00] font-bold hover:underline">EPC assessment</Link> with confidence.</>
-                        ) : c('hero', 'subtitle', tr.subtitle))}
+                        ) : (isPortuguese ? <>Tem alguma dúvida sobre <Link to="/faq" className="text-[#007F00] font-bold hover:underline">certificados energéticos</Link>? A nossa equipa está aqui para o ajudar.</> : (tenant === 'ireland' ? <>Contact The BER Man to book a BER assessment, connect with <Link to="/services" className="text-[#007F00] font-bold hover:underline">qualified BER assessors</Link>, or get support with your enquiry.</> : c('hero', 'subtitle', tr.subtitle))))}
                     </p>
                     {!isSpanish && !isEngland && tr.trustStrip && (
                         <p className="mt-4 text-sm font-bold text-[#007F00] uppercase tracking-widest">
@@ -260,11 +260,11 @@ const Contact = () => {
 
                         {/* UNIFIED CONTACT INFO CARD */}
                         <div className="lg:w-1/3 w-full bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-gray-100 shadow-sm group hover:border-green-100 transition-all h-full">
-                            <h3 className="text-xl font-black text-gray-900 mb-2 uppercase tracking-tight">{tr.ourDetails}</h3>
+                            <h3 className="text-xl font-black text-gray-900 mb-2 uppercase tracking-tight">{tenant === 'ireland' ? <Link to="/about-us" className="hover:underline">{tr.ourDetails}</Link> : tr.ourDetails}</h3>
                             {!isSpanish && !isEngland && (
                                 <p className="text-sm text-gray-500 font-medium mb-6 leading-relaxed">
-                                    Supporting property owners across all 26 counties in Ireland.<br />
-                                    Typical response within 1 business day.
+                                    {isPortuguese ? 'Ajudamos proprietários em todo o Portugal a contactar peritos qualificados para certificação energética.' : 'Supporting property owners across all 26 counties in Ireland.'}<br />
+                                    {isPortuguese ? 'Resposta típica no prazo de 1 dia útil.' : 'Typical response within 1 business day.'}
                                 </p>
                             )}
 
@@ -315,8 +315,8 @@ const Contact = () => {
                                     <InfoItem
                                         icon={<Globe size={20} />}
                                         title={tr.website}
-                                        value={isEngland ? 'www.epccert.com' : tenantDomain}
-                                        href={isEngland ? 'https://www.epccert.com' : undefined}
+                                        value={isEngland ? 'www.epccert.com' : isPortuguese ? 'www.certificadoenergia.com' : tenantDomain}
+                                        href={isEngland ? 'https://www.epccert.com' : isPortuguese ? tenantDomain : undefined}
                                     />
                                 </div>
                             </div>
@@ -328,7 +328,7 @@ const Contact = () => {
                                 <h2 className="text-lg md:text-xl font-black text-gray-900 mb-6 text-center uppercase tracking-tight px-4">Get in Touch with EPC Cert</h2>
                             )}
                             {!isEngland && (
-                                <h3 className="text-lg md:text-xl font-black text-gray-900 mb-6 text-center uppercase tracking-tight px-4">{tr.sendDetailed}</h3>
+                                <h3 className="text-lg md:text-xl font-black text-gray-900 mb-6 text-center uppercase tracking-tight px-4">{(tenant === 'ireland' || isPortuguese) ? <Link to="/get-quote" className="hover:underline">{tr.sendDetailed}</Link> : tr.sendDetailed}</h3>
                             )}
 
                             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -505,7 +505,7 @@ const Contact = () => {
 
                                 {!isSpanish && !isEngland && (
                                     <p className="text-xs font-bold text-gray-500 uppercase tracking-widest text-center">
-                                        1,000+ Assessments Completed • 100+ Qualified Assessors • Nationwide Coverage
+                                        1,000+ Assessments Completed • 100+ <Link to="/services" className="text-[#007F00] hover:underline">Qualified Assessors</Link> • Nationwide Coverage
                                     </p>
                                 )}
                                 <button

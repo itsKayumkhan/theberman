@@ -30,3 +30,14 @@ db.ts
 
 supabase/.temp/cli-latest
 .vercel
+
+# Screenshots / images
+screenshots/
+*.png
+*.jpg
+*.jpeg
+
+# Playwright test outputs
+test-results/
+playwright-report/
+playwright/.cache/
