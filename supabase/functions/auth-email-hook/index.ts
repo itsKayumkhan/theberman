@@ -98,7 +98,7 @@ Deno.serve(async (req: Request) => {
 
         // Build the confirmation URL that Supabase will verify
         // The redirect_to from email_data is what we passed as emailRedirectTo in signUp()
-        const effectiveRedirect = redirect_to || `${websiteUrl}/login`;
+        const effectiveRedirect = redirect_to || `${websiteUrl}/login?confirmed=true`;
         const confirmationUrl = `${supabaseUrl}/auth/v1/verify?token=${tokenHash}&type=${actionType === 'signup' ? 'signup' : 'recovery'}&redirect_to=${encodeURIComponent(effectiveRedirect)}`;
 
         // Build email subject + HTML based on action type

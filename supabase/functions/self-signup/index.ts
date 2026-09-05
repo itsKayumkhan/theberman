@@ -176,12 +176,7 @@ Deno.serve(async (req: Request) => {
         // Redirect after confirmation: contractors/businesses go to onboarding to complete their profile
         const tenantConfigForRedirect = await getTenantConfig(supabaseAdmin, resolvedTenant);
         const tenantWebsiteUrl = (tenantConfigForRedirect.website_url || `https://${tenantConfigForRedirect.domain}`).replace(/\/$/, '');
-        const postConfirmPath = role === 'contractor'
-            ? '/assessor-onboarding'
-            : role === 'business'
-                ? '/business-onboarding'
-                : '/dashboard/user';
-        const redirectTo = `${tenantWebsiteUrl}${postConfirmPath}`;
+        const redirectTo = `${tenantWebsiteUrl}/login?confirmed=true`;
 
         const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
             type: 'signup',

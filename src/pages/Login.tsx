@@ -46,6 +46,7 @@ const Login = () => {
     // Check for redirect parameter from URL
     const params = new URLSearchParams(location.search);
     const redirectParam = params.get('redirect');
+    const isConfirmed = params.get('confirmed') === 'true';
 
     // Redirect if already authenticated
     useEffect(() => {
@@ -190,7 +191,7 @@ const Login = () => {
             const { error } = await supabase.auth.resend({
                 type: 'signup',
                 email: unconfirmedEmail,
-                options: { emailRedirectTo: websiteUrl }
+                options: { emailRedirectTo: `${websiteUrl}/login?confirmed=true` }
             });
             if (error) throw error;
             toast.success(isSpanish ? '¡Correo de confirmación reenviado! Revisa tu bandeja de entrada y la carpeta de spam.' : isPortuguese ? 'Email de confirmação reenviado! Verifique a sua caixa de entrada e pasta de spam.' : isFrench ? 'E-mail de confirmation renvoyé ! Vérifiez votre boîte de réception et le dossier spam.' : 'Confirmation email resent! Please check your inbox and spam folder.');
@@ -205,6 +206,23 @@ const Login = () => {
     return (
         <div className="min-h-screen bg-white pt-24 pb-12 flex items-center justify-center">
             <div className="w-full max-w-md px-6">
+                {/* Email confirmed banner */}
+                {isConfirmed && (
+                    <div className="mb-6 bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <p className="font-bold text-green-800">
+                                {isSpanish ? '¡Cuenta confirmada!' : isPortuguese ? 'Conta confirmada!' : isFrench ? 'Compte confirmé !' : 'Account confirmed!'}
+                            </p>
+                        </div>
+                        <p className="text-sm text-green-700">
+                            {isSpanish ? 'Gracias por confirmar tu correo. Ahora puedes iniciar sesión con tus credenciales.' : isPortuguese ? 'Obrigado por confirmar o seu email. Agora pode iniciar sessão com as suas credenciais.' : isFrench ? 'Merci d\u2019avoir confirm\u00e9 votre e-mail. Vous pouvez maintenant vous connecter avec vos identifiants.' : 'Thank you for confirming your email. You can now sign in with your credentials.'}
+                        </p>
+                    </div>
+                )}
+
                 {/* Header */}
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">{isSpanish ? 'Bienvenido de Nuevo' : isPortuguese ? 'Bem-vindo de Volta' : isFrench ? 'Bon Retour' : 'Welcome Back'}</h1>
