@@ -51,11 +51,12 @@ Deno.serve(async (req: Request) => {
         const resolvedTenant = tenant || 'ireland';
         const normalizedEmail = email.trim().toLowerCase();
 
-        // 1. Check if email already exists in profiles
+        // 1. Check if email already exists in profiles FOR THIS TENANT
         const { data: existingProfile } = await supabaseAdmin
             .from('profiles')
-            .select('id, email')
+            .select('id, email, tenant')
             .eq('email', normalizedEmail)
+            .eq('tenant', resolvedTenant)
             .maybeSingle();
 
         if (existingProfile) {
@@ -65,12 +66,13 @@ Deno.serve(async (req: Request) => {
             );
         }
 
-        // 2. Check if phone already exists (if provided)
+        // 2. Check if phone already exists FOR THIS TENANT (if provided)
         if (phone && phone.trim().length >= 7) {
             const { data: existingPhone } = await supabaseAdmin
                 .from('profiles')
                 .select('id')
                 .eq('phone', phone.trim())
+                .eq('tenant', resolvedTenant)
                 .maybeSingle();
             if (existingPhone) {
                 return new Response(
@@ -94,22 +96,44 @@ Deno.serve(async (req: Request) => {
             },
         });
 
+        let userId: string;
+        let authUser: any;
+
         if (authError) {
-            console.error('[self-signup] Auth user creation error:', authError.message);
-            return new Response(
-                JSON.stringify({ success: false, error: authError.message }),
-                { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
+            // If the error is because the user already exists (from another tenant),
+            // try to fetch the existing auth user and create a profile for this tenant
+            if (authError.message.includes('already') || authError.message.includes('registered') || authError.message.includes('exists')) {
+                const { data: listData } = await supabaseAdmin.auth.admin.listUsers();
+                const existingUser = listData?.users?.find((u: any) => u.email?.toLowerCase() === normalizedEmail);
+                if (existingUser) {
+                    userId = existingUser.id;
+                    authUser = existingUser;
+                    console.log(`[self-signup] Auth user already exists from another tenant, creating profile for ${resolvedTenant}`);
+                } else {
+                    console.error('[self-signup] Auth user creation error:', authError.message);
+                    return new Response(
+                        JSON.stringify({ success: false, error: authError.message }),
+                        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                    );
+                }
+            } else {
+                console.error('[self-signup] Auth user creation error:', authError.message);
+                return new Response(
+                    JSON.stringify({ success: false, error: authError.message }),
+                    { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                );
+            }
+        } else {
+            userId = authData.user.id;
+            authUser = authData.user;
         }
 
-        if (!authData.user) {
+        if (!authUser) {
             return new Response(
                 JSON.stringify({ success: false, error: 'User creation returned no user' }),
                 { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
         }
-
-        const userId = authData.user.id;
 
         // 4. Build profile data
         let profileData: any = {
@@ -213,7 +237,7 @@ Deno.serve(async (req: Request) => {
         return new Response(
             JSON.stringify({
                 success: true,
-                user: authData.user,
+                user: authUser,
                 needsEmailConfirmation: true,
                 message: 'Account created. Check your email to confirm.',
             }),

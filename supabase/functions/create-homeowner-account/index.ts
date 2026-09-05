@@ -111,11 +111,12 @@ Deno.serve(async (req: Request) => {
             return new Response(JSON.stringify({ success: false, error: 'A phone number is required to create a homeowner account' }), { status: 400, headers: responseHeaders });
         }
 
-        // 1. Check if a profile already exists with this email
+        // 1. Check if a profile already exists with this email FOR THIS TENANT
         const { data: existingProfile } = await supabase
             .from('profiles')
             .select('id, email, full_name, role')
             .eq('email', email.toLowerCase())
+            .eq('tenant', tenant)
             .maybeSingle();
 
         if (existingProfile) {
@@ -128,11 +129,12 @@ Deno.serve(async (req: Request) => {
             }), { headers: responseHeaders });
         }
 
-        // 1b. Check if the phone number is already in use by another profile
+        // 1b. Check if the phone number is already in use by another profile FOR THIS TENANT
         const { data: phoneConflict } = await supabase
             .from('profiles')
             .select('id, email, full_name, role, tenant')
             .eq('phone', phone.trim())
+            .eq('tenant', tenant)
             .maybeSingle();
 
         if (phoneConflict) {
