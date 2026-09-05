@@ -34,7 +34,7 @@ const signupSchema = z.object({
     password: z.string().min(6, IS_SPANISH_TENANT ? 'La contraseña debe tener al menos 6 caracteres' : IS_PORTUGUESE_TENANT ? 'A palavra-passe deve ter pelo menos 6 caracteres' : IS_FRENCH_TENANT ? 'Le mot de passe doit comporter au moins 6 caractères' : 'Password must be at least 6 characters'),
     confirmPassword: z.string(),
     role: z.enum(['user', 'contractor', 'business']),
-    seaiNumber: z.string().min(1, regLabels.validationError),
+    seaiNumber: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
     message: IS_SPANISH_TENANT ? 'Las contraseñas no coinciden' : IS_PORTUGUESE_TENANT ? 'As palavras-passe não coincidem' : IS_FRENCH_TENANT ? 'Les mots de passe ne correspondent pas' : "Passwords don't match",
     path: ["confirmPassword"],
