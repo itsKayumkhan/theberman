@@ -6,7 +6,6 @@ import { useAuth } from '../hooks/useAuth';
 import { getTenantFromDomain } from '../lib/tenant';
 import { useTranslation } from '../hooks/useTranslation';
 import EmailVerification from './EmailVerification';
-import IdentityAuth from './IdentityAuth';
 import JobConfirmation from './JobConfirmation';
 import { getTownsForTenant, getCountiesForTenant, getNestedTownsForTenant } from '../lib/tenantData';
 
@@ -433,10 +432,6 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
     };
 
     const handleEmailVerified = () => {
-        setCurrentStep(13);
-    };
-
-    const handleAuthenticated = () => {
         handleFinalSubmission();
     };
 
@@ -492,18 +487,6 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
             const { data: { session } } = await supabase.auth.getSession();
             let currentUserId = session?.user?.id || user?.id;
 
-            // If no user ID found, try refreshing the session before giving up
-            if (!currentUserId) {
-                const { data: refreshData } = await supabase.auth.refreshSession();
-                currentUserId = refreshData.session?.user?.id || user?.id;
-            }
-
-            if (!currentUserId) {
-                toast.error('Your session has expired. Please log in again to submit your assessment.');
-                setIsSubmitting(false);
-                return;
-            }
-
             const lastReferralStr = localStorage.getItem('last_referral');
             let referredByListingId = null;
 
@@ -531,7 +514,7 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                 contact_email: formData.email,
                 contact_phone: formData.phone,
                 eircode: formData.eircode,
-                user_id: currentUserId,
+                user_id: currentUserId || null,
                 referred_by_listing_id: referredByListingId,
                 job_type: formData.jobType,
                 platform_fee: platformFeeAmount,
@@ -956,17 +939,6 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                             onBack={() => setCurrentStep(11)}
                         />
                     );
-                case 13:
-                    return (
-                        <IdentityAuth
-                            email={formData.email}
-                            fullName={formData.fullName}
-                            phone={formData.phone}
-                            isExternalSubmitting={isSubmitting}
-                            onAuthenticated={handleAuthenticated}
-                            onBack={() => setCurrentStep(11)}
-                        />
-                    );
                 case 14:
                     return (
                         <div className="pt-8">
@@ -1101,16 +1073,6 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                             email={formData.email}
                             assessmentId={assessmentId}
                             onVerified={handleEmailVerified}
-                            onBack={() => setCurrentStep(11)}
-                        />
-                    );
-                case 13:
-                    return (
-                        <IdentityAuth
-                            email={formData.email}
-                            fullName={formData.fullName}
-                            isExternalSubmitting={isSubmitting}
-                            onAuthenticated={handleAuthenticated}
                             onBack={() => setCurrentStep(11)}
                         />
                     );
@@ -1260,17 +1222,6 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                             email={formData.email}
                             assessmentId={assessmentId}
                             onVerified={handleEmailVerified}
-                            onBack={() => setCurrentStep(11)}
-                        />
-                    );
-                case 13:
-                    return (
-                        <IdentityAuth
-                            email={formData.email}
-                            fullName={formData.fullName}
-                            phone={formData.phone}
-                            isExternalSubmitting={isSubmitting}
-                            onAuthenticated={handleAuthenticated}
                             onBack={() => setCurrentStep(11)}
                         />
                     );
