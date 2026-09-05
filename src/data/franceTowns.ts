@@ -1,71 +1,98 @@
 export const TOWNS_BY_COUNTY_FRANCE: Record<string, string[]> = {
-    'Auvergne-Rhône-Alpes': [
-        'Lyon', 'Saint-Étienne', 'Grenoble', 'Clermont-Ferrand', 'Annecy', 'Chambéry', 'Valence',
-        'Villeurbanne', 'Vénissieux', 'Roanne', 'Le Puy-en-Velay', 'Aurillac', 'Montluçon', 'Moulins'
-    ],
-    'Bourgogne-Franche-Comté': [
-        'Dijon', 'Besançon', 'Belfort', 'Chalon-sur-Saône', 'Nevers', 'Auxerre', 'Mâcon',
-        'Montbéliard', 'Vesoul', 'Lons-le-Saunier', 'Sens', 'Autun'
-    ],
-    'Bretagne': [
-        'Rennes', 'Brest', 'Quimper', 'Lorient', 'Vannes', 'Saint-Malo', 'Dinan',
-        'Saint-Brieuc', 'Morlaix', 'Redon', 'Fougères', 'Lannion'
-    ],
-    'Centre-Val de Loire': [
-        'Tours', 'Orléans', 'Bourges', 'Blois', 'Chartres', 'Châteauroux', 'Tours',
-        'Vierzon', 'Dreux', 'Montargis', 'Issoudun', 'Romorantin-Lanthenay'
-    ],
-    'Corse': [
-        'Ajaccio', 'Bastia', 'Porto-Vecchio', 'Calvi', 'Corte', 'Bonifacio',
-        'Propriano', 'L\'Île-Rousse', 'Ghisonaccia'
-    ],
-    'Grand Est': [
-        'Strasbourg', 'Reims', 'Metz', 'Nancy', 'Mulhouse', 'Colmar', 'Troyes',
-        'Charleville-Mézières', 'Châlons-en-Champagne', 'Thionville', 'Saint-Dizier', 'Épinal'
-    ],
-    'Hauts-de-France': [
-        'Lille', 'Amiens', 'Roubaix', 'Tourcoing', 'Dunkerque', 'Calais', 'Beauvais',
-        'Saint-Quentin', 'Valenciennes', 'Arras', 'Boulogne-sur-Mer', 'Lens'
-    ],
-    'Île-de-France': [
-        'Paris', 'Boulogne-Billancourt', 'Saint-Denis', 'Argenteuil', 'Montreuil', 'Nanterre',
-        'Créteil', 'Versailles', 'Courbevoie', 'Vitry-sur-Seine', 'Colombes', 'Asnières-sur-Seine',
-        'Aubervilliers', 'Aulnay-sous-Bois', 'Rueil-Malmaison', 'Antony', 'Levallois-Perret',
-        'Issy-les-Moulineaux', 'Neuilly-sur-Seine', 'Cergy', 'Pantin', 'Sarcelles', 'Évry'
-    ],
-    'Normandie': [
-        'Rouen', 'Caen', 'Le Havre', 'Cherbourg-en-Cotentin', 'Évreux', 'Dieppe',
-        'Alençon', 'Lisieux', 'Saint-Lô', 'Granville', 'Vernon', 'Fécamp'
-    ],
-    'Nouvelle-Aquitaine': [
-        'Bordeaux', 'Limoges', 'Poitiers', 'Pau', 'La Rochelle', 'Mérignac', 'Pessac',
-        'Bayonne', 'Talence', 'Angoulême', 'Niort', 'Libourne', 'Bergerac', 'Brive-la-Gaillarde'
-    ],
-    'Occitanie': [
-        'Toulouse', 'Montpellier', 'Nîmes', 'Perpignan', 'Béziers', 'Carcassonne', 'Albi',
-        'Sète', 'Tarbes', 'Castres', 'Rodez', 'Collioure', 'Agde', 'Mende'
-    ],
-    'Pays de la Loire': [
-        'Nantes', 'Angers', 'Le Mans', 'Saint-Nazaire', 'Cholet', 'La Roche-sur-Yon',
-        'Laval', 'Saumur', 'Les Sables-d\'Olonne', 'Saint-Herblain', 'Rezé', 'Challans'
-    ],
-    'Provence-Alpes-Côte d\'Azur': [
-        'Marseille', 'Nice', 'Toulon', 'Aix-en-Provence', 'Avignon', 'Antibes', 'Cannes',
-        'La Seyne-sur-Mer', 'Hyères', 'Arles', 'Fréjus', 'Grasse', 'Martigues', 'Cagnes-sur-Mer'
-    ],
-    'Guadeloupe': [
-        'Basse-Terre', 'Pointe-à-Pitre', 'Les Abymes', 'Sainte-Anne', 'Le Gosier', 'Sainte-Rose'
-    ],
-    'Guyane': [
-        'Cayenne', 'Saint-Laurent-du-Maroni', 'Kourou', 'Matoury', 'Remire-Montjoly'
-    ],
-    'La Réunion': [
-        'Saint-Denis', 'Saint-Paul', 'Saint-Pierre', 'Le Tampon', 'Saint-André', 'Saint-Louis'
-    ],
-    'Martinique': [
-        'Fort-de-France', 'Le Lamentin', 'Schoelcher', 'Sainte-Marie', 'Le Robert'
-    ],
-    'Mayotte': [
-        'Mamoudzou', 'Koungou', 'Dzaoudzi', 'Dembeni', 'Sada'
-    ],
+    'Ain': ['Bourg-en-Bresse'],
+    'Aisne': ['Laon'],
+    'Allier': ['Moulins', 'Montluçon', 'Vichy'],
+    'Alpes-de-Haute-Provence': ['Digne-les-Bains'],
+    'Hautes-Alpes': ['Gap'],
+    'Alpes-Maritimes': ['Nice', 'Antibes', 'Cagnes-sur-Mer', 'Cannes', 'Grasse', 'Le Cannet', 'Menton', 'Saint-Laurent-du-Var', 'Vallauris'],
+    'Ardèche': ['Privas'],
+    'Ardennes': ['Charleville-Mézières'],
+    'Ariège': ['Foix'],
+    'Aube': ['Troyes'],
+    'Aude': ['Carcassonne', 'Narbonne'],
+    'Aveyron': ['Rodez'],
+    'Bouches-du-Rhône': ['Marseille', 'Aix-en-Provence', 'Arles', 'Aubagne', 'Istres', 'La Ciotat', 'Marignane', 'Martigues', 'Miramas', 'Salon-de-Provence', 'Vitrolles'],
+    'Calvados': ['Caen'],
+    'Cantal': ['Aurillac'],
+    'Charente': ['Angoulême'],
+    'Charente-Maritime': ['La Rochelle', 'Saintes'],
+    'Cher': ['Bourges', 'Vierzon'],
+    'Corrèze': ['Tulle', 'Brive-la-Gaillarde'],
+    'Corse-du-Sud': ['Ajaccio'],
+    'Haute-Corse': ['Bastia'],
+    'Côte-d\'Or': ['Dijon'],
+    'Côtes-d\'Armor': ['Saint-Brieuc'],
+    'Creuse': ['Guéret'],
+    'Dordogne': ['Périgueux', 'Bergerac'],
+    'Doubs': ['Besançon'],
+    'Drôme': ['Valence', 'Montélimar', 'Romans-sur-Isère'],
+    'Eure': ['Évreux'],
+    'Eure-et-Loir': ['Chartres', 'Dreux'],
+    'Finistère': ['Quimper', 'Brest'],
+    'Gard': ['Nîmes', 'Alès'],
+    'Haute-Garonne': ['Toulouse', 'Blagnac', 'Colomiers', 'Muret', 'Tournefeuille'],
+    'Gers': ['Auch'],
+    'Gironde': ['Bordeaux', 'Bègles', 'Cenon', 'Gradignan', 'La Teste-de-Buch', 'Le Bouscat', 'Libourne', 'Lormont', 'Mérignac', 'Pessac', 'Saint-Médard-en-Jalles', 'Villenave-d\'Ornon'],
+    'Hérault': ['Montpellier'],
+    'Ille-et-Vilaine': ['Rennes', 'Saint-Malo'],
+    'Indre': ['Châteauroux'],
+    'Indre-et-Loire': ['Tours', 'Joué-lès-Tours'],
+    'Isère': ['Grenoble', 'Bourgoin-Jallieu', 'Saint-Martin-d\'Hères', 'Vienne', 'Échirolles'],
+    'Jura': ['Lons-le-Saunier'],
+    'Landes': ['Mont-de-Marsan'],
+    'Loir-et-Cher': ['Blois'],
+    'Loire': ['Saint-Étienne', 'Roanne', 'Saint-Chamond'],
+    'Haute-Loire': ['Le Puy-en-Velay'],
+    'Loire-Atlantique': ['Nantes', 'Orvault', 'Rezé', 'Saint-Herblain', 'Saint-Nazaire', 'Saint-Sébastien-sur-Loire', 'Vertou'],
+    'Loiret': ['Orléans'],
+    'Lot': ['Cahors'],
+    'Lot-et-Garonne': ['Agen'],
+    'Lozère': ['Mende'],
+    'Maine-et-Loire': ['Angers', 'Cholet', 'Saumur', 'Sèvremoine'],
+    'Manche': ['Saint-Lô'],
+    'Marne': ['Châlons-en-Champagne', 'Reims'],
+    'Haute-Marne': ['Chaumont'],
+    'Mayenne': ['Laval'],
+    'Meurthe-et-Moselle': ['Nancy', 'Vandœuvre-lès-Nancy'],
+    'Meuse': ['Bar-le-Duc'],
+    'Morbihan': ['Vannes'],
+    'Moselle': ['Metz', 'Thionville'],
+    'Nièvre': ['Nevers'],
+    'Nord': ['Lille', 'Armentières', 'Cambrai', 'Douai', 'Dunkerque', 'Lambersart', 'Marcq-en-Barœul', 'Maubeuge', 'Roubaix', 'Tourcoing', 'Valenciennes', 'Villeneuve-d\'Ascq', 'Wattrelos'],
+    'Oise': ['Beauvais'],
+    'Orne': ['Alençon'],
+    'Pas-de-Calais': ['Arras', 'Boulogne-sur-Mer', 'Béthune', 'Calais', 'Hénin-Beaumont', 'Lens', 'Liévin'],
+    'Puy-de-Dôme': ['Clermont-Ferrand'],
+    'Pyrénées-Atlantiques': ['Pau', 'Anglet', 'Bayonne', 'Biarritz'],
+    'Hautes-Pyrénées': ['Tarbes'],
+    'Pyrénées-Orientales': ['Perpignan'],
+    'Bas-Rhin': ['Strasbourg', 'Haguenau', 'Illkirch-Graffenstaden', 'Schiltigheim'],
+    'Haut-Rhin': ['Colmar', 'Mulhouse'],
+    'Rhône': ['Lyon', 'Bron', 'Caluire-et-Cuire', 'Décines-Charpieu', 'Meyzieu', 'Rillieux-la-Pape', 'Saint-Priest', 'Vaulx-en-Velin', 'Villeurbanne', 'Vénissieux'],
+    'Haute-Saône': ['Vesoul'],
+    'Saône-et-Loire': ['Mâcon', 'Chalon-sur-Saône'],
+    'Sarthe': ['Le Mans'],
+    'Savoie': ['Chambéry', 'Aix-les-Bains'],
+    'Haute-Savoie': ['Annecy', 'Annemasse', 'Thonon-les-Bains'],
+    'Paris': ['Paris'],
+    'Seine-Maritime': ['Rouen', 'Dieppe', 'Le Grand-Quevilly', 'Le Havre', 'Saint-Étienne-du-Rouvray', 'Sotteville-lès-Rouen'],
+    'Seine-et-Marne': ['Melun'],
+    'Yvelines': ['Versailles'],
+    'Deux-Sèvres': ['Niort'],
+    'Somme': ['Amiens'],
+    'Tarn': ['Albi', 'Castres'],
+    'Tarn-et-Garonne': ['Montauban'],
+    'Var': ['Toulon', 'Draguignan', 'Fréjus', 'Hyères', 'La Garde', 'La Seyne-sur-Mer', 'Saint-Raphaël', 'Six-Fours-les-Plages'],
+    'Vaucluse': ['Avignon', 'Carpentras', 'Cavaillon'],
+    'Vendée': ['La Roche-sur-Yon', 'Les Sables-d\'Olonne'],
+    'Vienne': ['Poitiers', 'Châtellerault'],
+    'Haute-Vienne': ['Limoges'],
+    'Vosges': ['Épinal'],
+    'Yonne': ['Auxerre', 'Sens'],
+    'Territoire de Belfort': ['Belfort'],
+    'Essonne': ['Évry-Courcouronnes'],
+    'Hauts-de-Seine': ['Nanterre'],
+    'Seine-Saint-Denis': ['Bobigny'],
+    'Val-de-Marne': ['Créteil'],
+    'Val-d\'Oise': ['Cergy'],
 };
