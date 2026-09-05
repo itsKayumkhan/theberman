@@ -1,8 +1,67 @@
 // @ts-nocheck
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { requireAdmin } from "../shared/auth.ts";
-import { getTenantConfig } from "../shared/tenant.ts";
+
+interface AuthResult {
+    user: any | null;
+    profile: any | null;
+    error: string | null;
+}
+
+async function verifyAuth(req: Request, serviceRoleClient: any): Promise<AuthResult> {
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+        return { user: null, profile: null, error: 'Missing authorization header' };
+    }
+    const token = authHeader.replace('Bearer ', '').trim();
+    if (!token) {
+        return { user: null, profile: null, error: 'Missing bearer token' };
+    }
+    const { data, error } = await serviceRoleClient.auth.getUser(token);
+    if (error || !data.user) {
+        return { user: null, profile: null, error: error?.message || 'Invalid or expired token' };
+    }
+    return { user: data.user, profile: null, error: null };
+}
+
+async function requireAdmin(req: Request, serviceRoleClient: any): Promise<AuthResult> {
+    const authResult = await verifyAuth(req, serviceRoleClient);
+    if (authResult.error || !authResult.user) {
+        return authResult;
+    }
+    const { data: profile, error: profileError } = await serviceRoleClient
+        .from('profiles')
+        .select('role, tenant')
+        .eq('id', authResult.user.id)
+        .maybeSingle();
+    if (profileError) {
+        return { user: null, profile: null, error: profileError.message };
+    }
+    if (!profile || profile.role !== 'admin') {
+        return { user: null, profile: null, error: 'Forbidden: admin access required' };
+    }
+    return { user: authResult.user, profile, error: null };
+}
+
+async function getTenantConfig(supabase: any, tenant: string) {
+    const { data, error } = await supabase
+        .from('tenant_configurations')
+        .select('*')
+        .eq('tenant', tenant)
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle();
+    if (error || !data) {
+        console.error(`[tenant] Failed to load config for tenant "${tenant}":`, error);
+        throw new Error(`Tenant config not found: ${tenant}`);
+    }
+    return {
+        tenant: data.tenant,
+        domain: data.domain,
+        display_name: data.display_name,
+        website_url: data.website_url || `https://${data.domain}`,
+    };
+}
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
