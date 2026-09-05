@@ -1,7 +1,6 @@
 import { X, Home, Calendar, Send, User, Building, Euro, Clock, Edit, Mail } from 'lucide-react';
 import type { Assessment } from '../../../types/admin';
 import { getStatusColor } from '../adminUtils';
-import { getTenantFromDomain } from '../../../lib/tenant';
 
 interface Props {
     assessment: Assessment;
@@ -16,12 +15,16 @@ interface Props {
     onResendQuotes?: () => void;
 }
 
-const tenant = getTenantFromDomain();
-const regNumberLabel = tenant === 'spain' ? 'CEE CAT' : tenant === 'england' ? 'Assessor ID' : 'SEAI';
+const getRegNumberLabel = (tenant: string) =>
+    tenant === 'spain' ? 'CEE CAT' : tenant === 'england' ? 'Assessor ID' : 'SEAI';
 
 export const AssessmentDetailModal = ({
     assessment, onClose, onGenerateQuote, onResendNotifications, onAssignAssessor, onSchedule, onComplete, onMessage, onEdit, onResendQuotes,
-}: Props) => (
+}: Props) => {
+    const assessmentTenant = assessment.tenant || 'ireland';
+    const regNumberLabel = getRegNumberLabel(assessmentTenant);
+    const currencySymbol = assessmentTenant === 'england' ? '£' : '€';
+    return (
     <div
         className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
         onClick={onClose}
@@ -231,7 +234,7 @@ export const AssessmentDetailModal = ({
                                                 )}
                                             </div>
                                             <div className="text-right ml-4">
-                                                <p className="text-2xl font-bold text-emerald-600">{tenant === 'england' ? '£' : '€'}{quote.price}</p>
+                                                <p className="text-2xl font-bold text-emerald-600">{currencySymbol}{quote.price}</p>
                                                 <p className="text-[9px] text-gray-400">{new Date(quote.created_at).toLocaleDateString('en-GB')}</p>
                                             </div>
                                         </div>
@@ -336,3 +339,4 @@ export const AssessmentDetailModal = ({
         </div>
     </div>
 );
+};
