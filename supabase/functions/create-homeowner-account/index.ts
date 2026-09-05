@@ -79,7 +79,7 @@ Deno.serve(async (req: Request) => {
         if (phoneConflict) {
             return new Response(JSON.stringify({
                 success: false,
-                error: `A user already exists with this phone number: ${phoneConflict.full_name || phoneConflict.email} (${phoneConflict.role || 'user'})`,
+                error: `This phone number is already registered to ${phoneConflict.email}. Please use a different phone number or log in with that account.`,
             }), { status: 409, headers: responseHeaders });
         }
 

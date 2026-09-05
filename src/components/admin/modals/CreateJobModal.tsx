@@ -151,7 +151,7 @@ export const CreateJobModal = ({ onClose, onJobCreated, selectedTenant = 'irelan
             if (profile) {
                 setHomeownerUserId(profile.id);
                 setHomeownerStatus('found');
-                setHomeownerMessage(`Profile found: ${profile.full_name || profile.email} (${profile.role || 'user'})`);
+                setHomeownerMessage(`Profile found for ${profile.email} (${profile.role || 'user'})`);
             } else {
                 setHomeownerStatus('not_found');
                 setHomeownerMessage('No homeowner profile found for this email. Create one to continue.');
