@@ -189,7 +189,7 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
         fetchFees();
     }, []);
     const [emailError, _setEmailError] = useState<string | null>(null);
-    const [resolvedUserId] = useState<string | null>(null);
+    const [resolvedUserId, setResolvedUserId] = useState<string | null>(null);
     const [passwordStep, setPasswordStep] = useState<{ loading: boolean; isExistingUser: boolean; password: string; showPassword: boolean; creating: boolean }>({
         loading: false,
         isExistingUser: false,
@@ -494,9 +494,14 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                 }
                 throw new Error(errMsg);
             }
+            const signupUserId = signupData?.user_id || signupData?.user?.id;
+            if (!signupUserId) {
+                throw new Error('Account created but user ID was not returned. Please try again.');
+            }
             toast.success(isSpanish ? '¡Cuenta creada! Revisa tu correo para confirmar tu cuenta.' : tenant === 'france' ? 'Compte créé ! Vérifiez votre e-mail pour confirmer.' : tenant === 'portugal' ? 'Conta criada! Verifique o seu email para confirmar.' : 'Account created! Check your email to confirm your account.');
+            setResolvedUserId(signupUserId);
             setPasswordStep(prev => ({ ...prev, creating: false }));
-            handleFinalSubmission(signupData?.user?.id);
+            handleFinalSubmission(signupUserId);
         } catch (err: any) {
             console.error('Password creation error:', err);
             toast.error(err.message || (isSpanish ? 'No se pudo crear la cuenta' : tenant === 'france' ? 'Impossible de créer le compte' : tenant === 'portugal' ? 'Não foi possível criar a conta' : 'Failed to create account'));

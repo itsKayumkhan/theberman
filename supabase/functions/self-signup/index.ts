@@ -233,6 +233,7 @@ Deno.serve(async (req: Request) => {
             JSON.stringify({
                 success: true,
                 user: authUser,
+                user_id: userId,
                 needsEmailConfirmation: true,
                 message: 'Account created. Check your email to confirm.',
             }),
