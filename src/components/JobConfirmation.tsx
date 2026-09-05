@@ -37,10 +37,10 @@ const JobConfirmation = ({ customerName, county, email, emailError, hideNavigati
                 </div>
                 <div>
                     <h1 className="text-4xl md:text-5xl font-light text-gray-800 mb-4">
-                        {isSpanish ? '¡Casi listo! Confirma tu correo' : isFrench ? 'Presque terminé ! Confirmez votre e-mail' : isPortuguese ? 'Quase pronto! Confirme o seu email' : 'Almost there! Confirm your email'}
+                        {isSpanish ? '¡Gracias! Revisa tu correo' : isFrench ? 'Merci ! Vérifiez votre e-mail' : isPortuguese ? 'Obrigado! Verifique o seu email' : 'Thanks! Check your email'}
                     </h1>
                     <p className="text-xl text-gray-600 max-w-lg mx-auto">
-                        {isSpanish ? `Hola ${customerName}, hemos guardado tu ${jobTitle}. Se publicará y notificaremos a los ${professionalTitle.toLowerCase()} de ${county} en cuanto confirmes tu correo.` : isFrench ? `Bonjour ${customerName}, votre ${jobTitle} est enregistrée. Elle sera mise en ligne et les ${professionalTitle.toLowerCase()} de ${county} seront notifiés dès que vous confirmerez votre e-mail.` : isPortuguese ? `Olá ${customerName}, guardámos o seu ${jobTitle}. Será publicado e os ${professionalTitle.toLowerCase()} de ${county} serão notificados assim que confirmar o seu email.` : `Hi ${customerName}, your ${jobTitle} is saved. It will go live and ${professionalTitle.toLowerCase()} in ${county} will be notified as soon as you confirm your email.`}
+                        {isSpanish ? `Hola ${customerName}, tu cuenta y tu ${jobTitle} han sido guardadas. Abre el correo que enviamos a ${email}, confirma tu cuenta y tu trabajo se publicará automáticamente.` : isFrench ? `Bonjour ${customerName}, votre compte et votre ${jobTitle} ont été enregistrés. Ouvrez l’e-mail envoyé à ${email}, confirmez votre compte et votre mission sera mise en ligne automatiquement.` : isPortuguese ? `Olá ${customerName}, a sua conta e o seu ${jobTitle} foram guardadas. Abra o email enviado para ${email}, confirme a sua conta e o seu trabalho será publicado automaticamente.` : `Hi ${customerName}, your account and ${jobTitle} are saved. Open the email we sent to ${email}, confirm your account, and your job will go live automatically.`}
                     </p>
                 </div>
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-8 max-w-2xl mx-auto text-left">
