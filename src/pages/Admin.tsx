@@ -186,13 +186,25 @@ const Admin = () => {
     const [locationFilter, setLocationFilter] = useState('');
     const [customMonths, setCustomMonths] = useState<number>(1);
     const [selectedTenant] = useState<string>(() => {
-        // Priority: URL param > localStorage > domain detection
+        // Priority: URL param > domain detection > localStorage
+        // Stale localStorage from a previous admin session should never
+        // override the actual domain the user is currently on.
         const urlParams = new URLSearchParams(window.location.search);
         const urlTenant = urlParams.get('tenant');
         if (urlTenant) return urlTenant;
+        const domainTenant = getTenantFromDomain();
+        if (domainTenant && domainTenant !== 'ireland') {
+            // Admin is on a non-Ireland tenant domain (e.g. epccert.com).
+            // Trust the domain over any stale localStorage from another admin session.
+            return domainTenant;
+        }
+        if (domainTenant === 'ireland') {
+            // On theberman.eu explicitly
+            return 'ireland';
+        }
         const saved = localStorage.getItem('admin_selected_tenant');
         if (saved) return saved;
-        return getTenantFromDomain();
+        return 'ireland';
     });
 
     const setView = (next: AdminView) => {
