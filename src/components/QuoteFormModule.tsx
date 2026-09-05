@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronRight, Check } from 'lucide-react';
+import { ChevronRight, Check, Eye, EyeOff, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -189,6 +189,13 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
         fetchFees();
     }, []);
     const [emailError, _setEmailError] = useState<string | null>(null);
+    const [passwordStep, setPasswordStep] = useState<{ loading: boolean; isExistingUser: boolean; password: string; showPassword: boolean; creating: boolean }>({
+        loading: false,
+        isExistingUser: false,
+        password: '',
+        showPassword: false,
+        creating: false,
+    });
 
     const [formData, setFormData] = useState<FormData>({
         jobType: '',
@@ -431,8 +438,79 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
         }
     };
 
-    const handleEmailVerified = () => {
-        handleFinalSubmission();
+    const handleEmailVerified = async () => {
+        // Check if user already has an auth account
+        setPasswordStep(prev => ({ ...prev, loading: true }));
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) {
+                // Already logged in — skip password step
+                setPasswordStep(prev => ({ ...prev, loading: false }));
+                handleFinalSubmission();
+                return;
+            }
+            // Check if auth user exists by trying to list users via a profile lookup
+            const { data: existingProfile } = await supabase
+                .from('profiles')
+                .select('id, email')
+                .eq('email', formData.email.toLowerCase())
+                .eq('tenant', getTenantFromDomain())
+                .maybeSingle();
+            if (existingProfile) {
+                // User has an account — skip password step, they can log in later
+                setPasswordStep(prev => ({ ...prev, loading: false, isExistingUser: true }));
+                handleFinalSubmission();
+            } else {
+                // New user — show password creation step
+                setPasswordStep(prev => ({ ...prev, loading: false, isExistingUser: false }));
+                setCurrentStep(13);
+            }
+        } catch (err) {
+            console.error('Error checking existing user:', err);
+            setPasswordStep(prev => ({ ...prev, loading: false }));
+            // Proceed without account
+            handleFinalSubmission();
+        }
+    };
+
+    const handlePasswordSubmit = async () => {
+        if (passwordStep.password.length < 6) {
+            toast.error(isSpanish ? 'La contraseña debe tener al menos 6 caracteres' : tenant === 'france' ? 'Le mot de passe doit comporter au moins 6 caractères' : tenant === 'portugal' ? 'A palavra-passe deve ter pelo menos 6 caracteres' : 'Password must be at least 6 characters');
+            return;
+        }
+        setPasswordStep(prev => ({ ...prev, creating: true }));
+        try {
+            const currentTenant = getTenantFromDomain();
+            const { data: signupData, error: signupError } = await supabase.functions.invoke('self-signup', {
+                body: {
+                    email: formData.email,
+                    password: passwordStep.password,
+                    fullName: formData.fullName,
+                    role: 'user',
+                    phone: formData.phone,
+                    tenant: currentTenant,
+                },
+            });
+            if (signupError) throw signupError;
+            if (!signupData?.success) {
+                const errMsg = signupData?.error || 'Signup failed';
+                if (errMsg === 'EMAIL_EXISTS') {
+                    // Account already exists — proceed with job submission
+                    toast.success(isSpanish ? 'Cuenta existente encontrada. Trabajo publicado.' : tenant === 'france' ? 'Compte existant trouvé. Mission publiée.' : tenant === 'portugal' ? 'Conta existente encontrada. Trabalho publicado.' : 'Existing account found. Job posted.');
+                    setPasswordStep(prev => ({ ...prev, creating: false }));
+                    handleFinalSubmission();
+                    return;
+                }
+                throw new Error(errMsg);
+            }
+            toast.success(isSpanish ? '¡Cuenta creada! Revisa tu correo para confirmar tu cuenta.' : tenant === 'france' ? 'Compte créé ! Vérifiez votre e-mail pour confirmer.' : tenant === 'portugal' ? 'Conta criada! Verifique o seu email para confirmar.' : 'Account created! Check your email to confirm your account.');
+            setPasswordStep(prev => ({ ...prev, creating: false }));
+            handleFinalSubmission();
+        } catch (err: any) {
+            console.error('Password creation error:', err);
+            toast.error(err.message || (isSpanish ? 'No se pudo crear la cuenta' : tenant === 'france' ? 'Impossible de créer le compte' : tenant === 'portugal' ? 'Não foi possível criar a conta' : 'Failed to create account'));
+            setPasswordStep(prev => ({ ...prev, creating: false }));
+        }
     };
 
     const handleFinalSubmission = async () => {
@@ -939,6 +1017,54 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                             onBack={() => setCurrentStep(11)}
                         />
                     );
+                case 13:
+                    return (
+                        <div className="space-y-6 max-w-md mx-auto pt-8">
+                            <div className="text-center">
+                                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                                    <Lock size={28} className="text-green-600" />
+                                </div>
+                                <h2 className="text-3xl md:text-4xl font-light text-gray-800 mb-2">
+                                    {isSpanish ? 'Crea tu Contraseña' : tenant === 'france' ? 'Créez votre Mot de Passe' : tenant === 'portugal' ? 'Crie a sua Palavra-passe' : 'Create Your Password'}
+                                </h2>
+                                <p className="text-gray-500">
+                                    {isSpanish ? 'Necesitarás esta contraseña para iniciar sesión y ver tus presupuestos.' : tenant === 'france' ? 'Vous aurez besoin de ce mot de passe pour vous connecter et voir vos devis.' : tenant === 'portugal' ? 'Necessitará desta palavra-passe para iniciar sessão e ver os seus orçamentos.' : 'You\'ll need this password to log in and view your quotes.'}
+                                </p>
+                            </div>
+                            <div className="relative">
+                                <input
+                                    type={passwordStep.showPassword ? 'text' : 'password'}
+                                    value={passwordStep.password}
+                                    onChange={(e) => setPasswordStep(prev => ({ ...prev, password: e.target.value }))}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' && passwordStep.password.length >= 6) handlePasswordSubmit(); }}
+                                    placeholder="••••••••"
+                                    autoFocus
+                                    className="w-full px-4 py-4 bg-[#e8f0fe] border-none rounded-lg focus:ring-2 focus:ring-[#007F00]/30 outline-none pr-12 text-lg"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setPasswordStep(prev => ({ ...prev, showPassword: !prev.showPassword }))}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                >
+                                    {passwordStep.showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
+                            <button
+                                onClick={handlePasswordSubmit}
+                                disabled={passwordStep.creating || passwordStep.password.length < 6}
+                                className="w-full py-4 bg-[#007F00] text-white rounded-full font-bold text-lg hover:bg-green-800 transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {passwordStep.creating ? (
+                                    <><span className="animate-spin">⟳</span> {isSpanish ? 'Creando...' : tenant === 'france' ? 'Création...' : tenant === 'portugal' ? 'A criar...' : 'Creating...'}</>
+                                ) : (
+                                    <>{isSpanish ? 'Crear Cuenta y Publicar' : tenant === 'france' ? 'Créer et Publier' : tenant === 'portugal' ? 'Criar e Publicar' : 'Create Account & Post Job'}</>
+                                )}
+                            </button>
+                            <p className="text-center text-gray-400 text-sm">
+                                {isSpanish ? 'Te enviaremos un correo de confirmación.' : tenant === 'france' ? 'Nous vous enverrons un e-mail de confirmation.' : tenant === 'portugal' ? 'Enviaremos um email de confirmação.' : 'We\'ll send you a confirmation email.'}
+                            </p>
+                        </div>
+                    );
                 case 14:
                     return (
                         <div className="pt-8">
@@ -1075,6 +1201,54 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                             onVerified={handleEmailVerified}
                             onBack={() => setCurrentStep(11)}
                         />
+                    );
+                case 13:
+                    return (
+                        <div className="space-y-6 max-w-md mx-auto pt-8">
+                            <div className="text-center">
+                                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                                    <Lock size={28} className="text-green-600" />
+                                </div>
+                                <h2 className="text-3xl md:text-4xl font-light text-gray-800 mb-2">
+                                    {isSpanish ? 'Crea tu Contraseña' : tenant === 'france' ? 'Créez votre Mot de Passe' : tenant === 'portugal' ? 'Crie a sua Palavra-passe' : 'Create Your Password'}
+                                </h2>
+                                <p className="text-gray-500">
+                                    {isSpanish ? 'Necesitarás esta contraseña para iniciar sesión y ver tus presupuestos.' : tenant === 'france' ? 'Vous aurez besoin de ce mot de passe pour vous connecter et voir vos devis.' : tenant === 'portugal' ? 'Necessitará desta palavra-passe para iniciar sessão e ver os seus orçamentos.' : 'You\'ll need this password to log in and view your quotes.'}
+                                </p>
+                            </div>
+                            <div className="relative">
+                                <input
+                                    type={passwordStep.showPassword ? 'text' : 'password'}
+                                    value={passwordStep.password}
+                                    onChange={(e) => setPasswordStep(prev => ({ ...prev, password: e.target.value }))}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' && passwordStep.password.length >= 6) handlePasswordSubmit(); }}
+                                    placeholder="••••••••"
+                                    autoFocus
+                                    className="w-full px-4 py-4 bg-[#e8f0fe] border-none rounded-lg focus:ring-2 focus:ring-[#007F00]/30 outline-none pr-12 text-lg"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setPasswordStep(prev => ({ ...prev, showPassword: !prev.showPassword }))}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                >
+                                    {passwordStep.showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
+                            <button
+                                onClick={handlePasswordSubmit}
+                                disabled={passwordStep.creating || passwordStep.password.length < 6}
+                                className="w-full py-4 bg-[#007F00] text-white rounded-full font-bold text-lg hover:bg-green-800 transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {passwordStep.creating ? (
+                                    <><span className="animate-spin">⟳</span> {isSpanish ? 'Creando...' : tenant === 'france' ? 'Création...' : tenant === 'portugal' ? 'A criar...' : 'Creating...'}</>
+                                ) : (
+                                    <>{isSpanish ? 'Crear Cuenta y Publicar' : tenant === 'france' ? 'Créer et Publier' : tenant === 'portugal' ? 'Criar e Publicar' : 'Create Account & Post Job'}</>
+                                )}
+                            </button>
+                            <p className="text-center text-gray-400 text-sm">
+                                {isSpanish ? 'Te enviaremos un correo de confirmación.' : tenant === 'france' ? 'Nous vous enverrons un e-mail de confirmation.' : tenant === 'portugal' ? 'Enviaremos um email de confirmação.' : 'We\'ll send you a confirmation email.'}
+                            </p>
+                        </div>
                     );
                 case 14:
                     return (
@@ -1224,6 +1398,54 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                             onVerified={handleEmailVerified}
                             onBack={() => setCurrentStep(11)}
                         />
+                    );
+                case 13:
+                    return (
+                        <div className="space-y-6 max-w-md mx-auto pt-8">
+                            <div className="text-center">
+                                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                                    <Lock size={28} className="text-green-600" />
+                                </div>
+                                <h2 className="text-3xl md:text-4xl font-light text-gray-800 mb-2">
+                                    {isSpanish ? 'Crea tu Contraseña' : tenant === 'france' ? 'Créez votre Mot de Passe' : tenant === 'portugal' ? 'Crie a sua Palavra-passe' : 'Create Your Password'}
+                                </h2>
+                                <p className="text-gray-500">
+                                    {isSpanish ? 'Necesitarás esta contraseña para iniciar sesión y ver tus presupuestos.' : tenant === 'france' ? 'Vous aurez besoin de ce mot de passe pour vous connecter et voir vos devis.' : tenant === 'portugal' ? 'Necessitará desta palavra-passe para iniciar sessão e ver os seus orçamentos.' : 'You\'ll need this password to log in and view your quotes.'}
+                                </p>
+                            </div>
+                            <div className="relative">
+                                <input
+                                    type={passwordStep.showPassword ? 'text' : 'password'}
+                                    value={passwordStep.password}
+                                    onChange={(e) => setPasswordStep(prev => ({ ...prev, password: e.target.value }))}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' && passwordStep.password.length >= 6) handlePasswordSubmit(); }}
+                                    placeholder="••••••••"
+                                    autoFocus
+                                    className="w-full px-4 py-4 bg-[#e8f0fe] border-none rounded-lg focus:ring-2 focus:ring-[#007F00]/30 outline-none pr-12 text-lg"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setPasswordStep(prev => ({ ...prev, showPassword: !prev.showPassword }))}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                >
+                                    {passwordStep.showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
+                            <button
+                                onClick={handlePasswordSubmit}
+                                disabled={passwordStep.creating || passwordStep.password.length < 6}
+                                className="w-full py-4 bg-[#007F00] text-white rounded-full font-bold text-lg hover:bg-green-800 transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {passwordStep.creating ? (
+                                    <><span className="animate-spin">⟳</span> {isSpanish ? 'Creando...' : tenant === 'france' ? 'Création...' : tenant === 'portugal' ? 'A criar...' : 'Creating...'}</>
+                                ) : (
+                                    <>{isSpanish ? 'Crear Cuenta y Publicar' : tenant === 'france' ? 'Créer et Publier' : tenant === 'portugal' ? 'Criar e Publicar' : 'Create Account & Post Job'}</>
+                                )}
+                            </button>
+                            <p className="text-center text-gray-400 text-sm">
+                                {isSpanish ? 'Te enviaremos un correo de confirmación.' : tenant === 'france' ? 'Nous vous enverrons un e-mail de confirmation.' : tenant === 'portugal' ? 'Enviaremos um email de confirmação.' : 'We\'ll send you a confirmation email.'}
+                            </p>
+                        </div>
                     );
                 case 14:
                     return (
