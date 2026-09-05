@@ -48,6 +48,37 @@ const Login = () => {
     const redirectParam = params.get('redirect');
     const isConfirmed = params.get('confirmed') === 'true';
 
+    // Parse the confirmation-link access_token in the URL hash.
+    // Supabase normally does this automatically, but a race with our listeners
+    // can leave the page blank until a manual refresh.
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const hash = window.location.hash;
+        if (!hash || !hash.includes('access_token=')) return;
+
+        let cancelled = false;
+        const params = new URLSearchParams(hash.replace(/^#/, ''));
+        const accessToken = params.get('access_token');
+        const refreshToken = params.get('refresh_token');
+
+        if (!accessToken || !refreshToken) return;
+
+        supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken }).then(({ data, error }) => {
+            if (cancelled) return;
+            if (error) {
+                console.error('Login: setSession error:', error);
+                toast.error(t('confirmation_failed', 'Email confirmation failed. Please try logging in or request a new link.'));
+            } else if (data?.session) {
+                // Remove the hash fragment after the session is extracted so
+                // the URL is clean and the auth listeners can redirect cleanly.
+                window.history.replaceState(null, '', window.location.pathname + window.location.search);
+            }
+        });
+
+        return () => { cancelled = true; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     // Redirect if already authenticated
     useEffect(() => {
         // Skip auto-redirect while onSubmit is running — let it handle role check first
