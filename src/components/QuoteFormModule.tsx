@@ -433,25 +433,41 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
     const handleSubmit = async () => {
         if (!canProceed()) return;
         // Only auto-submit if the logged-in user has a profile and matches the contact email
-        if (user?.id) {
+        const validUserId = await resolveValidSessionUserId();
+        if (validUserId) {
             const { data: existingProfile } = await supabase
                 .from('profiles')
                 .select('id, email')
-                .eq('id', user.id)
+                .eq('id', validUserId)
                 .maybeSingle();
             if (existingProfile && existingProfile.email?.toLowerCase() === formData.email.toLowerCase()) {
-                handleFinalSubmission(user.id);
+                handleFinalSubmission(validUserId);
                 return;
             }
         }
         setCurrentStep(12);
     };
 
-    const handleEmailVerified = async () => {
+    // Returns a valid, DB-backed user id for the current session, or null.
+    // Signs out stale sessions whose auth user no longer exists.
+    const resolveValidSessionUserId = async (): Promise<string | null> => {
         const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user || user?.id) {
+        const sessionUserId = session?.user?.id || user?.id;
+        if (!sessionUserId) return null;
+        const { data: { user: liveUser }, error } = await supabase.auth.getUser();
+        if (error || !liveUser) {
+            console.warn('Stale session detected, signing out:', error?.message);
+            await supabase.auth.signOut();
+            return null;
+        }
+        return liveUser.id;
+    };
+
+    const handleEmailVerified = async () => {
+        const validUserId = await resolveValidSessionUserId();
+        if (validUserId) {
             // Already logged in — skip password step and post job
-            handleFinalSubmission(session?.user?.id || user?.id);
+            handleFinalSubmission(validUserId);
             return;
         }
         // Account creation is always the last step before posting the job
@@ -566,9 +582,15 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
 
         setIsSubmitting(true);
         try {
-            const { data: { session } } = await supabase.auth.getSession();
-            let currentUserId = overrideUserId || session?.user?.id || user?.id || resolvedUserId;
+            let currentUserId = overrideUserId || resolvedUserId || await resolveValidSessionUserId();
             const tenant = getTenantFromDomain();
+
+            if (!currentUserId) {
+                // No valid account yet — send user to create one
+                setIsSubmitting(false);
+                setCurrentStep(13);
+                return;
+            }
 
             // Safety net: ensure a profile exists for the user_id before inserting the assessment
             if (currentUserId) {
@@ -580,7 +602,7 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                 if (!existingProfile) {
                     const { error: profileInsertError } = await supabase
                         .from('profiles')
-                        .insert({
+                        .upsert({
                             id: currentUserId,
                             email: formData.email.toLowerCase(),
                             full_name: formData.fullName,
@@ -589,7 +611,7 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                             role: 'user',
                             is_active: true,
                             registration_status: 'active',
-                        });
+                        }, { onConflict: 'id' });
                     if (profileInsertError) {
                         console.error('Profile insert error:', profileInsertError);
                         throw new Error('Could not create your profile before posting the job. Please try again.');
