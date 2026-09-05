@@ -432,11 +432,19 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
 
     const handleSubmit = async () => {
         if (!canProceed()) return;
-        if (user) {
-            handleFinalSubmission();
-        } else {
-            setCurrentStep(12);
+        // Only auto-submit if the logged-in user has a profile and matches the contact email
+        if (user?.id) {
+            const { data: existingProfile } = await supabase
+                .from('profiles')
+                .select('id, email')
+                .eq('id', user.id)
+                .maybeSingle();
+            if (existingProfile && existingProfile.email?.toLowerCase() === formData.email.toLowerCase()) {
+                handleFinalSubmission(user.id);
+                return;
+            }
         }
+        setCurrentStep(12);
     };
 
     const handleEmailVerified = async () => {
@@ -560,6 +568,34 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
         try {
             const { data: { session } } = await supabase.auth.getSession();
             let currentUserId = overrideUserId || session?.user?.id || user?.id || resolvedUserId;
+            const tenant = getTenantFromDomain();
+
+            // Safety net: ensure a profile exists for the user_id before inserting the assessment
+            if (currentUserId) {
+                const { data: existingProfile } = await supabase
+                    .from('profiles')
+                    .select('id')
+                    .eq('id', currentUserId)
+                    .maybeSingle();
+                if (!existingProfile) {
+                    const { error: profileInsertError } = await supabase
+                        .from('profiles')
+                        .insert({
+                            id: currentUserId,
+                            email: formData.email.toLowerCase(),
+                            full_name: formData.fullName,
+                            phone: formData.phone || null,
+                            tenant,
+                            role: 'user',
+                            is_active: true,
+                            registration_status: 'active',
+                        });
+                    if (profileInsertError) {
+                        console.error('Profile insert error:', profileInsertError);
+                        throw new Error('Could not create your profile before posting the job. Please try again.');
+                    }
+                }
+            }
 
             const lastReferralStr = localStorage.getItem('last_referral');
             let referredByListingId = null;
@@ -628,7 +664,6 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                 };
             }
 
-            const tenant = getTenantFromDomain();
             const payloadWithTenant = { ...insertPayload, tenant };
 
             const { data, error: dbError } = await supabase
