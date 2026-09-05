@@ -9,9 +9,10 @@ interface JobConfirmationProps {
     emailError?: string | null;
     hideNavigation?: boolean;
     jobType?: 'BER' | 'Solar';
+    pendingEmailConfirmation?: boolean;
 }
 
-const JobConfirmation = ({ customerName, county, email, emailError, hideNavigation, jobType = 'BER' }: JobConfirmationProps) => {
+const JobConfirmation = ({ customerName, county, email, emailError, hideNavigation, jobType = 'BER', pendingEmailConfirmation = false }: JobConfirmationProps) => {
     const tenant = getTenantFromDomain();
     const isEngland = tenant === 'england';
     const isSpanish = tenant === 'spain';
@@ -25,6 +26,46 @@ const JobConfirmation = ({ customerName, county, email, emailError, hideNavigati
     const professionalTitle = isSolar ? (isSpanish ? 'Instaladores Solares' : isFrench ? 'Installateurs Solaires' : isPortuguese ? 'Instaladores Solares' : 'Solar Installers') : (isEngland ? 'EPC Assessors' : (isSpanish ? 'Certificadores' : isFrench ? 'Diagnostiqueurs' : isPortuguese ? 'Peritos' : 'BER Assessors'));
     const professionalSingular = isSolar ? (isSpanish ? 'Instalador' : isFrench ? 'Installateur' : isPortuguese ? 'Instalador' : 'Installer') : (isEngland ? 'EPC Assessor' : (isSpanish ? 'Certificador' : isFrench ? 'Diagnostiqueur' : isPortuguese ? 'Perito' : 'Assessor'));
     const jobTitle = isSolar ? (isSpanish ? 'Solicitud de presupuesto solar' : isFrench ? 'Demande de devis solaire' : isPortuguese ? 'Pedido de orçamento solar' : 'Solar quote request') : (isSpanish ? `Solicitud de ${ratingName}` : isFrench ? `Demande de ${ratingName}` : isPortuguese ? `Pedido de ${ratingName}` : `${ratingName} assessment request`);
+
+    if (pendingEmailConfirmation) {
+        return (
+            <div className="space-y-8 text-center">
+                <div className="flex justify-center">
+                    <div className="w-24 h-24 rounded-full bg-amber-100 flex items-center justify-center">
+                        <Mail size={48} className="text-amber-600" />
+                    </div>
+                </div>
+                <div>
+                    <h1 className="text-4xl md:text-5xl font-light text-gray-800 mb-4">
+                        {isSpanish ? '¡Casi listo! Confirma tu correo' : isFrench ? 'Presque terminé ! Confirmez votre e-mail' : isPortuguese ? 'Quase pronto! Confirme o seu email' : 'Almost there! Confirm your email'}
+                    </h1>
+                    <p className="text-xl text-gray-600 max-w-lg mx-auto">
+                        {isSpanish ? `Hola ${customerName}, hemos guardado tu ${jobTitle}. Se publicará y notificaremos a los ${professionalTitle.toLowerCase()} de ${county} en cuanto confirmes tu correo.` : isFrench ? `Bonjour ${customerName}, votre ${jobTitle} est enregistrée. Elle sera mise en ligne et les ${professionalTitle.toLowerCase()} de ${county} seront notifiés dès que vous confirmerez votre e-mail.` : isPortuguese ? `Olá ${customerName}, guardámos o seu ${jobTitle}. Será publicado e os ${professionalTitle.toLowerCase()} de ${county} serão notificados assim que confirmar o seu email.` : `Hi ${customerName}, your ${jobTitle} is saved. It will go live and ${professionalTitle.toLowerCase()} in ${county} will be notified as soon as you confirm your email.`}
+                    </p>
+                </div>
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-8 max-w-2xl mx-auto text-left">
+                    <h3 className="font-semibold text-amber-800 text-lg mb-4">{isSpanish ? 'Siguiente paso' : isFrench ? 'Prochaine étape' : isPortuguese ? 'Próximo passo' : 'Next step'}</h3>
+                    <ol className="text-amber-800 space-y-3">
+                        <li className="flex gap-3">
+                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-200 text-amber-900 flex items-center justify-center text-sm font-bold">1</span>
+                            <span>{isSpanish ? <>Abre el correo que enviamos a <span className="font-semibold">{email}</span> y haz clic en <strong>Confirmar mi cuenta</strong>.</> : isFrench ? <>Ouvrez l’e-mail envoyé à <span className="font-semibold">{email}</span> et cliquez sur <strong>Confirmer mon compte</strong>.</> : isPortuguese ? <>Abra o email enviado para <span className="font-semibold">{email}</span> e clique em <strong>Confirmar a minha conta</strong>.</> : <>Open the email we sent to <span className="font-semibold">{email}</span> and click <strong>Confirm my account</strong>.</>}</span>
+                        </li>
+                        <li className="flex gap-3">
+                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-200 text-amber-900 flex items-center justify-center text-sm font-bold">2</span>
+                            <span>{isSpanish ? 'Tu trabajo se publicará automáticamente y recibirás un correo cuando lleguen presupuestos.' : isFrench ? 'Votre mission sera mise en ligne automatiquement et vous recevrez un e-mail à chaque devis.' : isPortuguese ? 'O seu trabalho será publicado automaticamente e receberá um email quando chegarem orçamentos.' : 'Your job goes live automatically and we\'ll email you when quotes arrive.'}</span>
+                        </li>
+                        <li className="flex gap-3">
+                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-200 text-amber-900 flex items-center justify-center text-sm font-bold">3</span>
+                            <span>{isSpanish ? 'Inicia sesión con tu correo y contraseña para ver y comparar presupuestos.' : isFrench ? 'Connectez-vous avec votre e-mail et mot de passe pour voir et comparer les devis.' : isPortuguese ? 'Inicie sessão com o seu email e palavra-passe para ver e comparar orçamentos.' : 'Sign in with your email and password to view and compare quotes.'}</span>
+                        </li>
+                    </ol>
+                </div>
+                <p className="text-gray-400 text-sm">
+                    {isSpanish ? '¿No ves el correo? Revisa la carpeta de spam.' : isFrench ? 'Vous ne voyez pas l’e-mail ? Vérifiez vos spams.' : isPortuguese ? 'Não vê o email? Verifique a pasta de spam.' : 'Can\'t see the email? Check your spam folder.'}
+                </p>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8 text-center">

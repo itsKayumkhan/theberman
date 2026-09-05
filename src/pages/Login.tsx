@@ -30,7 +30,7 @@ const Login = () => {
     const isPortuguese = tenant === 'portugal';
     const isFrench = tenant === 'france';
     const assessorLabel = isEngland ? 'EPC Assessor' : isSpanish ? 'Certificador Energético' : isPortuguese ? 'Perito Certificador' : isFrench ? 'Diagnostiqueur DPE' : 'BER Assessor';
-    const { signIn, user, role, profile, loading } = useAuth();
+    const { signIn, user, role, profile, loading, refreshProfile } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [activeTab, setActiveTab] = useState<'homeowner' | 'assessor' | 'business'>(isSpanish ? 'assessor' : 'homeowner');
@@ -53,7 +53,13 @@ const Login = () => {
         // Skip auto-redirect while onSubmit is running — let it handle role check first
         if (signingIn.current) return;
 
-        if (!loading && user && role && profile) {
+        // Session exists (e.g. arrived via email confirmation link) but role not loaded yet — fetch it
+        if (!loading && user && !role) {
+            refreshProfile();
+            return;
+        }
+
+        if (!loading && user && role) {
             // If the flag is still set but user has an active session (they already
             // proved their identity), clear it silently. This prevents infinite redirect loops
             // when the original invite link expired and user reset via Forgot Password.
@@ -63,7 +69,7 @@ const Login = () => {
 
             // Handle pending registration users (Exclude admins)
             if (role === 'contractor' || role === 'business') {
-                if (profile.registration_status === 'pending') {
+                if (profile?.registration_status === 'pending') {
                     const path = role === 'contractor' ? '/assessor-onboarding' : '/business-onboarding';
                     navigate(path, { replace: true });
                     return;

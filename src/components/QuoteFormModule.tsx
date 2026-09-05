@@ -190,6 +190,7 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
     }, []);
     const [emailError, _setEmailError] = useState<string | null>(null);
     const [resolvedUserId, setResolvedUserId] = useState<string | null>(null);
+    const [pendingEmailConfirmation, setPendingEmailConfirmation] = useState(false);
     const [passwordStep, setPasswordStep] = useState<{ loading: boolean; isExistingUser: boolean; password: string; showPassword: boolean; creating: boolean }>({
         loading: false,
         isExistingUser: false,
@@ -525,7 +526,8 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
             toast.success(isSpanish ? '¡Cuenta creada! Revisa tu correo para confirmar tu cuenta.' : tenant === 'france' ? 'Compte créé ! Vérifiez votre e-mail pour confirmer.' : tenant === 'portugal' ? 'Conta criada! Verifique o seu email para confirmar.' : 'Account created! Check your email to confirm your account.');
             setResolvedUserId(signupUserId);
             setPasswordStep(prev => ({ ...prev, creating: false }));
-            handleFinalSubmission(signupUserId);
+            // New account is unconfirmed: hold the job until the email is confirmed
+            handleFinalSubmission(signupUserId, { holdUntilConfirmed: true });
         } catch (err: any) {
             console.error('Password creation error:', err);
             toast.error(err.message || (isSpanish ? 'No se pudo crear la cuenta' : tenant === 'france' ? 'Impossible de créer le compte' : tenant === 'portugal' ? 'Não foi possível criar a conta' : 'Failed to create account'));
@@ -533,8 +535,9 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
         }
     };
 
-    const handleFinalSubmission = async (overrideUserId?: string) => {
+    const handleFinalSubmission = async (overrideUserId?: string, opts?: { holdUntilConfirmed?: boolean }) => {
         if (isSubmitting) return; // Prevent double submission
+        const holdUntilConfirmed = !!opts?.holdUntilConfirmed;
 
         // Full validation — re-check all mandatory fields before insert
         const missing: string[] = [];
@@ -698,6 +701,15 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
 
             const newAssessmentId = data.id;
             setAssessmentId(newAssessmentId);
+
+            if (holdUntilConfirmed) {
+                // Job stays 'submitted'. A DB trigger flips it to 'live' and notifies
+                // assessors once the user confirms their email address.
+                setPendingEmailConfirmation(true);
+                toast.success(t('job_saved_pending_confirmation', 'Job saved! Confirm your email to make it live.'));
+                setCurrentStep(14);
+                return;
+            }
 
             // Set status to live immediately and send notifications to contractors
             const { error: updateError } = await supabase
@@ -1126,9 +1138,10 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                                 county={formData.county}
                                 email={formData.email}
                                 emailError={emailError}
-                                hideNavigation={!!onClose}
+                                hideNavigation={!!onClose || pendingEmailConfirmation}
+                                pendingEmailConfirmation={pendingEmailConfirmation}
                             />
-                            {onClose && (
+                            {onClose && !pendingEmailConfirmation && (
                                 <button onClick={onClose} className="mt-8 w-full bg-gray-900 text-white font-bold py-4 rounded-xl">
                                     {isSpanish ? 'Cerrar e Ir al Panel' : tenant === 'portugal' ? 'Fechar e Ir para o Painel' : tenant === 'france' ? 'Fermer et Aller au Tableau de Bord' : 'Close & Go to Dashboard'}
                                 </button>
@@ -1311,9 +1324,10 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                                 county={formData.county}
                                 email={formData.email}
                                 emailError={emailError}
-                                hideNavigation={!!onClose}
+                                hideNavigation={!!onClose || pendingEmailConfirmation}
+                                pendingEmailConfirmation={pendingEmailConfirmation}
                             />
-                            {onClose && (
+                            {onClose && !pendingEmailConfirmation && (
                                 <button onClick={onClose} className="mt-8 w-full bg-gray-900 text-white font-bold py-4 rounded-xl">
                                     {isSpanish ? 'Cerrar e Ir al Panel' : tenant === 'portugal' ? 'Fechar e Ir para o Painel' : tenant === 'france' ? 'Fermer et Aller au Tableau de Bord' : 'Close & Go to Dashboard'}
                                 </button>
@@ -1508,9 +1522,10 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
                                 county={formData.county}
                                 email={formData.email}
                                 emailError={emailError}
-                                hideNavigation={!!onClose}
+                                hideNavigation={!!onClose || pendingEmailConfirmation}
+                                pendingEmailConfirmation={pendingEmailConfirmation}
                             />
-                            {onClose && (
+                            {onClose && !pendingEmailConfirmation && (
                                 <button onClick={onClose} className="mt-8 w-full bg-gray-900 text-white font-bold py-4 rounded-xl">
                                     {isSpanish ? 'Cerrar e Ir al Panel' : tenant === 'portugal' ? 'Fechar e Ir para o Painel' : tenant === 'france' ? 'Fermer et Aller au Tableau de Bord' : 'Close & Go to Dashboard'}
                                 </button>
