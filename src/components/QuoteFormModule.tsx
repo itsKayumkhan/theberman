@@ -189,6 +189,7 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
         fetchFees();
     }, []);
     const [emailError, _setEmailError] = useState<string | null>(null);
+    const [resolvedUserId] = useState<string | null>(null);
     const [passwordStep, setPasswordStep] = useState<{ loading: boolean; isExistingUser: boolean; password: string; showPassword: boolean; creating: boolean }>({
         loading: false,
         isExistingUser: false,
@@ -439,38 +440,14 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
     };
 
     const handleEmailVerified = async () => {
-        // Check if user already has an auth account
-        setPasswordStep(prev => ({ ...prev, loading: true }));
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user) {
-                // Already logged in — skip password step
-                setPasswordStep(prev => ({ ...prev, loading: false }));
-                handleFinalSubmission();
-                return;
-            }
-            // Check if auth user exists by trying to list users via a profile lookup
-            const { data: existingProfile } = await supabase
-                .from('profiles')
-                .select('id, email')
-                .eq('email', formData.email.toLowerCase())
-                .eq('tenant', getTenantFromDomain())
-                .maybeSingle();
-            if (existingProfile) {
-                // User has an account — skip password step, they can log in later
-                setPasswordStep(prev => ({ ...prev, loading: false, isExistingUser: true }));
-                handleFinalSubmission();
-            } else {
-                // New user — show password creation step
-                setPasswordStep(prev => ({ ...prev, loading: false, isExistingUser: false }));
-                setCurrentStep(13);
-            }
-        } catch (err) {
-            console.error('Error checking existing user:', err);
-            setPasswordStep(prev => ({ ...prev, loading: false }));
-            // Proceed without account
-            handleFinalSubmission();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user || user?.id) {
+            // Already logged in — skip password step and post job
+            handleFinalSubmission(session?.user?.id || user?.id);
+            return;
         }
+        // Account creation is always the last step before posting the job
+        setCurrentStep(13);
     };
 
     const handlePasswordSubmit = async () => {
@@ -481,6 +458,21 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
         setPasswordStep(prev => ({ ...prev, creating: true }));
         try {
             const currentTenant = getTenantFromDomain();
+
+            // First try to sign in (existing user)
+            const { data: signInData } = await supabase.auth.signInWithPassword({
+                email: formData.email,
+                password: passwordStep.password,
+            });
+
+            if (signInData?.user?.id) {
+                toast.success(isSpanish ? '¡Sesión iniciada! Publicando trabajo...' : tenant === 'france' ? 'Connecté ! Publication de la mission...' : tenant === 'portugal' ? 'Sessão iniciada! A publicar trabalho...' : 'Signed in! Posting job...');
+                setPasswordStep(prev => ({ ...prev, creating: false }));
+                handleFinalSubmission(signInData.user.id);
+                return;
+            }
+
+            // If sign in failed, try to create a new account
             const { data: signupData, error: signupError } = await supabase.functions.invoke('self-signup', {
                 body: {
                     email: formData.email,
@@ -495,17 +487,16 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
             if (!signupData?.success) {
                 const errMsg = signupData?.error || 'Signup failed';
                 if (errMsg === 'EMAIL_EXISTS') {
-                    // Account already exists — proceed with job submission
-                    toast.success(isSpanish ? 'Cuenta existente encontrada. Trabajo publicado.' : tenant === 'france' ? 'Compte existant trouvé. Mission publiée.' : tenant === 'portugal' ? 'Conta existente encontrada. Trabalho publicado.' : 'Existing account found. Job posted.');
-                    setPasswordStep(prev => ({ ...prev, creating: false }));
-                    handleFinalSubmission();
+                    // Account exists but wrong password — tell user to log in with existing password
+                    toast.error(isSpanish ? 'Ya existe una cuenta con este email. Inicia sesión con tu contraseña existente.' : tenant === 'france' ? 'Un compte existe déjà avec cet e-mail. Connectez-vous avec votre mot de passe existant.' : tenant === 'portugal' ? 'Já existe uma conta com este email. Inicie sessão com a sua palavra-passe existente.' : 'An account already exists with this email. Sign in with your existing password.');
+                    setPasswordStep(prev => ({ ...prev, creating: false, password: '' }));
                     return;
                 }
                 throw new Error(errMsg);
             }
             toast.success(isSpanish ? '¡Cuenta creada! Revisa tu correo para confirmar tu cuenta.' : tenant === 'france' ? 'Compte créé ! Vérifiez votre e-mail pour confirmer.' : tenant === 'portugal' ? 'Conta criada! Verifique o seu email para confirmar.' : 'Account created! Check your email to confirm your account.');
             setPasswordStep(prev => ({ ...prev, creating: false }));
-            handleFinalSubmission();
+            handleFinalSubmission(signupData?.user?.id);
         } catch (err: any) {
             console.error('Password creation error:', err);
             toast.error(err.message || (isSpanish ? 'No se pudo crear la cuenta' : tenant === 'france' ? 'Impossible de créer le compte' : tenant === 'portugal' ? 'Não foi possível criar a conta' : 'Failed to create account'));
@@ -513,7 +504,7 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
         }
     };
 
-    const handleFinalSubmission = async () => {
+    const handleFinalSubmission = async (overrideUserId?: string) => {
         if (isSubmitting) return; // Prevent double submission
 
         // Full validation — re-check all mandatory fields before insert
@@ -563,7 +554,7 @@ const QuoteFormModule = ({ onClose }: QuoteFormModuleProps) => {
         setIsSubmitting(true);
         try {
             const { data: { session } } = await supabase.auth.getSession();
-            let currentUserId = session?.user?.id || user?.id;
+            let currentUserId = overrideUserId || session?.user?.id || user?.id || resolvedUserId;
 
             const lastReferralStr = localStorage.getItem('last_referral');
             let referredByListingId = null;
